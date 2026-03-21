@@ -150,6 +150,6 @@ public struct UserDTO: Codable, Sendable {
 public struct AuthResponseDTO: Codable, Sendable {
     public var access_token: String
     public var token_type: String
-    public var expires_at: Date
+    public var expires_at: String
     public var user: UserDTO
 }
