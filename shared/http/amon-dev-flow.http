@@ -1,0 +1,89 @@
+### Dev login
+POST http://127.0.0.1:8000/v1/auth/dev-login
+Content-Type: application/json
+
+{
+  "apple_subject": "local-dev-user"
+}
+
+### Search (replace TOKEN)
+POST http://127.0.0.1:8000/v1/search
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "query": "best neighborhoods in chicago",
+  "count": 5
+}
+
+### Retrieve page (replace TOKEN)
+POST http://127.0.0.1:8000/v1/retrieve
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "url": "https://example.com/chicago-neighborhoods"
+}
+
+### Compare (replace TOKEN)
+POST http://127.0.0.1:8000/v1/compare
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "title": "Neighborhood compare",
+  "items": [
+    {
+      "item_id": "item_1",
+      "title": "Lincoln Park",
+      "url": "https://example.com/lincoln-park",
+      "domain": "example.com",
+      "snippet": "Walkable and family-friendly.",
+      "cleaned_excerpt": "Lincoln Park offers walkability, green space, and a residential feel.",
+      "bullet_points": ["Walkable", "Family-friendly"],
+      "typed_metadata": {"rating": 4.7}
+    },
+    {
+      "item_id": "item_2",
+      "title": "Wicker Park",
+      "url": "https://example.com/wicker-park",
+      "domain": "example.com",
+      "snippet": "Nightlife and arts.",
+      "cleaned_excerpt": "Wicker Park is known for nightlife, culture, and restaurants.",
+      "bullet_points": ["Nightlife", "Artsy"],
+      "typed_metadata": {"rating": 4.5}
+    }
+  ]
+}
+
+### Research (replace TOKEN)
+POST http://127.0.0.1:8000/v1/research
+Authorization: Bearer TOKEN
+Content-Type: application/json
+
+{
+  "title": "Neighborhood research",
+  "prompt_context": "Best fit for relocation",
+  "items": [
+    {
+      "item_id": "item_1",
+      "title": "Lincoln Park",
+      "url": "https://example.com/lincoln-park",
+      "domain": "example.com",
+      "snippet": "Walkable and family-friendly.",
+      "cleaned_excerpt": "Lincoln Park offers walkability, green space, and a residential feel.",
+      "bullet_points": ["Walkable", "Family-friendly"],
+      "typed_metadata": {"rating": 4.7}
+    },
+    {
+      "item_id": "item_2",
+      "title": "Wicker Park",
+      "url": "https://example.com/wicker-park",
+      "domain": "example.com",
+      "snippet": "Nightlife and arts.",
+      "cleaned_excerpt": "Wicker Park is known for nightlife, culture, and restaurants.",
+      "bullet_points": ["Nightlife", "Artsy"],
+      "typed_metadata": {"rating": 4.5}
+    }
+  ]
+}

@@ -1,0 +1,666 @@
+openapi: 3.1.0
+info:
+  title: Amon API
+  description: Amon v1 privacy-first retrieval backend. Queries and page content are
+    handled transiently.
+  version: 0.1.0
+paths:
+  /healthz:
+    get:
+      tags:
+      - health
+      summary: Healthz
+      operationId: healthz_healthz_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /v1/auth/dev-login:
+    post:
+      tags:
+      - auth
+      summary: Dev Login
+      operationId: dev_login_v1_auth_dev_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevLoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/me:
+    get:
+      tags:
+      - me
+      summary: Me
+      operationId: me_v1_me_get
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/search:
+    post:
+      tags:
+      - search
+      summary: Search
+      operationId: search_v1_search_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/retrieve:
+    post:
+      tags:
+      - retrieve
+      summary: Retrieve
+      operationId: retrieve_v1_retrieve_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetrieveRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredRetrievalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/compare:
+    post:
+      tags:
+      - compare
+      summary: Compare
+      operationId: compare_v1_compare_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompareResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/research:
+    post:
+      tags:
+      - research
+      summary: Research
+      operationId: research_v1_research_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResearchRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AuthResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          const: bearer
+          title: Token Type
+          default: bearer
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+        user:
+          $ref: '#/components/schemas/UserView'
+      type: object
+      required:
+      - access_token
+      - expires_at
+      - user
+      title: AuthResponse
+    CompareCellPayload:
+      properties:
+        item_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Item Id
+        value_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Value Text
+        value_json:
+          anyOf:
+          - {}
+          - type: 'null'
+          title: Value Json
+      type: object
+      title: CompareCellPayload
+    CompareRequest:
+      properties:
+        title:
+          type: string
+          title: Title
+        items:
+          items:
+            $ref: '#/components/schemas/ItemSourcePayload'
+          type: array
+          maxItems: 8
+          minItems: 2
+          title: Items
+      type: object
+      required:
+      - title
+      - items
+      title: CompareRequest
+    CompareResponse:
+      properties:
+        title:
+          type: string
+          title: Title
+        summary:
+          type: string
+          title: Summary
+        rows:
+          items:
+            $ref: '#/components/schemas/CompareRowPayload'
+          type: array
+          title: Rows
+      type: object
+      required:
+      - title
+      - summary
+      - rows
+      title: CompareResponse
+    CompareRowPayload:
+      properties:
+        field_key:
+          type: string
+          title: Field Key
+        field_label:
+          type: string
+          title: Field Label
+        row_type:
+          type: string
+          enum:
+          - text
+          - number
+          - bullet_list
+          - url
+          title: Row Type
+        cells:
+          items:
+            $ref: '#/components/schemas/CompareCellPayload'
+          type: array
+          title: Cells
+      type: object
+      required:
+      - field_key
+      - field_label
+      - row_type
+      - cells
+      title: CompareRowPayload
+    DevLoginRequest:
+      properties:
+        apple_subject:
+          type: string
+          maxLength: 120
+          minLength: 3
+          title: Apple Subject
+      type: object
+      required:
+      - apple_subject
+      title: DevLoginRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+          default: ok
+        app_name:
+          type: string
+          title: App Name
+        version:
+          type: string
+          title: Version
+        environment:
+          type: string
+          title: Environment
+      type: object
+      required:
+      - app_name
+      - version
+      - environment
+      title: HealthResponse
+    ItemSourcePayload:
+      properties:
+        item_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Item Id
+        title:
+          type: string
+          title: Title
+        url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Url
+        domain:
+          type: string
+          title: Domain
+        snippet:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Snippet
+        page_title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Page Title
+        cleaned_excerpt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Cleaned Excerpt
+        bullet_points:
+          items:
+            type: string
+          type: array
+          title: Bullet Points
+        typed_metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Typed Metadata
+      type: object
+      required:
+      - title
+      - url
+      - domain
+      title: ItemSourcePayload
+    ModelInfo:
+      properties:
+        name:
+          type: string
+          title: Name
+        version:
+          type: string
+          title: Version
+      type: object
+      required:
+      - name
+      - version
+      title: ModelInfo
+    ProviderInfo:
+      properties:
+        name:
+          type: string
+          title: Name
+        provider_result_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider Result Id
+      type: object
+      required:
+      - name
+      title: ProviderInfo
+    ResearchRequest:
+      properties:
+        title:
+          type: string
+          title: Title
+        prompt_context:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prompt Context
+        items:
+          items:
+            $ref: '#/components/schemas/ItemSourcePayload'
+          type: array
+          maxItems: 10
+          minItems: 2
+          title: Items
+      type: object
+      required:
+      - title
+      - items
+      title: ResearchRequest
+    ResearchResponse:
+      properties:
+        title:
+          type: string
+          title: Title
+        summary_text:
+          type: string
+          title: Summary Text
+        bullet_summary:
+          items:
+            type: string
+          type: array
+          title: Bullet Summary
+        sources:
+          items:
+            $ref: '#/components/schemas/ResearchSourceRef'
+          type: array
+          title: Sources
+        model:
+          $ref: '#/components/schemas/ModelInfo'
+      type: object
+      required:
+      - title
+      - summary_text
+      - bullet_summary
+      - sources
+      - model
+      title: ResearchResponse
+    ResearchSourceRef:
+      properties:
+        item_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Item Id
+      type: object
+      title: ResearchSourceRef
+    RetrieveRequest:
+      properties:
+        url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Url
+      type: object
+      required:
+      - url
+      title: RetrieveRequest
+    SearchRequest:
+      properties:
+        query:
+          type: string
+          maxLength: 300
+          minLength: 1
+          title: Query
+        count:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Count
+          default: 10
+      type: object
+      required:
+      - query
+      title: SearchRequest
+    SearchResponse:
+      properties:
+        results:
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          type: array
+          title: Results
+      type: object
+      required:
+      - results
+      title: SearchResponse
+    SearchResult:
+      properties:
+        id:
+          type: string
+          title: Id
+        title:
+          type: string
+          title: Title
+        url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Url
+        snippet:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Snippet
+        result_type:
+          type: string
+          enum:
+          - web_page
+          - article
+          - place
+          - product
+          title: Result Type
+          default: web_page
+        domain:
+          type: string
+          title: Domain
+        typed_metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Typed Metadata
+        provider:
+          $ref: '#/components/schemas/ProviderInfo'
+      type: object
+      required:
+      - id
+      - title
+      - url
+      - domain
+      - provider
+      title: SearchResult
+    StructuredRetrievalResponse:
+      properties:
+        url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Url
+        canonical_url:
+          type: string
+          maxLength: 2083
+          minLength: 1
+          format: uri
+          title: Canonical Url
+        title:
+          type: string
+          title: Title
+        domain:
+          type: string
+          title: Domain
+        excerpt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Excerpt
+        bullet_points:
+          items:
+            type: string
+          type: array
+          title: Bullet Points
+        retrieved_at:
+          type: string
+          format: date-time
+          title: Retrieved At
+      type: object
+      required:
+      - url
+      - canonical_url
+      - title
+      - domain
+      - retrieved_at
+      title: StructuredRetrievalResponse
+    UserView:
+      properties:
+        id:
+          type: string
+          title: Id
+        status:
+          type: string
+          title: Status
+        entitlement_tier:
+          type: string
+          title: Entitlement Tier
+        entitlement_status:
+          type: string
+          title: Entitlement Status
+      type: object
+      required:
+      - id
+      - status
+      - entitlement_tier
+      - entitlement_status
+      title: UserView
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
