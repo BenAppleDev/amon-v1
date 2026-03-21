@@ -22,7 +22,7 @@ def test_search_returns_mock_results(client):
     assert response.status_code == 200
     payload = response.json()
     assert len(payload['results']) == 3
-    assert payload['results'][0]['provider']['name'] in {'mock', 'brave'}
+    assert payload['results'][0]['provider']['name'] == 'mock'
 
 
 def test_compare_and_research(client):

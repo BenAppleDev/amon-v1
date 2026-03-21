@@ -13,17 +13,31 @@ struct RootTabView: View {
         let dbURL = documents.appendingPathComponent("amon-local.sqlite")
         let store = try! SQLiteWorkspaceStore(databaseURL: dbURL)
 
+        let workspaceViewModel = WorkspaceListViewModel(store: store)
+        let searchViewModel = SearchViewModel(apiClient: apiClient, store: store)
+        searchViewModel.setWorkspaceDidChangeHandler {
+            workspaceViewModel.refresh()
+        }
+
         _searchViewModel = StateObject(
-            wrappedValue: SearchViewModel(apiClient: apiClient, store: store)
+            wrappedValue: searchViewModel
         )
         _workspaceViewModel = StateObject(
-            wrappedValue: WorkspaceListViewModel(store: store)
+            wrappedValue: workspaceViewModel
         )
     }
 
     var body: some View {
         Group {
-            if searchViewModel.isAuthenticated {
+            if searchViewModel.isRestoringSession {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                    Text("Checking your local session")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            } else if searchViewModel.isAuthenticated {
                 TabView {
                     SearchView(viewModel: searchViewModel)
                         .tabItem {
@@ -38,6 +52,10 @@ struct RootTabView: View {
             } else {
                 SignInView(viewModel: searchViewModel)
             }
+        }
+        .tint(Color(uiColor: .systemTeal))
+        .task {
+            await searchViewModel.restoreSessionIfNeeded()
         }
     }
 }

@@ -14,6 +14,7 @@ public struct WebViewContainer: UIViewRepresentable {
     }
 
     public func updateUIView(_ webView: WKWebView, context: Context) {
+        guard webView.url != url else { return }
         webView.load(URLRequest(url: url))
     }
 }

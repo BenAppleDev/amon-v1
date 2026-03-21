@@ -19,6 +19,10 @@ public final class KeychainHelper: @unchecked Sendable {
         return String(data: data, encoding: .utf8)
     }
 
+    public func deleteSessionToken() throws {
+        try delete(account: "session_token")
+    }
+
     public func saveLocalEncryptionKey(_ data: Data) throws {
         try save(value: data, account: "local_store_key")
     }
@@ -61,5 +65,17 @@ public final class KeychainHelper: @unchecked Sendable {
             throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
         }
         return item as? Data
+    }
+
+    private func delete(account: String) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+        ]
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
+        }
     }
 }

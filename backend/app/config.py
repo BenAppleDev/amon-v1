@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     database_url: str = Field(default='sqlite:///./amon_server.db', alias='DATABASE_URL')
     search_provider: str = Field(default='mock', alias='SEARCH_PROVIDER')
     brave_api_key: str | None = Field(default=None, alias='BRAVE_API_KEY')
+    brave_base_url: str = Field(default='https://api.search.brave.com', alias='BRAVE_BASE_URL')
+    brave_timeout_seconds: float = Field(default=15.0, alias='BRAVE_TIMEOUT_SECONDS')
 
     requests_per_minute: int = Field(default=60, alias='REQUESTS_PER_MINUTE')
     session_ttl_hours: int = Field(default=24, alias='SESSION_TTL_HOURS')
@@ -31,6 +33,11 @@ class Settings(BaseSettings):
         if not value:
             return []
         return [item.strip() for item in value.split(',') if item.strip()]
+
+    @field_validator('search_provider', mode='before')
+    @classmethod
+    def normalize_search_provider(cls, value: str) -> str:
+        return value.strip().lower()
 
 
 @lru_cache(maxsize=1)

@@ -20,7 +20,7 @@ public enum AmonAPIError: Error, LocalizedError, Sendable {
     }
 }
 
-public final class AmonAPIClient: @unchecked Sendable {
+public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
     public let baseURL: URL
     private let session: URLSession
     private let keychain: KeychainHelper
@@ -64,6 +64,10 @@ public final class AmonAPIClient: @unchecked Sendable {
     public func research(title: String, promptContext: String?, items: [Item]) async throws -> ResearchResponseDTO {
         let payload = ResearchRequestDTO(title: title, prompt_context: promptContext, items: items.map(ItemSourcePayloadDTO.init(item:)))
         return try await request(path: "/v1/research", method: "POST", body: payload, requiresAuth: true)
+    }
+
+    public func clearSession() throws {
+        try keychain.deleteSessionToken()
     }
 
     private func request<T: Decodable, Body: Encodable>(
