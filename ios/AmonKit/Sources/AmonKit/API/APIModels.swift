@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ProviderInfoDTO: Codable, Sendable {
+public struct ProviderInfoDTO: Codable, Equatable, Sendable {
     public var name: String
     public var provider_result_id: String?
 }
