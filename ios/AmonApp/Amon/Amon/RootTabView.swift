@@ -2,28 +2,40 @@ import AmonKit
 import SwiftUI
 
 struct RootTabView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var workspaceViewModel: WorkspaceListViewModel
+    @StateObject private var privacySettingsStore: PrivacySettingsStore
+    private let apiClient: AmonAPIClient
 
     init() {
         let baseURL = URL(string: "http://10.220.233.167:8000")!
         let apiClient = AmonAPIClient(baseURL: baseURL)
+        let privacySettingsStore = PrivacySettingsStore()
 
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let dbURL = documents.appendingPathComponent("amon-local.sqlite")
         let store = try! SQLiteWorkspaceStore(databaseURL: dbURL)
 
         let workspaceViewModel = WorkspaceListViewModel(store: store)
-        let searchViewModel = SearchViewModel(apiClient: apiClient, store: store)
+        let searchViewModel = SearchViewModel(
+            apiClient: apiClient,
+            store: store,
+            privacySettingsStore: privacySettingsStore
+        )
         searchViewModel.setWorkspaceDidChangeHandler {
             workspaceViewModel.refresh()
         }
 
+        self.apiClient = apiClient
         _searchViewModel = StateObject(
             wrappedValue: searchViewModel
         )
         _workspaceViewModel = StateObject(
             wrappedValue: workspaceViewModel
+        )
+        _privacySettingsStore = StateObject(
+            wrappedValue: privacySettingsStore
         )
     }
 
@@ -39,12 +51,19 @@ struct RootTabView: View {
                 }
             } else if searchViewModel.isAuthenticated {
                 TabView {
-                    SearchView(viewModel: searchViewModel)
+                    SearchView(
+                        viewModel: searchViewModel,
+                        privacySettingsStore: privacySettingsStore
+                    )
                         .tabItem {
                             Label("Search", systemImage: "magnifyingglass")
                         }
 
-                    WorkspaceListView(viewModel: workspaceViewModel)
+                    WorkspaceListView(
+                        viewModel: workspaceViewModel,
+                        apiClient: apiClient,
+                        privacySettingsStore: privacySettingsStore
+                    )
                         .tabItem {
                             Label("Workspace", systemImage: "folder")
                         }
@@ -56,6 +75,21 @@ struct RootTabView: View {
         .tint(Color(uiColor: .systemTeal))
         .task {
             await searchViewModel.restoreSessionIfNeeded()
+            await BrowserPrivacyController.clearWebsiteDataIfNeededOnLaunch(using: privacySettingsStore.settings)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .background {
+                Task {
+                    await BrowserPrivacyController.clearWebsiteDataIfNeededOnBackground(using: privacySettingsStore.settings)
+                }
+            }
+        }
+        .onChange(of: privacySettingsStore.settings.browsing.sessionPersistence) { oldValue, newValue in
+            if oldValue != newValue && newValue != .persistent {
+                Task {
+                    await BrowserPrivacyController.clearWebsiteData()
+                }
+            }
         }
     }
 }

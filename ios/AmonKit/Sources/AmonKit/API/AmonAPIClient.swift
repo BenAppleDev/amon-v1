@@ -25,9 +25,9 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
     private let session: URLSession
     private let keychain: KeychainHelper
 
-    public init(baseURL: URL, session: URLSession = .shared, keychain: KeychainHelper = .shared) {
+    public init(baseURL: URL, session: URLSession? = nil, keychain: KeychainHelper = .shared) {
         self.baseURL = baseURL
-        self.session = session
+        self.session = session ?? .amonDefault
         self.keychain = keychain
     }
 
@@ -124,4 +124,18 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
             throw AmonAPIError.decodingError
         }
     }
+}
+
+private extension URLSession {
+    static let amonDefault: URLSession = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        configuration.urlCache = nil
+        configuration.httpCookieStorage = nil
+        configuration.httpShouldSetCookies = false
+        configuration.waitsForConnectivity = false
+        configuration.timeoutIntervalForRequest = 5
+        configuration.timeoutIntervalForResource = 10
+        return URLSession(configuration: configuration)
+    }()
 }

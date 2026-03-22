@@ -2,11 +2,20 @@ import SwiftUI
 
 public struct WorkspaceListView: View {
     @ObservedObject private var viewModel: WorkspaceListViewModel
+    @ObservedObject private var privacySettingsStore: PrivacySettingsStore
+    private let apiClient: any AmonAPIClienting
     @State private var isPresentingNewWorkspace = false
+    @State private var isPresentingPrivacySettings = false
     @State private var newWorkspaceTitle = ""
 
-    public init(viewModel: WorkspaceListViewModel) {
+    public init(
+        viewModel: WorkspaceListViewModel,
+        apiClient: any AmonAPIClienting,
+        privacySettingsStore: PrivacySettingsStore
+    ) {
         self.viewModel = viewModel
+        self.apiClient = apiClient
+        self.privacySettingsStore = privacySettingsStore
     }
 
     public var body: some View {
@@ -35,7 +44,11 @@ public struct WorkspaceListView: View {
                             LazyVStack(spacing: 14) {
                                 ForEach(viewModel.workspaceSummaries) { summary in
                                     NavigationLink {
-                                        WorkspaceDetailView(viewModel: viewModel.makeDetailViewModel(for: summary))
+                                        WorkspaceDetailView(
+                                            viewModel: viewModel.makeDetailViewModel(for: summary),
+                                            apiClient: apiClient,
+                                            privacySettingsStore: privacySettingsStore
+                                        )
                                     } label: {
                                         WorkspaceSummaryCard(summary: summary)
                                     }
@@ -55,6 +68,13 @@ public struct WorkspaceListView: View {
             .navigationTitle("Workspace")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isPresentingPrivacySettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: presentCreateWorkspace) {
                         Image(systemName: "plus")
@@ -97,6 +117,9 @@ public struct WorkspaceListView: View {
                     }
                 }
                 .presentationDetents([.medium])
+            }
+            .sheet(isPresented: $isPresentingPrivacySettings) {
+                PrivacySettingsView(store: privacySettingsStore)
             }
         }
     }

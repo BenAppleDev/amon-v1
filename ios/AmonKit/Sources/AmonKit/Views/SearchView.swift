@@ -2,11 +2,14 @@ import SwiftUI
 
 public struct SearchView: View {
     @ObservedObject private var viewModel: SearchViewModel
+    @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     @FocusState private var isSearchFieldFocused: Bool
     @State private var presentedPage: PresentedPage?
+    @State private var isPresentingPrivacySettings = false
 
-    public init(viewModel: SearchViewModel) {
+    public init(viewModel: SearchViewModel, privacySettingsStore: PrivacySettingsStore) {
         self.viewModel = viewModel
+        self.privacySettingsStore = privacySettingsStore
     }
 
     public var body: some View {
@@ -50,6 +53,13 @@ public struct SearchView: View {
                 }
             }
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isPresentingPrivacySettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Done") {
@@ -58,10 +68,12 @@ public struct SearchView: View {
                 }
             }
             .navigationDestination(item: $presentedPage) { page in
-                WebViewContainer(url: page.url)
-                    .ignoresSafeArea()
-                    .navigationTitle(page.title)
-                    .navigationBarTitleDisplayMode(.inline)
+                PrivacyAwarePageView(
+                    title: page.title,
+                    url: page.url,
+                    apiClient: viewModel.apiClient,
+                    privacySettingsStore: privacySettingsStore
+                )
             }
             .sheet(item: $viewModel.activePresentation) { presentation in
                 NavigationStack {
@@ -81,6 +93,9 @@ public struct SearchView: View {
                         }
                     }
                 }
+            }
+            .sheet(isPresented: $isPresentingPrivacySettings) {
+                PrivacySettingsView(store: privacySettingsStore)
             }
         }
     }

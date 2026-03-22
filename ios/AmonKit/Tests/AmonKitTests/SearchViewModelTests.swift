@@ -23,7 +23,7 @@ final class SearchViewModelTests: XCTestCase {
             makeResult(id: "two", title: "Two", url: "https://example.com/two"),
         ]
 
-        let viewModel = SearchViewModel(apiClient: api, store: store)
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
         viewModel.query = "privacy"
 
         await viewModel.search()
@@ -41,7 +41,7 @@ final class SearchViewModelTests: XCTestCase {
         let api = MockAPIClient()
         api.searchResults = [makeResult(id: "one", title: "One", url: "https://example.com/one")]
 
-        let viewModel = SearchViewModel(apiClient: api, store: store)
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
         viewModel.query = "privacy"
         await viewModel.search()
 
@@ -78,7 +78,7 @@ final class SearchViewModelTests: XCTestCase {
             ]
         )
 
-        let viewModel = SearchViewModel(apiClient: api, store: store)
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
         viewModel.query = "privacy"
         await viewModel.search()
         viewModel.toggleSelection(for: "one")
@@ -103,7 +103,7 @@ final class SearchViewModelTests: XCTestCase {
         let api = MockAPIClient()
         api.searchError = AmonAPIError.unauthorized
 
-        let viewModel = SearchViewModel(apiClient: api, store: store)
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
         await viewModel.signIn(appleSubject: "dev-user")
         viewModel.query = "privacy"
 
@@ -112,6 +112,81 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isAuthenticated)
         XCTAssertEqual(api.clearSessionCalls, 1)
         XCTAssertEqual(viewModel.banner?.title, "Sign in again")
+    }
+
+    func testCompareRequiresExplicitSaveWhenPrivacySettingDisablesAutoSave() async throws {
+        let store = MockWorkspaceStore()
+        let api = MockAPIClient()
+        api.searchResults = [
+            makeResult(id: "one", title: "One", url: "https://example.com/one"),
+            makeResult(id: "two", title: "Two", url: "https://example.com/two"),
+        ]
+
+        let privacyStore = makePrivacyStore()
+        privacyStore.updateAutoSaveSourcesForDeeperModes(false)
+
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: privacyStore)
+        viewModel.query = "privacy"
+        await viewModel.search()
+        viewModel.toggleSelection(for: "one")
+        viewModel.toggleSelection(for: "two")
+
+        await viewModel.runCompare()
+
+        XCTAssertTrue(api.compareRequests.isEmpty)
+        XCTAssertEqual(viewModel.banner?.title, "Save sources first")
+    }
+
+    func testCompareUsesRetrievedContentWithoutPersistingWhenPrivacySettingDisablesLocalExtractSave() async throws {
+        let store = MockWorkspaceStore()
+        let api = MockAPIClient()
+        api.searchResults = [
+            makeResult(id: "one", title: "One", url: "https://example.com/one"),
+            makeResult(id: "two", title: "Two", url: "https://example.com/two"),
+        ]
+        api.retrievalResponses = [
+            "https://example.com/one": StructuredRetrievalDTO(
+                url: "https://example.com/one",
+                canonical_url: "https://example.com/one",
+                title: "Reader One",
+                domain: "example.com",
+                excerpt: "Readable excerpt one",
+                bullet_points: ["Point one"],
+                retrieved_at: Date()
+            ),
+            "https://example.com/two": StructuredRetrievalDTO(
+                url: "https://example.com/two",
+                canonical_url: "https://example.com/two",
+                title: "Reader Two",
+                domain: "example.com",
+                excerpt: "Readable excerpt two",
+                bullet_points: ["Point two"],
+                retrieved_at: Date()
+            ),
+        ]
+
+        let privacyStore = makePrivacyStore()
+        privacyStore.updateUseBackendReaderForDeeperModes(true)
+        privacyStore.updateSaveRetrievedContentLocally(false)
+
+        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: privacyStore)
+        viewModel.query = "privacy"
+        await viewModel.search()
+        viewModel.toggleSelection(for: "one")
+        viewModel.toggleSelection(for: "two")
+
+        await viewModel.runCompare()
+
+        let compareItems = try XCTUnwrap(api.compareRequests.first?.1)
+        XCTAssertEqual(compareItems.count, 2)
+        XCTAssertEqual(compareItems[0].cleanedExcerpt, "Readable excerpt one")
+        XCTAssertEqual(compareItems[1].cleanedExcerpt, "Readable excerpt two")
+
+        let workspace = try XCTUnwrap(store.fetchWorkspaces().first)
+        let savedItems = try store.fetchItems(workspaceID: workspace.id)
+        XCTAssertEqual(savedItems.count, 2)
+        XCTAssertNil(savedItems[0].cleanedExcerpt)
+        XCTAssertNil(savedItems[1].cleanedExcerpt)
     }
 
     private func makeResult(id: String, title: String, url: String) -> SearchResult {
@@ -125,6 +200,13 @@ final class SearchViewModelTests: XCTestCase {
             typed_metadata: ["age": .string("Today")],
             provider: ProviderInfoDTO(name: "brave", provider_result_id: id)
         )
+    }
+
+    private func makePrivacyStore() -> PrivacySettingsStore {
+        let suiteName = "amon.tests.privacy.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return PrivacySettingsStore(userDefaults: defaults, storageKey: "privacy")
     }
 }
 
@@ -140,6 +222,9 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
         model: ModelInfoDTO(name: "mock", version: "1")
     )
     var searchRequests: [(String, Int)] = []
+    var compareRequests: [(String, [Item])] = []
+    var researchRequests: [(String, String?, [Item])] = []
+    var retrievalResponses: [String: StructuredRetrievalDTO] = [:]
     var clearSessionCalls = 0
 
     func devLogin(appleSubject: String) async throws -> AuthResponseDTO {
@@ -164,7 +249,7 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
     }
 
     func retrieve(url: String) async throws -> StructuredRetrievalDTO {
-        StructuredRetrievalDTO(
+        retrievalResponses[url] ?? StructuredRetrievalDTO(
             url: url,
             canonical_url: url,
             title: "Title",
@@ -176,11 +261,13 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
     }
 
     func compare(title: String, items: [Item]) async throws -> CompareResponseDTO {
-        compareResponse
+        compareRequests.append((title, items))
+        return compareResponse
     }
 
     func research(title: String, promptContext: String?, items: [Item]) async throws -> ResearchResponseDTO {
-        researchResponse
+        researchRequests.append((title, promptContext, items))
+        return researchResponse
     }
 
     func clearSession() throws {

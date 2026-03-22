@@ -23,15 +23,21 @@ public final class SearchViewModel: ObservableObject {
     @Published var banner: AmonBanner?
     @Published var activePresentation: SearchPresentation?
 
-    private let apiClient: any AmonAPIClienting
+    let apiClient: any AmonAPIClienting
     private let store: WorkspaceStore
+    private let privacySettingsStore: PrivacySettingsStore
     private var didAttemptSessionRestore = false
     private var workspaceDidChangeHandler: (@MainActor () -> Void)?
     private let defaultWorkspaceTitle = "Research Library"
 
-    public init(apiClient: any AmonAPIClienting, store: WorkspaceStore) {
+    public init(
+        apiClient: any AmonAPIClienting,
+        store: WorkspaceStore,
+        privacySettingsStore: PrivacySettingsStore
+    ) {
         self.apiClient = apiClient
         self.store = store
+        self.privacySettingsStore = privacySettingsStore
         refreshWorkspaceState()
     }
 
@@ -158,7 +164,7 @@ public final class SearchViewModel: ObservableObject {
         defer { isRunningCompare = false }
 
         do {
-            let items = try materializeSelectedItems()
+            let items = try await prepareSelectedItemsForDeeperMode()
             let response = try await apiClient.compare(title: "Compare", items: items)
             let artifact = buildCompareArtifact(
                 from: response,
@@ -195,7 +201,7 @@ public final class SearchViewModel: ObservableObject {
         defer { isRunningResearch = false }
 
         do {
-            let items = try materializeSelectedItems()
+            let items = try await prepareSelectedItemsForDeeperMode()
             let response = try await apiClient.research(title: "Research", promptContext: promptContext, items: items)
             let artifact = ResearchArtifact(
                 workspaceID: items.first?.workspaceID ?? "",
@@ -284,6 +290,10 @@ public final class SearchViewModel: ObservableObject {
         }
     }
 
+    private var privacySettings: PrivacySettings {
+        privacySettingsStore.settings
+    }
+
     private func persist(results: [SearchResult], announce: Bool) -> [Item]? {
         let uniqueResults = deduplicated(results: results)
         guard !uniqueResults.isEmpty else {
@@ -336,11 +346,33 @@ public final class SearchViewModel: ObservableObject {
         }
     }
 
-    private func materializeSelectedItems() throws -> [Item] {
-        if let items = persist(results: selectedResults, announce: false), items.count >= 2 {
+    private func prepareSelectedItemsForDeeperMode() async throws -> [Item] {
+        let items: [Item]
+
+        if privacySettings.workspace.autoSaveSourcesForDeeperModes {
+            if let persistedItems = persist(results: selectedResults, announce: false), persistedItems.count >= 2 {
+                items = persistedItems
+            } else {
+                throw SearchFlowError.materializationFailed
+            }
+        } else {
+            let savedItems = try savedItemsForSelectedResults()
+            guard savedItems.count >= 2 else {
+                banner = AmonBanner(
+                    tone: .info,
+                    title: "Save sources first",
+                    message: "This privacy setting keeps Compare and Research from saving sources automatically. Save the selected sources first, then try again."
+                )
+                throw SearchFlowError.materializationFailed
+            }
+            items = savedItems
+        }
+
+        guard privacySettings.retrieval.useBackendReaderForDeeperModes else {
             return items
         }
-        throw SearchFlowError.materializationFailed
+
+        return try await enrichItemsForDeeperMode(items)
     }
 
     private func ensureWorkspace(title: String? = nil) throws -> Workspace {
@@ -383,6 +415,54 @@ public final class SearchViewModel: ObservableObject {
         return results.filter { result in
             seen.insert(result.url).inserted
         }
+    }
+
+    private func savedItemsForSelectedResults() throws -> [Item] {
+        refreshWorkspaceState()
+        guard let workspace = currentWorkspace else { return [] }
+        let savedItems = try store.fetchItems(workspaceID: workspace.id)
+        let itemsByURL = Dictionary(uniqueKeysWithValues: savedItems.map { ($0.canonicalURL, $0) })
+        return deduplicated(results: selectedResults).compactMap { itemsByURL[$0.url] }
+    }
+
+    private func enrichItemsForDeeperMode(_ items: [Item]) async throws -> [Item] {
+        var enrichedItems: [Item] = []
+        var retrievedCount = 0
+        var failedCount = 0
+
+        for item in items {
+            do {
+                let retrieved = try await apiClient.retrieve(url: item.canonicalURL)
+                let updated = retrieved.merged(into: item)
+                enrichedItems.append(updated)
+                retrievedCount += 1
+
+                if privacySettings.retrieval.saveRetrievedContentLocally {
+                    try store.saveItem(updated)
+                }
+            } catch {
+                if AmonErrorPresenter.isUnauthorized(error) {
+                    throw error
+                }
+                enrichedItems.append(item)
+                failedCount += 1
+            }
+        }
+
+        if privacySettings.retrieval.saveRetrievedContentLocally && retrievedCount > 0 {
+            refreshWorkspaceState()
+            notifyWorkspaceDidChange()
+        }
+
+        if failedCount > 0 {
+            banner = AmonBanner(
+                tone: .info,
+                title: "Some sources stayed lightweight",
+                message: "Amon couldn't fetch every readable page, so deeper mode used saved metadata where needed."
+            )
+        }
+
+        return enrichedItems
     }
 
     private func upsertItem(

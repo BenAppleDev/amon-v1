@@ -44,6 +44,20 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PresentationModels.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PresentationModels.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PrivacySettings.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/BrowserPrivacyController.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/KeychainHelper.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/KeychainHelper.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/KeychainHelper.swift.o",
@@ -127,6 +141,20 @@
     "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ComparePreviewView~partial.swiftmodule",
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ComparePreviewView.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ComparePreviewView.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/PrivacySettingsView.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ReaderPageView.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ReaderPageView.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ReaderPageView.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ReaderPageView~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ReaderPageView.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ReaderPageView.dia"
   },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ResearchPreviewView.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ResearchPreviewView.d",

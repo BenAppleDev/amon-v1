@@ -2,9 +2,17 @@ import SwiftUI
 
 public struct WorkspaceDetailView: View {
     @ObservedObject private var viewModel: WorkspaceDetailViewModel
+    @ObservedObject private var privacySettingsStore: PrivacySettingsStore
+    private let apiClient: any AmonAPIClienting
 
-    init(viewModel: WorkspaceDetailViewModel) {
+    init(
+        viewModel: WorkspaceDetailViewModel,
+        apiClient: any AmonAPIClienting,
+        privacySettingsStore: PrivacySettingsStore
+    ) {
         self.viewModel = viewModel
+        self.apiClient = apiClient
+        self.privacySettingsStore = privacySettingsStore
     }
 
     public var body: some View {
@@ -54,10 +62,12 @@ public struct WorkspaceDetailView: View {
                         ForEach(viewModel.items) { item in
                             NavigationLink {
                                 if let url = URL(string: item.canonicalURL) {
-                                    WebViewContainer(url: url)
-                                        .ignoresSafeArea()
-                                        .navigationTitle(item.displayTitle)
-                                        .navigationBarTitleDisplayMode(.inline)
+                                    PrivacyAwarePageView(
+                                        title: item.displayTitle,
+                                        url: url,
+                                        apiClient: apiClient,
+                                        privacySettingsStore: privacySettingsStore
+                                    )
                                 }
                             } label: {
                                 VStack(alignment: .leading, spacing: 6) {
