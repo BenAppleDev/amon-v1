@@ -44,7 +44,7 @@ public struct ReaderPageView: View {
     @StateObject private var viewModel: ReaderPageViewModel
     private let url: URL
     private let sessionPersistence: BrowsingSessionPersistence
-    @State private var showsWebsite = false
+    @State private var presentedWebsite: PresentedWebsite?
 
     public init(
         title: String,
@@ -82,23 +82,21 @@ public struct ReaderPageView: View {
             }
             .padding(20)
         }
-        .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+        .background(AmonTheme.canvas.ignoresSafeArea())
         .navigationTitle(viewModel.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Open Site") {
-                    showsWebsite = true
+                    presentedWebsite = PresentedWebsite(title: viewModel.navigationTitle, url: url)
                 }
             }
         }
-        .sheet(isPresented: $showsWebsite) {
-            NavigationStack {
-                WebViewContainer(url: url, sessionPersistence: sessionPersistence)
-                    .ignoresSafeArea()
-                    .navigationTitle(viewModel.navigationTitle)
-                    .navigationBarTitleDisplayMode(.inline)
-            }
+        .navigationDestination(item: $presentedWebsite) { destination in
+            WebViewContainer(url: destination.url, sessionPersistence: sessionPersistence)
+                .ignoresSafeArea()
+                .navigationTitle(destination.title)
+                .navigationBarTitleDisplayMode(.inline)
         }
         .task {
             await viewModel.loadIfNeeded()
@@ -167,10 +165,17 @@ public struct ReaderPageView: View {
                 message: "You can still open the site directly if you need the original page.",
                 systemImage: "exclamationmark.triangle",
                 actionTitle: "Open site",
-                action: { showsWebsite = true }
+                action: { presentedWebsite = PresentedWebsite(title: viewModel.navigationTitle, url: url) }
             )
         }
     }
+}
+
+private struct PresentedWebsite: Identifiable, Hashable {
+    let title: String
+    let url: URL
+
+    var id: URL { url }
 }
 
 @MainActor

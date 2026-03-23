@@ -84,6 +84,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift"
         },
         {
@@ -97,6 +105,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift"
         },
         {
           "kind" : "file",
@@ -165,10 +177,13 @@
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/SQLiteWorkspaceStore.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/Schema.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceStore.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/Coders.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/SearchViewModel.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceDetailViewModel.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceListViewModel.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonUIComponents.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ComparePreviewView.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettingsView.swift.o",
@@ -295,6 +310,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/Coders.swift.o"
         },
         {
@@ -308,6 +331,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceListViewModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.swift.o"
         },
         {
           "kind" : "file",
@@ -370,10 +397,13 @@
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/SQLiteWorkspaceStore.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/Schema.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/WorkspaceStore.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/SearchViewModel.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceDetailViewModel.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ComparePreviewView.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/PrivacySettingsView.swift",
@@ -625,10 +655,13 @@
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/SQLiteWorkspaceStore.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/Schema.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/WorkspaceStore.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/SearchViewModel.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceDetailViewModel.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ComparePreviewView.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/PrivacySettingsView.swift",
@@ -929,6 +962,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift"
         },
         {
@@ -942,6 +983,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift"
         },
         {
           "kind" : "file",
@@ -1018,6 +1063,18 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonAPIClienting.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.swift.o"
         },
         {
           "kind" : "file",

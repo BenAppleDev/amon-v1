@@ -10,34 +10,26 @@ public struct SignInView: View {
 
     public var body: some View {
         ZStack {
-            Color(uiColor: .systemGroupedBackground)
+            AmonTheme.canvas
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("Amon")
                             .font(.largeTitle.bold())
-
-                        Text("Private by default. Deeper when needed.")
+                        Text("Private research, kept close.")
                             .font(.title3.weight(.medium))
-
-                        Text("A calm place to search, save, compare, and synthesize without turning your work into server history.")
-                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
 
-                    AmonTrustStripView(items: ["Saved locally", "No server history", "Backend broker only"])
+                    AmonTrustStripView(items: ["Saved locally", "No server history", "Backend broker"])
 
                     if let banner = viewModel.banner {
                         AmonBannerView(banner: banner, dismiss: viewModel.dismissBanner)
                     }
 
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Sign in")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-
                         SignInWithAppleButton(
                             .signIn,
                             onRequest: { request in
@@ -76,7 +68,7 @@ public struct SignInView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Local development")
                                 .font(.subheadline.weight(.semibold))
-                            Text("Use the dev path while your local backend is running.")
+                            Text("Use the dev path while the local backend is running.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
 
@@ -100,10 +92,12 @@ public struct SignInView: View {
                         }
                         .amonCardStyle()
                     }
-                    .amonCardStyle(padding: 20)
+                    .amonCardStyle(padding: 22)
                 }
                 .padding(20)
                 .frame(maxWidth: 560)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 40)
             }
         }
     }

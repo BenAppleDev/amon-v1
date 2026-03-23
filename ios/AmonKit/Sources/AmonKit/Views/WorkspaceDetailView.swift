@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct WorkspaceDetailView: View {
     @ObservedObject private var viewModel: WorkspaceDetailViewModel
@@ -30,15 +31,16 @@ public struct WorkspaceDetailView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(workspace.title)
                             .font(.title3.weight(.semibold))
-                        Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
 
                         HStack(spacing: 8) {
                             AmonMetadataPill(text: "\(viewModel.items.count) items")
                             AmonMetadataPill(text: "\(viewModel.compareArtifacts.count) compares")
                             AmonMetadataPill(text: "\(viewModel.researchArtifacts.count) research")
                         }
+
+                        Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                     .amonCardStyle(padding: 18)
                     .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
@@ -84,6 +86,29 @@ public struct WorkspaceDetailView: View {
                                     }
                                 }
                                 .padding(.vertical, 4)
+                            }
+                            .contextMenu {
+                                if let url = URL(string: item.canonicalURL) {
+                                    Button {
+                                        UIApplication.shared.open(url)
+                                    } label: {
+                                        Label("Open", systemImage: "arrow.up.right.square")
+                                    }
+                                }
+
+                                Button {
+                                    UIPasteboard.general.string = item.canonicalURL
+                                    AmonHaptics.success()
+                                } label: {
+                                    Label("Copy Link", systemImage: "link")
+                                }
+                            } preview: {
+                                AmonSourcePreviewCard(
+                                    title: item.displayTitle,
+                                    domain: item.domain,
+                                    summary: item.previewText,
+                                    metadata: []
+                                )
                             }
                         }
                     }
@@ -141,7 +166,7 @@ public struct WorkspaceDetailView: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(AmonTheme.canvas)
         .navigationTitle(viewModel.workspace?.title ?? "Workspace")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {

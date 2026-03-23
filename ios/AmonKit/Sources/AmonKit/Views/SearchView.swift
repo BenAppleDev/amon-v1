@@ -3,24 +3,31 @@ import SwiftUI
 public struct SearchView: View {
     @ObservedObject private var viewModel: SearchViewModel
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
+    private let openAppMenu: () -> Void
     @FocusState private var isSearchFieldFocused: Bool
     @State private var presentedPage: PresentedPage?
-    @State private var isPresentingPrivacySettings = false
+    @State private var isPresentingWorkspaceChooser = false
+    @State private var newWorkspaceTitle = ""
+    @State private var pendingWorkspaceAction: PendingWorkspaceAction?
 
-    public init(viewModel: SearchViewModel, privacySettingsStore: PrivacySettingsStore) {
+    public init(
+        viewModel: SearchViewModel,
+        privacySettingsStore: PrivacySettingsStore,
+        openAppMenu: @escaping () -> Void
+    ) {
         self.viewModel = viewModel
         self.privacySettingsStore = privacySettingsStore
+        self.openAppMenu = openAppMenu
     }
 
     public var body: some View {
         NavigationStack {
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
+                AmonTheme.canvas
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        header
                         searchComposer
                         AmonTrustStripView(items: ["Saved locally", "No server history"])
 
@@ -41,8 +48,7 @@ public struct SearchView: View {
                     }
                 )
             }
-            .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom) {
                 if viewModel.shouldShowSelectionBar {
                     selectionActionBar
@@ -54,10 +60,8 @@ public struct SearchView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isPresentingPrivacySettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                    Button(action: openAppMenu) {
+                        AmonToolbarIconButton(systemName: "person.crop.circle")
                     }
                 }
                 ToolbarItemGroup(placement: .keyboard) {
@@ -73,6 +77,17 @@ public struct SearchView: View {
                     url: page.url,
                     apiClient: viewModel.apiClient,
                     privacySettingsStore: privacySettingsStore
+                )
+            }
+            .sheet(isPresented: $isPresentingWorkspaceChooser, onDismiss: {
+                pendingWorkspaceAction = nil
+            }) {
+                SearchWorkspaceChooserSheet(
+                    workspaces: viewModel.availableWorkspaces,
+                    selectedWorkspaceID: viewModel.currentWorkspace?.id,
+                    newWorkspaceTitle: $newWorkspaceTitle,
+                    onSelect: handleWorkspaceSelection(_:),
+                    onCreate: createWorkspaceFromSheet
                 )
             }
             .sheet(item: $viewModel.activePresentation) { presentation in
@@ -94,28 +109,11 @@ public struct SearchView: View {
                     }
                 }
             }
-            .sheet(isPresented: $isPresentingPrivacySettings) {
-                PrivacySettingsView(store: privacySettingsStore)
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Private by default.")
-                .font(.title.bold())
-            Text("Search the web, keep what matters locally, and go deeper only when you need to.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
         }
     }
 
     private var searchComposer: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Search")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-
+        VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
@@ -131,7 +129,11 @@ public struct SearchView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 14)
-                .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .background(AmonTheme.elevatedSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(AmonTheme.border.opacity(0.85), lineWidth: 1)
+                )
 
                 Button(action: submitSearch) {
                     if viewModel.isSearching {
@@ -146,29 +148,80 @@ public struct SearchView: View {
                 .controlSize(.large)
                 .disabled(!viewModel.canSubmitSearch)
             }
+
+            workspaceDestinationCard
+
+            if !viewModel.results.isEmpty {
+                HStack(spacing: 8) {
+                    AmonMetadataPill(text: "\(viewModel.results.count) results")
+                    if viewModel.selectedCount > 0 {
+                        AmonMetadataPill(text: "\(viewModel.selectedCount) selected")
+                    }
+                }
+            }
         }
+    }
+
+    private var workspaceDestinationCard: some View {
+        Button {
+            presentWorkspaceChooser()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "folder")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(viewModel.currentWorkspace == nil ? Color.accentColor : .primary)
+                    .frame(width: 34, height: 34)
+                    .background(
+                        (viewModel.currentWorkspace == nil ? Color.accentColor.opacity(0.12) : AmonTheme.pillSurface),
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.currentWorkspaceTitle ?? "Choose a workspace")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+
+                    Text(viewModel.currentWorkspaceSubtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 12)
+
+                Text(viewModel.workspaceChooserButtonTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.accentColor)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .amonCardStyle(padding: 14)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
     private var content: some View {
         if viewModel.isSearching {
-            AmonEmptyStateView(
-                title: "Searching",
-                message: "Looking up results from the backend and preparing them for local review.",
-                systemImage: "magnifyingglass.circle"
-            )
+                AmonEmptyStateView(
+                    title: "Searching",
+                    message: "Looking up results from the backend.",
+                    systemImage: "magnifyingglass.circle"
+                )
         } else if viewModel.results.isEmpty {
             if viewModel.hasSearched {
                 AmonEmptyStateView(
-                    title: "No results yet",
-                    message: "Try a broader query or a different phrase. Amon will keep the workspace local even when the search changes.",
+                    title: "No results",
+                    message: "Try a broader query or a different phrase.",
                     systemImage: "doc.text.magnifyingglass"
                 )
             } else {
                 AmonEmptyStateView(
-                    title: "Start a private search",
-                    message: "Search is lightweight on purpose. Save the results you care about, then compare or research them when the signal is strong enough.",
-                    systemImage: "square.and.arrow.down.on.square"
+                    title: "Search when you're ready",
+                    message: "Open, save, compare, or research the sources that matter.",
+                    systemImage: "magnifyingglass"
                 )
             }
         } else {
@@ -184,10 +237,22 @@ public struct SearchView: View {
                             presentedPage = PresentedPage(title: result.title, url: url)
                         },
                         onSave: {
-                            viewModel.save(result: result)
+                            AmonHaptics.success()
+                            runAction(.saveResult(result.id))
                         },
                         onToggleSelection: {
+                            AmonHaptics.selection()
                             viewModel.toggleSelection(for: result.id)
+                        },
+                        onQuickCompare: {
+                            AmonHaptics.softImpact()
+                            viewModel.selectResultIfNeeded(result.id)
+                            runAction(.compare)
+                        },
+                        onQuickResearch: {
+                            AmonHaptics.softImpact()
+                            viewModel.selectResultIfNeeded(result.id)
+                            runAction(.research)
                         }
                     )
                 }
@@ -202,7 +267,9 @@ public struct SearchView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 10) {
-                Button(action: viewModel.saveSelectedResults) {
+                Button {
+                    runAction(.saveSelection)
+                } label: {
                     Label("Save", systemImage: "square.and.arrow.down")
                         .frame(maxWidth: .infinity)
                 }
@@ -211,7 +278,8 @@ public struct SearchView: View {
                 .disabled(!viewModel.canSaveSelection)
 
                 Button {
-                    Task { await viewModel.runCompare() }
+                    AmonHaptics.softImpact()
+                    runAction(.compare)
                 } label: {
                     Label("Compare", systemImage: "square.split.2x2")
                         .frame(maxWidth: .infinity)
@@ -221,7 +289,8 @@ public struct SearchView: View {
                 .disabled(!viewModel.canCompare)
 
                 Button {
-                    Task { await viewModel.runResearch() }
+                    AmonHaptics.softImpact()
+                    runAction(.research)
                 } label: {
                     Label("Research", systemImage: "text.magnifyingglass")
                         .frame(maxWidth: .infinity)
@@ -232,12 +301,12 @@ public struct SearchView: View {
             }
         }
         .padding(16)
-        .background(Color(uiColor: .systemBackground).opacity(0.92), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(AmonTheme.surface.opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(Color(uiColor: .separator).opacity(0.16), lineWidth: 1)
+                .strokeBorder(AmonTheme.border.opacity(0.85), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.04), radius: 18, y: 8)
+        .shadow(color: AmonTheme.shadow, radius: 18, y: 8)
     }
 
     private func submitSearch() {
@@ -245,12 +314,82 @@ public struct SearchView: View {
         isSearchFieldFocused = false
         Task { await viewModel.search() }
     }
+
+    private func presentWorkspaceChooser(for action: PendingWorkspaceAction? = nil) {
+        pendingWorkspaceAction = action
+        newWorkspaceTitle = suggestedWorkspaceTitle
+        isPresentingWorkspaceChooser = true
+    }
+
+    private func handleWorkspaceSelection(_ workspace: Workspace) {
+        viewModel.selectWorkspace(workspace)
+        let action = pendingWorkspaceAction
+        pendingWorkspaceAction = nil
+        isPresentingWorkspaceChooser = false
+        if let action {
+            DispatchQueue.main.async {
+                runResolvedAction(action)
+            }
+        }
+    }
+
+    @discardableResult
+    private func createWorkspaceFromSheet() -> Bool {
+        guard viewModel.createWorkspace(title: newWorkspaceTitle, description: nil) else {
+            return false
+        }
+
+        let action = pendingWorkspaceAction
+        pendingWorkspaceAction = nil
+        isPresentingWorkspaceChooser = false
+        if let action {
+            DispatchQueue.main.async {
+                runResolvedAction(action)
+            }
+        }
+        return true
+    }
+
+    private func runAction(_ action: PendingWorkspaceAction) {
+        if viewModel.requiresWorkspaceSelectionForSave {
+            presentWorkspaceChooser(for: action)
+            return
+        }
+        runResolvedAction(action)
+    }
+
+    private func runResolvedAction(_ action: PendingWorkspaceAction) {
+        switch action {
+        case .saveResult(let resultID):
+            guard let result = viewModel.results.first(where: { $0.id == resultID }) else { return }
+            viewModel.save(result: result)
+        case .saveSelection:
+            viewModel.saveSelectedResults()
+        case .compare:
+            Task { await viewModel.runCompare() }
+        case .research:
+            Task { await viewModel.runResearch() }
+        }
+    }
+
+    private var suggestedWorkspaceTitle: String {
+        viewModel.availableWorkspaces.isEmpty
+            ? "Research Library"
+            : "Workspace \(viewModel.availableWorkspaces.count + 1)"
+    }
 }
 
 private struct PresentedPage: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let url: URL
+}
+
+private enum PendingWorkspaceAction {
+    case saveResult(String)
+    case saveSelection
+    case compare
+    case research
 }
 
 private struct SearchResultCard: View {
@@ -261,6 +400,8 @@ private struct SearchResultCard: View {
     let onOpen: () -> Void
     let onSave: () -> Void
     let onToggleSelection: () -> Void
+    let onQuickCompare: () -> Void
+    let onQuickResearch: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -306,34 +447,34 @@ private struct SearchResultCard: View {
 
             HStack(spacing: 10) {
                 Button(action: onOpen) {
-                    Label("Open", systemImage: "arrow.up.right.square")
-                        .frame(maxWidth: .infinity)
+                    AmonActionChip(title: "Open", systemImage: "arrow.up.right.square")
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(.plain)
 
                 Button(action: onSave) {
-                    Label(isSaved ? "Saved" : "Save", systemImage: isSaved ? "checkmark.circle" : "square.and.arrow.down")
-                        .frame(maxWidth: .infinity)
+                    AmonActionChip(
+                        title: isSaved ? "Saved" : "Save",
+                        systemImage: isSaved ? "checkmark.circle.fill" : "square.and.arrow.down",
+                        tone: isSaved ? .selected : .neutral
+                    )
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(.plain)
                 .disabled(isBusy)
 
                 if isSelected {
                     Button(action: onToggleSelection) {
-                        Label("Selected", systemImage: "checkmark.circle.fill")
-                            .frame(maxWidth: .infinity)
+                        AmonActionChip(
+                            title: "Selected",
+                            systemImage: "checkmark.circle.fill",
+                            tone: .accent
+                        )
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    .buttonStyle(.plain)
                 } else {
                     Button(action: onToggleSelection) {
-                        Label("Select", systemImage: "checkmark.circle")
-                            .frame(maxWidth: .infinity)
+                        AmonActionChip(title: "Select", systemImage: "checkmark.circle")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -342,5 +483,130 @@ private struct SearchResultCard: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(isSelected ? Color.accentColor.opacity(0.35) : .clear, lineWidth: 1.5)
         )
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .contextMenu {
+            Button(action: onOpen) {
+                Label("Open", systemImage: "arrow.up.right.square")
+            }
+
+            Button(action: onSave) {
+                Label(isSaved ? "Save Again" : "Save", systemImage: "square.and.arrow.down")
+            }
+            .disabled(isBusy)
+
+            Button(action: onToggleSelection) {
+                Label(isSelected ? "Deselect" : "Select", systemImage: isSelected ? "checkmark.circle.fill" : "checkmark.circle")
+            }
+
+            Divider()
+
+            Button(action: onQuickCompare) {
+                Label("Compare", systemImage: "square.split.2x2")
+            }
+
+            Button(action: onQuickResearch) {
+                Label("Research", systemImage: "text.magnifyingglass")
+            }
+        } preview: {
+            AmonSourcePreviewCard(
+                title: result.title,
+                domain: result.domain,
+                summary: result.snippet,
+                metadata: result.metadataPills
+            )
+        }
+    }
+}
+
+private struct SearchWorkspaceChooserSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let workspaces: [Workspace]
+    let selectedWorkspaceID: String?
+    @Binding var newWorkspaceTitle: String
+    let onSelect: (Workspace) -> Void
+    let onCreate: () -> Bool
+
+    var body: some View {
+        NavigationStack {
+            List {
+                existingWorkspacesSection
+                createWorkspaceSection
+            }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(AmonTheme.canvas)
+            .navigationTitle("Save Destination")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var existingWorkspacesSection: some View {
+        if !workspaces.isEmpty {
+            Section("Save to workspace") {
+                ForEach(workspaces) { workspace in
+                    Button {
+                        onSelect(workspace)
+                        dismiss()
+                    } label: {
+                        WorkspaceChooserRow(
+                            workspace: workspace,
+                            isSelected: workspace.id == selectedWorkspaceID
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var createWorkspaceSection: some View {
+        Section {
+            TextField("Workspace name", text: $newWorkspaceTitle)
+                .textInputAutocapitalization(.words)
+
+            Button("Create and use") {
+                if onCreate() {
+                    dismiss()
+                }
+            }
+            .disabled(newWorkspaceTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        } header: {
+            Text(workspaces.isEmpty ? "Create a workspace" : "New workspace")
+        } footer: {
+            Text("Saved sources, compares, and research stay organized by workspace on this device.")
+        }
+    }
+}
+
+private struct WorkspaceChooserRow: View {
+    let workspace: Workspace
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(workspace.title)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+            }
+        }
     }
 }

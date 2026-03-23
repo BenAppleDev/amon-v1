@@ -100,6 +100,20 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceStore.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceStore.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonHaptics.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonTheme.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/Coders.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/Coders.swift.o",
@@ -127,6 +141,13 @@
     "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceListViewModel~partial.swiftmodule",
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceListViewModel.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceListViewModel.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonSettingsView.dia"
   },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/AmonUIComponents.d",

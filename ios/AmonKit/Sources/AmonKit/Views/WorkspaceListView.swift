@@ -4,38 +4,42 @@ public struct WorkspaceListView: View {
     @ObservedObject private var viewModel: WorkspaceListViewModel
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     private let apiClient: any AmonAPIClienting
+    private let openAppMenu: () -> Void
     @State private var isPresentingNewWorkspace = false
-    @State private var isPresentingPrivacySettings = false
     @State private var newWorkspaceTitle = ""
 
     public init(
         viewModel: WorkspaceListViewModel,
         apiClient: any AmonAPIClienting,
-        privacySettingsStore: PrivacySettingsStore
+        privacySettingsStore: PrivacySettingsStore,
+        openAppMenu: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
+        self.openAppMenu = openAppMenu
     }
 
     public var body: some View {
         NavigationStack {
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
+                AmonTheme.canvas
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        header
-
                         if let banner = viewModel.banner {
                             AmonBannerView(banner: banner, dismiss: viewModel.dismissBanner)
                         }
 
+                        if !viewModel.workspaceSummaries.isEmpty {
+                            AmonTrustStripView(items: ["Saved locally", "\(viewModel.workspaceSummaries.count) workspaces"])
+                        }
+
                         if viewModel.workspaceSummaries.isEmpty {
                             AmonEmptyStateView(
-                                title: "Your local library starts here",
-                                message: "Saved searches, compares, and research will accumulate here as durable workspaces you can revisit anytime.",
+                                title: "No workspaces yet",
+                                message: "Create one when you're ready to keep important sources together.",
                                 systemImage: "folder.badge.plus",
                                 actionTitle: "Create workspace",
                                 action: presentCreateWorkspace
@@ -65,19 +69,16 @@ public struct WorkspaceListView: View {
                     viewModel.refresh()
                 }
             }
-            .navigationTitle("Workspace")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        isPresentingPrivacySettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                    Button(action: presentCreateWorkspace) {
+                        AmonToolbarIconButton(systemName: "plus")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: presentCreateWorkspace) {
-                        Image(systemName: "plus")
+                    Button(action: openAppMenu) {
+                        AmonToolbarIconButton(systemName: "person.crop.circle")
                     }
                 }
             }
@@ -118,19 +119,6 @@ public struct WorkspaceListView: View {
                 }
                 .presentationDetents([.medium])
             }
-            .sheet(isPresented: $isPresentingPrivacySettings) {
-                PrivacySettingsView(store: privacySettingsStore)
-            }
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Your durable local work")
-                .font(.title2.weight(.semibold))
-            Text("Workspaces keep sources, compare tables, and research summaries together so the app feels owned rather than historical.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -144,8 +132,18 @@ private struct WorkspaceSummaryCard: View {
     let summary: WorkspaceSummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.accentColor.opacity(0.12))
+                        .frame(width: 40, height: 40)
+
+                    Image(systemName: "square.stack.3d.up")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+
                 VStack(alignment: .leading, spacing: 6) {
                     Text(summary.title)
                         .font(.headline)
@@ -156,10 +154,6 @@ private struct WorkspaceSummaryCard: View {
                 }
 
                 Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
             }
 
             HStack(spacing: 8) {
@@ -169,5 +163,11 @@ private struct WorkspaceSummaryCard: View {
             }
         }
         .amonCardStyle()
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .padding(18)
+        }
     }
 }

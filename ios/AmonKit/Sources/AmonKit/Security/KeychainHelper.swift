@@ -31,6 +31,10 @@ public final class KeychainHelper: @unchecked Sendable {
         try read(account: "local_store_key")
     }
 
+    public func deleteLocalEncryptionKey() throws {
+        try delete(account: "local_store_key")
+    }
+
     private func save(value: Data, account: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,

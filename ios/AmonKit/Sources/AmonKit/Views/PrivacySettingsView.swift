@@ -13,7 +13,7 @@ public struct PrivacySettingsView: View {
     public var body: some View {
         NavigationStack {
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
+                AmonTheme.canvas
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -50,18 +50,16 @@ public struct PrivacySettingsView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Private by default. Deeper when needed.")
-                .font(.title3.weight(.semibold))
-            Text("Choose a preset first, then fine-tune how sites interact with your device, how Amon fetches readable content, and what stays saved locally.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
+        VStack(alignment: .leading, spacing: 8) {
             if let preset = store.selectedPreset {
                 AmonTrustStripView(items: [preset.title, preset.summary])
             } else {
                 AmonTrustStripView(items: ["Custom settings", "Preset no longer matches exactly"])
             }
+
+            Text("Choose a preset first, then adjust the details only if you need to.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 

@@ -23,7 +23,13 @@ final class SearchViewModelTests: XCTestCase {
             makeResult(id: "two", title: "Two", url: "https://example.com/two"),
         ]
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
         viewModel.query = "privacy"
 
         await viewModel.search()
@@ -41,10 +47,17 @@ final class SearchViewModelTests: XCTestCase {
         let api = MockAPIClient()
         api.searchResults = [makeResult(id: "one", title: "One", url: "https://example.com/one")]
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
         viewModel.query = "privacy"
         await viewModel.search()
 
+        XCTAssertTrue(viewModel.createWorkspace(title: "Research Library"))
         viewModel.toggleSelection(for: "one")
         viewModel.saveSelectedResults()
         viewModel.saveSelectedResults()
@@ -53,6 +66,68 @@ final class SearchViewModelTests: XCTestCase {
         let items = try store.fetchItems(workspaceID: workspace.id)
         XCTAssertEqual(items.count, 1)
         XCTAssertTrue(viewModel.isSaved(api.searchResults[0]))
+    }
+
+    func testSaveRequiresExplicitWorkspaceSelectionWhenMultipleWorkspacesExist() async throws {
+        let store = MockWorkspaceStore()
+        _ = try store.createWorkspace(title: "Workspace A", description: nil)
+        _ = try store.createWorkspace(title: "Workspace B", description: nil)
+
+        let api = MockAPIClient()
+        api.searchResults = [makeResult(id: "one", title: "One", url: "https://example.com/one")]
+
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
+        viewModel.query = "privacy"
+        await viewModel.search()
+        viewModel.toggleSelection(for: "one")
+
+        viewModel.saveSelectedResults()
+
+        XCTAssertNil(viewModel.currentWorkspace)
+        XCTAssertEqual(viewModel.banner?.title, "Choose a workspace first")
+        var savedItems: [Item] = []
+        for workspace in try store.fetchWorkspaces() {
+            savedItems.append(contentsOf: try store.fetchItems(workspaceID: workspace.id))
+        }
+        XCTAssertTrue(savedItems.isEmpty)
+    }
+
+    func testSaveUsesChosenWorkspaceAndUpdatesWorkspaceTimestamp() async throws {
+        let store = MockWorkspaceStore()
+        var workspaceA = try store.createWorkspace(title: "Workspace A", description: nil)
+        var workspaceB = try store.createWorkspace(title: "Workspace B", description: nil)
+        workspaceA.updatedAt = Date(timeIntervalSince1970: 10)
+        workspaceB.updatedAt = Date(timeIntervalSince1970: 20)
+        try store.saveWorkspace(workspaceA)
+        try store.saveWorkspace(workspaceB)
+
+        let api = MockAPIClient()
+        api.searchResults = [makeResult(id: "one", title: "One", url: "https://example.com/one")]
+
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
+        viewModel.selectWorkspace(workspaceB)
+        viewModel.query = "privacy"
+        await viewModel.search()
+        viewModel.toggleSelection(for: "one")
+
+        viewModel.saveSelectedResults()
+
+        XCTAssertEqual(try store.fetchItems(workspaceID: workspaceA.id).count, 0)
+        XCTAssertEqual(try store.fetchItems(workspaceID: workspaceB.id).count, 1)
+        let updatedWorkspaceB = try XCTUnwrap(store.fetchWorkspace(id: workspaceB.id))
+        XCTAssertGreaterThan(updatedWorkspaceB.updatedAt, Date(timeIntervalSince1970: 20))
     }
 
     func testRunCompareMaterializesSelectedItemsAndPresentsCompare() async throws {
@@ -78,7 +153,14 @@ final class SearchViewModelTests: XCTestCase {
             ]
         )
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
+        XCTAssertTrue(viewModel.createWorkspace(title: "Research Library"))
         viewModel.query = "privacy"
         await viewModel.search()
         viewModel.toggleSelection(for: "one")
@@ -103,7 +185,13 @@ final class SearchViewModelTests: XCTestCase {
         let api = MockAPIClient()
         api.searchError = AmonAPIError.unauthorized
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: makePrivacyStore())
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: makePrivacyStore(),
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
         await viewModel.signIn(appleSubject: "dev-user")
         viewModel.query = "privacy"
 
@@ -125,7 +213,14 @@ final class SearchViewModelTests: XCTestCase {
         let privacyStore = makePrivacyStore()
         privacyStore.updateAutoSaveSourcesForDeeperModes(false)
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: privacyStore)
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: privacyStore,
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
+        XCTAssertTrue(viewModel.createWorkspace(title: "Research Library"))
         viewModel.query = "privacy"
         await viewModel.search()
         viewModel.toggleSelection(for: "one")
@@ -169,7 +264,13 @@ final class SearchViewModelTests: XCTestCase {
         privacyStore.updateUseBackendReaderForDeeperModes(true)
         privacyStore.updateSaveRetrievedContentLocally(false)
 
-        let viewModel = SearchViewModel(apiClient: api, store: store, privacySettingsStore: privacyStore)
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: privacyStore,
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
         viewModel.query = "privacy"
         await viewModel.search()
         viewModel.toggleSelection(for: "one")
@@ -207,6 +308,13 @@ final class SearchViewModelTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return PrivacySettingsStore(userDefaults: defaults, storageKey: "privacy")
+    }
+
+    private func makeSessionDefaults() -> UserDefaults {
+        let suiteName = "amon.tests.session.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return defaults
     }
 }
 
@@ -374,5 +482,14 @@ private final class MockWorkspaceStore: WorkspaceStore {
         try graph.notes.forEach(saveNote)
         try graph.compareArtifacts.forEach(saveCompareArtifact)
         try graph.researchArtifacts.forEach(saveResearchArtifact)
+    }
+
+    func resetLocalData() throws {
+        workspaces = []
+        items = []
+        notes = []
+        compareArtifacts = []
+        researchArtifacts = []
+        exportRecords = []
     }
 }

@@ -11,6 +11,7 @@ public final class SearchViewModel: ObservableObject {
     @Published private(set) var results: [SearchResult] = []
     @Published private(set) var selectedResultIDs: Set<String> = []
     @Published private(set) var savedResultIDs: Set<String> = []
+    @Published private(set) var availableWorkspaces: [Workspace] = []
     @Published private(set) var hasSearched: Bool = false
     @Published private(set) var isSearching: Bool = false
     @Published private(set) var isSigningIn: Bool = false
@@ -26,23 +27,70 @@ public final class SearchViewModel: ObservableObject {
     let apiClient: any AmonAPIClienting
     private let store: WorkspaceStore
     private let privacySettingsStore: PrivacySettingsStore
+    private let userDefaults: UserDefaults
+    private let preferredWorkspaceStorageKey: String
     private var didAttemptSessionRestore = false
     private var workspaceDidChangeHandler: (@MainActor () -> Void)?
-    private let defaultWorkspaceTitle = "Research Library"
 
     public init(
         apiClient: any AmonAPIClienting,
         store: WorkspaceStore,
-        privacySettingsStore: PrivacySettingsStore
+        privacySettingsStore: PrivacySettingsStore,
+        userDefaults: UserDefaults = .standard,
+        preferredWorkspaceStorageKey: String = "amon.search.preferredWorkspaceID"
     ) {
         self.apiClient = apiClient
         self.store = store
         self.privacySettingsStore = privacySettingsStore
+        self.userDefaults = userDefaults
+        self.preferredWorkspaceStorageKey = preferredWorkspaceStorageKey
         refreshWorkspaceState()
     }
 
     public func setWorkspaceDidChangeHandler(_ handler: @escaping @MainActor () -> Void) {
         workspaceDidChangeHandler = handler
+    }
+
+    public func selectWorkspace(_ workspace: Workspace) {
+        currentWorkspace = workspace
+        persistPreferredWorkspaceID(workspace.id)
+        refreshSavedResultIDs()
+    }
+
+    @discardableResult
+    public func createWorkspace(title: String, description: String? = nil) -> Bool {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty else {
+            banner = AmonBanner(
+                tone: .info,
+                title: "Add a name",
+                message: "Give the workspace a clear title so saved sources have an obvious home."
+            )
+            return false
+        }
+
+        do {
+            let workspace = try store.createWorkspace(title: trimmedTitle, description: description)
+            refreshWorkspaceState(preferredWorkspaceID: workspace.id)
+            selectWorkspace(workspace)
+            banner = AmonBanner(
+                tone: .success,
+                title: "Workspace ready",
+                message: "\(workspace.title) is ready for saved sources."
+            )
+            notifyWorkspaceDidChange()
+            return true
+        } catch {
+            banner = AmonBanner(
+                tone: .error,
+                title: "Couldn't create workspace",
+                message: AmonErrorPresenter.message(
+                    for: error,
+                    fallback: "Amon couldn't create that workspace right now."
+                )
+            )
+            return false
+        }
     }
 
     public func restoreSessionIfNeeded() async {
@@ -95,6 +143,40 @@ public final class SearchViewModel: ObservableObject {
         banner = nil
     }
 
+    public func logOut() {
+        signOut(
+            silent: false,
+            title: "Logged out",
+            message: "Your session was cleared from this device."
+        )
+    }
+
+    public func deleteAccountFromThisDevice() async {
+        do {
+            try store.resetLocalData()
+            try KeychainHelper.shared.deleteLocalEncryptionKey()
+            privacySettingsStore.reset()
+            persistPreferredWorkspaceID(nil)
+            await BrowserPrivacyController.clearWebsiteData()
+            signOut(
+                silent: false,
+                title: "Removed from this device",
+                message: "Server-side account deletion is not available in this build. Amon cleared your session, local workspaces, and browsing data from this device."
+            )
+            refreshWorkspaceState()
+            notifyWorkspaceDidChange()
+        } catch {
+            banner = AmonBanner(
+                tone: .error,
+                title: "Couldn't remove local data",
+                message: AmonErrorPresenter.message(
+                    for: error,
+                    fallback: "Amon couldn't finish removing this account from the device."
+                )
+            )
+        }
+    }
+
     func search() async {
         guard !isSearching else { return }
 
@@ -138,6 +220,21 @@ public final class SearchViewModel: ObservableObject {
         }
     }
 
+    func selectResultIfNeeded(_ resultID: String) {
+        guard results.contains(where: { $0.id == resultID }) else { return }
+        selectedResultIDs.insert(resultID)
+    }
+
+    func quickCompare(for result: SearchResult) async {
+        selectResultIfNeeded(result.id)
+        await runCompare()
+    }
+
+    func quickResearch(for result: SearchResult) async {
+        selectResultIfNeeded(result.id)
+        await runResearch()
+    }
+
     func save(result: SearchResult) {
         guard !isSavingLocally else { return }
         _ = persist(results: [result], announce: true)
@@ -172,6 +269,7 @@ public final class SearchViewModel: ObservableObject {
                 itemIDs: items.map(\.id)
             )
             try store.saveCompareArtifact(artifact)
+            try touchWorkspace(id: artifact.workspaceID)
             refreshWorkspaceState()
             notifyWorkspaceDidChange()
             activePresentation = .compare(artifact, items)
@@ -214,6 +312,7 @@ public final class SearchViewModel: ObservableObject {
                 itemIDs: items.map(\.id)
             )
             try store.saveResearchArtifact(artifact)
+            try touchWorkspace(id: artifact.workspaceID)
             refreshWorkspaceState()
             notifyWorkspaceDidChange()
             activePresentation = .research(artifact, items)
@@ -241,6 +340,28 @@ public final class SearchViewModel: ObservableObject {
 
     var selectedResults: [SearchResult] {
         results.filter { selectedResultIDs.contains($0.id) }
+    }
+
+    var currentWorkspaceTitle: String? {
+        currentWorkspace?.title
+    }
+
+    var currentWorkspaceSubtitle: String {
+        if let currentWorkspace {
+            return "New saves go to \(currentWorkspace.title)"
+        }
+        if availableWorkspaces.isEmpty {
+            return "Create a workspace before saving"
+        }
+        return "Choose where new sources should go"
+    }
+
+    var workspaceChooserButtonTitle: String {
+        currentWorkspace == nil && availableWorkspaces.isEmpty ? "Create" : "Change"
+    }
+
+    var requiresWorkspaceSelectionForSave: Bool {
+        currentWorkspace == nil
     }
 
     var selectedCount: Int {
@@ -277,6 +398,7 @@ public final class SearchViewModel: ObservableObject {
             let retrieved = try await apiClient.retrieve(url: item.canonicalURL)
             let updated = retrieved.merged(into: item)
             try store.saveItem(updated)
+            try touchWorkspace(id: item.workspaceID)
             refreshWorkspaceState()
             notifyWorkspaceDidChange()
             return updated
@@ -311,7 +433,16 @@ public final class SearchViewModel: ObservableObject {
         defer { isSavingLocally = false }
 
         do {
-            let workspace = try ensureWorkspace()
+            guard let workspace = currentWorkspace else {
+                banner = AmonBanner(
+                    tone: .info,
+                    title: availableWorkspaces.isEmpty ? "Create a workspace first" : "Choose a workspace first",
+                    message: availableWorkspaces.isEmpty
+                        ? "Saved sources need a workspace so they have a clear place on this device."
+                        : "Pick a workspace before saving so Amon knows where these sources belong."
+                )
+                return nil
+            }
             let existingItems = try store.fetchItems(workspaceID: workspace.id)
             var itemsByURL = Dictionary(uniqueKeysWithValues: existingItems.map { ($0.canonicalURL, $0) })
             var persistedItems: [Item] = []
@@ -324,6 +455,7 @@ public final class SearchViewModel: ObservableObject {
                 persistedItems.append(item)
             }
 
+            try touchWorkspace(id: workspace.id)
             refreshWorkspaceState()
             notifyWorkspaceDidChange()
 
@@ -375,26 +507,32 @@ public final class SearchViewModel: ObservableObject {
         return try await enrichItemsForDeeperMode(items)
     }
 
-    private func ensureWorkspace(title: String? = nil) throws -> Workspace {
-        refreshWorkspaceState()
-        if let currentWorkspace {
-            return currentWorkspace
-        }
-        let workspace = try store.createWorkspace(title: title ?? defaultWorkspaceTitle, description: nil)
-        currentWorkspace = workspace
-        return workspace
-    }
-
-    private func refreshWorkspaceState() {
+    private func refreshWorkspaceState(preferredWorkspaceID: String? = nil) {
         do {
             let workspaces = try store.fetchWorkspaces()
+                .sorted(by: { $0.updatedAt > $1.updatedAt })
+            availableWorkspaces = workspaces
+
+            let preferredID = preferredWorkspaceID ?? storedPreferredWorkspaceID()
             if let existingWorkspace = currentWorkspace {
-                currentWorkspace = workspaces.first(where: { $0.id == existingWorkspace.id }) ?? workspaces.first
-            } else {
+                currentWorkspace = workspaces.first(where: { $0.id == existingWorkspace.id })
+            } else if let preferredID,
+                      let preferredWorkspace = workspaces.first(where: { $0.id == preferredID }) {
+                currentWorkspace = preferredWorkspace
+            } else if workspaces.count == 1 {
                 currentWorkspace = workspaces.first
+            } else {
+                currentWorkspace = nil
+            }
+
+            if let currentWorkspace {
+                persistPreferredWorkspaceID(currentWorkspace.id)
+            } else {
+                persistPreferredWorkspaceID(nil)
             }
             refreshSavedResultIDs()
         } catch {
+            availableWorkspaces = []
             currentWorkspace = nil
             savedResultIDs = []
         }
@@ -450,6 +588,9 @@ public final class SearchViewModel: ObservableObject {
         }
 
         if privacySettings.retrieval.saveRetrievedContentLocally && retrievedCount > 0 {
+            if let workspaceID = items.first?.workspaceID {
+                try touchWorkspace(id: workspaceID)
+            }
             refreshWorkspaceState()
             notifyWorkspaceDidChange()
         }
@@ -566,6 +707,27 @@ public final class SearchViewModel: ObservableObject {
         workspaceDidChangeHandler?()
     }
 
+    private func touchWorkspace(id: String) throws {
+        guard var workspace = try store.fetchWorkspace(id: id) else { return }
+        workspace.updatedAt = Date()
+        try store.saveWorkspace(workspace)
+        if currentWorkspace?.id == id {
+            currentWorkspace = workspace
+        }
+    }
+
+    private func storedPreferredWorkspaceID() -> String? {
+        userDefaults.string(forKey: preferredWorkspaceStorageKey)
+    }
+
+    private func persistPreferredWorkspaceID(_ workspaceID: String?) {
+        if let workspaceID {
+            userDefaults.set(workspaceID, forKey: preferredWorkspaceStorageKey)
+        } else {
+            userDefaults.removeObject(forKey: preferredWorkspaceStorageKey)
+        }
+    }
+
     private func handleRemoteError(_ error: Error, title: String, fallback: String) {
         if AmonErrorPresenter.isUnauthorized(error) {
             signOut(
@@ -582,15 +744,22 @@ public final class SearchViewModel: ObservableObject {
         )
     }
 
-    private func signOut(silent: Bool, message: String? = nil) {
+    private func signOut(silent: Bool, title: String = "Sign in again", message: String? = nil) {
         try? apiClient.clearSession()
+        persistPreferredWorkspaceID(nil)
         isAuthenticated = false
+        query = ""
+        results = []
         selectedResultIDs.removeAll()
+        savedResultIDs.removeAll()
+        availableWorkspaces = []
+        hasSearched = false
+        currentWorkspace = nil
         activePresentation = nil
         if silent {
             banner = nil
         } else if let message {
-            banner = AmonBanner(tone: .info, title: "Sign in again", message: message)
+            banner = AmonBanner(tone: .info, title: title, message: message)
         }
     }
 }

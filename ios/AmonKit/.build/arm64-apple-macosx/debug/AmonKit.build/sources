@@ -12,10 +12,13 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/SQLiteWorkspaceStore.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/Schema.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/WorkspaceStore.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/SearchViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceDetailViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ComparePreviewView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/PrivacySettingsView.swift

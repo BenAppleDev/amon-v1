@@ -22,4 +22,5 @@ public protocol WorkspaceStore {
 
     func buildWorkspaceGraph(workspaceID: String) throws -> WorkspaceGraph?
     func importWorkspaceGraph(_ graph: WorkspaceGraph) throws
+    func resetLocalData() throws
 }

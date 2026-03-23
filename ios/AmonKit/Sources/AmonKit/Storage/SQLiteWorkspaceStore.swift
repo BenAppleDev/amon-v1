@@ -339,6 +339,25 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
         try graph.researchArtifacts.forEach(saveResearchArtifact)
     }
 
+    public func resetLocalData() throws {
+        let statements = [
+            "DELETE FROM compare_cells",
+            "DELETE FROM compare_rows",
+            "DELETE FROM compare_artifact_items",
+            "DELETE FROM compare_artifacts",
+            "DELETE FROM research_artifact_items",
+            "DELETE FROM research_artifacts",
+            "DELETE FROM notes",
+            "DELETE FROM items",
+            "DELETE FROM export_records",
+            "DELETE FROM workspaces",
+        ]
+
+        for statement in statements {
+            try execute(statement)
+        }
+    }
+
     private func fetchCompareRows(compareArtifactID: String) throws -> [CompareRow] {
         let rows: [(String, String, String, CompareRowType, Int)] = try query(
             "SELECT id, field_key, field_label, row_type, sort_order FROM compare_rows WHERE compare_artifact_id = ? ORDER BY sort_order ASC",
