@@ -5,6 +5,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/JSONValue.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PrivacySettings.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/BrowserPrivacyController.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/KeychainHelper.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/LocalFieldCipher.swift
@@ -26,6 +27,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ResearchPreviewView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/SearchView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/SignInView.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/TransportSettingsView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WebViewContainer.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WorkspaceDetailView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WorkspaceListView.swift

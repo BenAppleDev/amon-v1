@@ -11,8 +11,12 @@ struct RootTabView: View {
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var workspaceViewModel: WorkspaceListViewModel
     @StateObject private var privacySettingsStore: PrivacySettingsStore
+    @StateObject private var transportSettingsStore: TransportPrivacySettingsStore
+    @StateObject private var tunnelManager: TunnelManager
     @State private var selectedTab: AppTab = .search
     @State private var isPresentingSettings = false
+    @State private var hasCompletedInitialSessionRestore = false
+    @State private var pendingTunnelPrompt: TunnelPromptContext?
     private let apiClient: AmonAPIClient
 
     init() {
@@ -20,6 +24,7 @@ struct RootTabView: View {
         let baseURL = URL(string: "http://10.250.121.117:8000")!
         let apiClient = AmonAPIClient(baseURL: baseURL)
         let privacySettingsStore = PrivacySettingsStore()
+        let transportSettingsStore = TransportPrivacySettingsStore()
 
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let dbURL = documents.appendingPathComponent("amon-local.sqlite")
@@ -41,6 +46,8 @@ struct RootTabView: View {
         _searchViewModel = StateObject(wrappedValue: searchViewModel)
         _workspaceViewModel = StateObject(wrappedValue: workspaceViewModel)
         _privacySettingsStore = StateObject(wrappedValue: privacySettingsStore)
+        _transportSettingsStore = StateObject(wrappedValue: transportSettingsStore)
+        _tunnelManager = StateObject(wrappedValue: TunnelManager())
     }
 
     var body: some View {
@@ -84,8 +91,13 @@ struct RootTabView: View {
         }
         .tint(AmonTheme.accent)
         .task {
+            await tunnelManager.refreshFromPreferences(using: transportSettingsStore.settings)
             await searchViewModel.restoreSessionIfNeeded()
             await BrowserPrivacyController.clearWebsiteDataIfNeededOnLaunch(using: privacySettingsStore.settings)
+            hasCompletedInitialSessionRestore = true
+            if searchViewModel.isAuthenticated {
+                await handleAuthenticatedState(isSessionRestore: true)
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .background {
@@ -101,11 +113,95 @@ struct RootTabView: View {
                 }
             }
         }
+        .onChange(of: transportSettingsStore.settings) { _, newValue in
+            Task {
+                await tunnelManager.refreshFromPreferences(using: newValue)
+            }
+        }
+        .onChange(of: searchViewModel.isAuthenticated) { oldValue, newValue in
+            guard hasCompletedInitialSessionRestore else { return }
+            if !oldValue && newValue {
+                Task {
+                    await handleAuthenticatedState(isSessionRestore: false)
+                }
+            } else if oldValue && !newValue {
+                pendingTunnelPrompt = nil
+                tunnelManager.disconnect()
+            }
+        }
         .sheet(isPresented: $isPresentingSettings) {
             AmonSettingsView(
                 searchViewModel: searchViewModel,
-                privacySettingsStore: privacySettingsStore
+                privacySettingsStore: privacySettingsStore,
+                transportSettingsStore: transportSettingsStore,
+                tunnelStatus: tunnelManager.statusSnapshot,
+                connectTunnel: {
+                    Task {
+                        await tunnelManager.connect(using: transportSettingsStore.settings)
+                    }
+                },
+                disconnectTunnel: {
+                    tunnelManager.disconnect()
+                }
             )
+        }
+        .alert(item: $pendingTunnelPrompt) { prompt in
+            Alert(
+                title: Text(prompt.title),
+                message: Text(prompt.message),
+                primaryButton: .default(Text("Connect")) {
+                    transportSettingsStore.updateEnabledWhenSignedIn(true)
+                    Task {
+                        await tunnelManager.connect(using: transportSettingsStore.settings)
+                    }
+                },
+                secondaryButton: .cancel(Text("Not now"))
+            )
+        }
+    }
+
+    private func handleAuthenticatedState(isSessionRestore: Bool) async {
+        let settings = transportSettingsStore.settings
+        await tunnelManager.refreshFromPreferences(using: settings)
+
+        guard settings.endpoint.isConfigured else { return }
+
+        if settings.enabledWhenSignedIn {
+            if isSessionRestore && !settings.autoConnectOnSessionRestore {
+                if tunnelManager.statusSnapshot.state == .disconnected {
+                    pendingTunnelPrompt = .sessionRestore
+                }
+                return
+            }
+
+            await tunnelManager.connect(using: settings)
+        } else if tunnelManager.statusSnapshot.state == .disconnected {
+            pendingTunnelPrompt = isSessionRestore ? .sessionRestore : .signIn
+        }
+    }
+}
+
+private enum TunnelPromptContext: String, Identifiable {
+    case signIn
+    case sessionRestore
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .signIn:
+            return "Connect Amon tunnel?"
+        case .sessionRestore:
+            return "Reconnect the Amon tunnel?"
+        }
+    }
+
+    var message: String {
+        switch self {
+        case .signIn:
+            return "Amon can route browsing traffic through your laptop endpoint while you're signed in."
+        case .sessionRestore:
+            return "Your session came back. Amon can reconnect the development tunnel for this device."
         }
     }
 }

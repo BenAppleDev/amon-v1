@@ -4,21 +4,48 @@ public struct AmonSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var searchViewModel: SearchViewModel
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
+    @ObservedObject private var transportSettingsStore: TransportPrivacySettingsStore
+    private let tunnelStatus: TransportTunnelStatusSnapshot
+    private let connectTunnel: () -> Void
+    private let disconnectTunnel: () -> Void
     @State private var isPresentingDeleteConfirmation = false
     @State private var isDeletingAccount = false
 
     public init(
         searchViewModel: SearchViewModel,
-        privacySettingsStore: PrivacySettingsStore
+        privacySettingsStore: PrivacySettingsStore,
+        transportSettingsStore: TransportPrivacySettingsStore,
+        tunnelStatus: TransportTunnelStatusSnapshot,
+        connectTunnel: @escaping () -> Void,
+        disconnectTunnel: @escaping () -> Void
     ) {
         self.searchViewModel = searchViewModel
         self.privacySettingsStore = privacySettingsStore
+        self.transportSettingsStore = transportSettingsStore
+        self.tunnelStatus = tunnelStatus
+        self.connectTunnel = connectTunnel
+        self.disconnectTunnel = disconnectTunnel
     }
 
     public var body: some View {
         NavigationStack {
             List {
                 Section {
+                    NavigationLink {
+                        TransportSettingsView(
+                            store: transportSettingsStore,
+                            status: tunnelStatus,
+                            connectAction: connectTunnel,
+                            disconnectAction: disconnectTunnel
+                        )
+                    } label: {
+                        settingsRow(
+                            title: "Amon Tunnel",
+                            message: tunnelStatusLabel,
+                            systemImage: "network"
+                        )
+                    }
+
                     NavigationLink {
                         PrivacySettingsView(store: privacySettingsStore)
                     } label: {
@@ -120,5 +147,12 @@ public struct AmonSettingsView: View {
             Spacer()
         }
         .padding(.vertical, 4)
+    }
+
+    private var tunnelStatusLabel: String {
+        if let detail = tunnelStatus.detail, !detail.isEmpty {
+            return "\(tunnelStatus.state.title) • \(detail)"
+        }
+        return tunnelStatus.state.title
     }
 }

@@ -8,16 +8,71 @@
 
 /* Begin PBXBuildFile section */
 		B5A4FD1D2F6F1094003DC0C1 /* AmonKit in Frameworks */ = {isa = PBXBuildFile; productRef = B5A4FD1C2F6F1094003DC0C1 /* AmonKit */; };
+		B6B7E0012F700000003DC0C1 /* AmonTunnelExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B6B7E0022F700000003DC0C1 /* AmonTunnelExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B6B7E00A2F700000003DC0C1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B5A4FD032F6F103D003DC0C1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B6B7E0092F700000003DC0C1;
+			remoteInfo = AmonTunnelExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B6B7E0042F700000003DC0C1 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				B6B7E0012F700000003DC0C1 /* AmonTunnelExtension.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		B5A4FD0B2F6F103D003DC0C1 /* Amon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Amon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6B7E0022F700000003DC0C1 /* AmonTunnelExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AmonTunnelExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B6B7E00F2F700000003DC0C1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Amon.entitlements,
+			);
+			target = B5A4FD0A2F6F103D003DC0C1 /* Amon */;
+		};
+		B6B7E0102F700000003DC0C1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AmonTunnelExtension.entitlements,
+				Info.plist,
+			);
+			target = B6B7E0092F700000003DC0C1 /* AmonTunnelExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5A4FD0D2F6F103D003DC0C1 /* Amon */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B6B7E00F2F700000003DC0C1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = Amon;
+			sourceTree = "<group>";
+		};
+		B6B7E0032F700000003DC0C1 /* AmonTunnelExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B6B7E0102F700000003DC0C1 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			path = AmonTunnelExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +86,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B6B7E0052F700000003DC0C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -38,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				B5A4FD0D2F6F103D003DC0C1 /* Amon */,
+				B6B7E0032F700000003DC0C1 /* AmonTunnelExtension */,
 				B5A4FD0C2F6F103D003DC0C1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -46,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				B5A4FD0B2F6F103D003DC0C1 /* Amon.app */,
+				B6B7E0022F700000003DC0C1 /* AmonTunnelExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,10 +124,12 @@
 				B5A4FD072F6F103D003DC0C1 /* Sources */,
 				B5A4FD082F6F103D003DC0C1 /* Frameworks */,
 				B5A4FD092F6F103D003DC0C1 /* Resources */,
+				B6B7E0042F700000003DC0C1 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B6B7E0082F700000003DC0C1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B5A4FD0D2F6F103D003DC0C1 /* Amon */,
@@ -76,6 +142,28 @@
 			productReference = B5A4FD0B2F6F103D003DC0C1 /* Amon.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B6B7E0092F700000003DC0C1 /* AmonTunnelExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B6B7E00E2F700000003DC0C1 /* Build configuration list for PBXNativeTarget "AmonTunnelExtension" */;
+			buildPhases = (
+				B6B7E0072F700000003DC0C1 /* Sources */,
+				B6B7E0052F700000003DC0C1 /* Frameworks */,
+				B6B7E0062F700000003DC0C1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B6B7E0032F700000003DC0C1 /* AmonTunnelExtension */,
+			);
+			name = AmonTunnelExtension;
+			packageProductDependencies = (
+			);
+			productName = AmonTunnelExtension;
+			productReference = B6B7E0022F700000003DC0C1 /* AmonTunnelExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -87,6 +175,9 @@
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					B5A4FD0A2F6F103D003DC0C1 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					B6B7E0092F700000003DC0C1 = {
 						CreatedOnToolsVersion = 26.3;
 					};
 				};
@@ -109,12 +200,20 @@
 			projectRoot = "";
 			targets = (
 				B5A4FD0A2F6F103D003DC0C1 /* Amon */,
+				B6B7E0092F700000003DC0C1 /* AmonTunnelExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B5A4FD092F6F103D003DC0C1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6B7E0062F700000003DC0C1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -131,7 +230,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B6B7E0072F700000003DC0C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B6B7E0082F700000003DC0C1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B6B7E0092F700000003DC0C1 /* AmonTunnelExtension */;
+			targetProxy = B6B7E00A2F700000003DC0C1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		B5A4FD162F6F103E003DC0C1 /* Debug */ = {
@@ -255,6 +369,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Amon/Amon.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NWBC36ZXYV;
@@ -299,6 +414,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Amon/Amon.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = NWBC36ZXYV;
@@ -338,6 +454,60 @@
 			};
 			name = Release;
 		};
+		B6B7E00C2F700000003DC0C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = AmonTunnelExtension/AmonTunnelExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NWBC36ZXYV;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AmonTunnelExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benappledev.Amon.TunnelExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B6B7E00D2F700000003DC0C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = AmonTunnelExtension/AmonTunnelExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NWBC36ZXYV;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AmonTunnelExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benappledev.Amon.TunnelExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,6 +525,15 @@
 			buildConfigurations = (
 				B5A4FD192F6F103E003DC0C1 /* Debug */,
 				B5A4FD1A2F6F103E003DC0C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B6B7E00E2F700000003DC0C1 /* Build configuration list for PBXNativeTarget "AmonTunnelExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B6B7E00C2F700000003DC0C1 /* Debug */,
+				B6B7E00D2F700000003DC0C1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
