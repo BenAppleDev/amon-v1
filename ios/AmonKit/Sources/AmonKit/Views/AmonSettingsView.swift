@@ -6,6 +6,7 @@ public struct AmonSettingsView: View {
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     @ObservedObject private var transportSettingsStore: TransportPrivacySettingsStore
     private let tunnelStatus: TransportTunnelStatusSnapshot
+    private let tunnelDiagnostics: [String]
     private let connectTunnel: () -> Void
     private let disconnectTunnel: () -> Void
     @State private var isPresentingDeleteConfirmation = false
@@ -16,6 +17,7 @@ public struct AmonSettingsView: View {
         privacySettingsStore: PrivacySettingsStore,
         transportSettingsStore: TransportPrivacySettingsStore,
         tunnelStatus: TransportTunnelStatusSnapshot,
+        tunnelDiagnostics: [String],
         connectTunnel: @escaping () -> Void,
         disconnectTunnel: @escaping () -> Void
     ) {
@@ -23,6 +25,7 @@ public struct AmonSettingsView: View {
         self.privacySettingsStore = privacySettingsStore
         self.transportSettingsStore = transportSettingsStore
         self.tunnelStatus = tunnelStatus
+        self.tunnelDiagnostics = tunnelDiagnostics
         self.connectTunnel = connectTunnel
         self.disconnectTunnel = disconnectTunnel
     }
@@ -35,6 +38,7 @@ public struct AmonSettingsView: View {
                         TransportSettingsView(
                             store: transportSettingsStore,
                             status: tunnelStatus,
+                            diagnostics: tunnelDiagnostics,
                             connectAction: connectTunnel,
                             disconnectAction: disconnectTunnel
                         )

@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import NetworkExtension
+import OSLog
 
 final class PacketTunnelProvider: NEPacketTunnelProvider {
     fileprivate enum ConfigurationKey {
@@ -30,6 +31,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         }
     }
 
+    private let logger = Logger(subsystem: "com.benappledev.Amon", category: "PacketTunnelProvider")
     private let ioQueue = DispatchQueue(label: "com.benappledev.AmonTunnelExtension.io")
     private var tunnelConnection: NWConnection?
     private var receiveBuffer = Data()
@@ -37,21 +39,32 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private var isTunnelRunning = false
 
     override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+        resetForNewStartAttempt()
+        log("startTunnel entered with options \(options?.description ?? "<nil>")")
+        log("protocolConfiguration type is \(String(describing: type(of: protocolConfiguration)))")
+
         do {
             let configuration = try DevTunnelConfiguration(protocolConfiguration: protocolConfiguration)
+            log("Parsed tunnel configuration \(configuration.summary)")
+
             let connection = try makeConnection(for: configuration)
             tunnelConnection = connection
+            log("Created NWConnection to \(configuration.serverHost):\(configuration.serverPort)")
 
             connection.stateUpdateHandler = { [weak self] state in
                 guard let self else { return }
+                self.log("NWConnection state changed to \(String(describing: state))")
 
                 switch state {
                 case .ready:
+                    self.log("TCP connection is ready; beginning handshake")
                     self.beginTunnelSession(using: configuration, completionHandler: completionHandler)
                 case .failed(let error):
+                    self.log("TCP connection failed before tunnel was established: \(error.localizedDescription)")
                     self.completeStartIfNeeded(with: error, completionHandler: completionHandler)
                     self.cancelTunnelWithError(error)
                 case .cancelled:
+                    self.log("TCP connection was cancelled")
                     if self.isTunnelRunning {
                         self.cancelTunnelWithError(TunnelProviderError.connectionClosed)
                     } else {
@@ -62,13 +75,16 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
                 }
             }
 
+            log("Starting TCP connection attempt to laptop endpoint")
             connection.start(queue: ioQueue)
         } catch {
+            log("startTunnel failed before TCP connect: \(error.localizedDescription)")
             completeStartIfNeeded(with: error, completionHandler: completionHandler)
         }
     }
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
+        log("stopTunnel entered with reason \(reason.rawValue)")
         isTunnelRunning = false
         tunnelConnection?.cancel()
         tunnelConnection = nil
@@ -77,6 +93,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)? = nil) {
+        log("Received app message of \(messageData.count) bytes")
         completionHandler?(messageData)
     }
 
@@ -84,23 +101,29 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         using configuration: DevTunnelConfiguration,
         completionHandler: @escaping (Error?) -> Void
     ) {
+        log("Beginning tunnel session using configuration \(configuration.summary)")
+
         performHandshake { [weak self] result in
             guard let self else { return }
 
             switch result {
             case .failure(let error):
+                self.log("Handshake failed: \(error.localizedDescription)")
                 self.completeStartIfNeeded(with: error, completionHandler: completionHandler)
                 self.cancelTunnelWithError(error)
 
             case .success:
+                self.log("Handshake succeeded; applying NEPacketTunnelNetworkSettings")
                 Task {
                     do {
                         try await self.applyTunnelNetworkSettings(using: configuration)
                         self.isTunnelRunning = true
+                        self.log("Tunnel network settings applied successfully; starting packet loops")
                         self.completeStartIfNeeded(with: nil, completionHandler: completionHandler)
                         self.startReadingPacketsFromDevice()
                         self.startReadingPacketsFromServer()
                     } catch {
+                        self.log("Applying tunnel network settings failed: \(error.localizedDescription)")
                         self.completeStartIfNeeded(with: error, completionHandler: completionHandler)
                         self.cancelTunnelWithError(error)
                     }
@@ -110,9 +133,20 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func makeConnection(for configuration: DevTunnelConfiguration) throws -> NWConnection {
+        let normalizedHost = configuration.serverHost.lowercased()
         guard let port = NWEndpoint.Port(rawValue: UInt16(configuration.serverPort)) else {
             throw TunnelProviderError.invalidConfiguration("Set a valid tunnel port before connecting.")
         }
+
+        guard !configuration.serverHost.contains("://") else {
+            throw TunnelProviderError.invalidConfiguration("Use only a laptop host or IP address. Leave out http:// or https://.")
+        }
+
+        guard !["localhost", "127.0.0.1", "::1", "0.0.0.0"].contains(normalizedHost) else {
+            throw TunnelProviderError.invalidConfiguration("Use your laptop's LAN IP address for the tunnel host, not localhost or 0.0.0.0.")
+        }
+
+        log("Resolving laptop endpoint \(configuration.serverHost):\(configuration.serverPort)")
         return NWConnection(
             host: NWEndpoint.Host(configuration.serverHost),
             port: port,
@@ -127,6 +161,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         let greeting = Data("AMON/1\n".utf8)
+        log("Sending handshake request AMON/1")
         tunnelConnection.send(content: greeting, completion: .contentProcessed { sendError in
             if let sendError {
                 completion(.failure(sendError))
@@ -139,9 +174,13 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
                     return
                 }
 
-                guard !isComplete, let data, let reply = String(data: data, encoding: .utf8)?
-                    .trimmingCharacters(in: .whitespacesAndNewlines),
-                    reply == "AMON/1 OK"
+                self.log("Received handshake response bytes=\(data?.count ?? 0) isComplete=\(isComplete)")
+
+                guard !isComplete,
+                      let data,
+                      let reply = String(data: data, encoding: .utf8)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines),
+                      reply == "AMON/1 OK"
                 else {
                     completion(.failure(TunnelProviderError.handshakeFailed))
                     return
@@ -154,6 +193,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func applyTunnelNetworkSettings(using configuration: DevTunnelConfiguration) async throws {
         let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: configuration.remoteAddress)
+        log("Applying tunnel settings remote=\(configuration.remoteAddress) client=\(configuration.clientAddress) subnet=\(configuration.subnetMask) mtu=\(configuration.mtu) dns=\(configuration.dnsServers.joined(separator: ","))")
 
         let ipv4Settings = NEIPv4Settings(
             addresses: [configuration.clientAddress],
@@ -183,6 +223,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func startReadingPacketsFromDevice() {
         guard isTunnelRunning else { return }
+        log("Starting packetFlow.readPackets loop")
 
         packetFlow.readPackets { [weak self] packets, _ in
             guard let self else { return }
@@ -194,6 +235,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             }
 
             for packet in packets {
+                self.log("Read packet from device length=\(packet.count)")
                 self.sendPacketToServer(packet)
             }
 
@@ -206,9 +248,11 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
         var length = UInt16(packet.count).bigEndian
         let frame = Data(bytes: &length, count: MemoryLayout<UInt16>.size) + packet
+        log("Sending framed packet to server length=\(packet.count)")
         tunnelConnection.send(content: frame, completion: .contentProcessed { [weak self] error in
             guard let self else { return }
             if let error {
+                self.log("Sending packet to server failed: \(error.localizedDescription)")
                 self.cancelTunnelWithError(error)
             }
         })
@@ -216,21 +260,25 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func startReadingPacketsFromServer() {
         guard let tunnelConnection, isTunnelRunning else { return }
+        log("Starting server-to-device receive loop")
 
         tunnelConnection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { [weak self] data, _, isComplete, error in
             guard let self else { return }
 
             if let error {
+                self.log("Server receive loop failed: \(error.localizedDescription)")
                 self.cancelTunnelWithError(error)
                 return
             }
 
             if let data, !data.isEmpty {
+                self.log("Received framed data from server bytes=\(data.count)")
                 self.receiveBuffer.append(data)
                 self.flushReceivedFramesToPacketFlow()
             }
 
             if isComplete {
+                self.log("Server closed the connection")
                 self.cancelTunnelWithError(TunnelProviderError.connectionClosed)
                 return
             }
@@ -241,9 +289,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
     private func flushReceivedFramesToPacketFlow() {
         while receiveBuffer.count >= 2 {
-            let packetLength = receiveBuffer.prefix(2).withUnsafeBytes { rawBuffer -> Int in
-                Int(rawBuffer.load(as: UInt16.self).bigEndian)
-            }
+            let packetLength = Int(receiveBuffer[receiveBuffer.startIndex]) << 8
+                | Int(receiveBuffer[receiveBuffer.startIndex.advanced(by: 1)])
 
             let totalFrameLength = 2 + packetLength
             guard receiveBuffer.count >= totalFrameLength else { return }
@@ -252,6 +299,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             receiveBuffer.removeSubrange(0..<totalFrameLength)
 
             let protocolNumber = packetProtocolNumber(for: packet)
+            log("Writing packet back to device length=\(packet.count) protocol=\(protocolNumber)")
             packetFlow.writePackets([packet], withProtocols: [protocolNumber])
         }
     }
@@ -269,7 +317,26 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private func completeStartIfNeeded(with error: Error?, completionHandler: @escaping (Error?) -> Void) {
         guard !didCompleteStart else { return }
         didCompleteStart = true
+        if let error {
+            log("Completing tunnel start with error: \(error.localizedDescription)")
+        } else {
+            log("Completing tunnel start successfully")
+        }
         completionHandler(error)
+    }
+
+    private func resetForNewStartAttempt() {
+        log("Resetting provider state for a new tunnel start attempt")
+        didCompleteStart = false
+        isTunnelRunning = false
+        receiveBuffer.removeAll(keepingCapacity: false)
+        tunnelConnection?.cancel()
+        tunnelConnection = nil
+    }
+
+    private func log(_ message: String) {
+        logger.info("\(message, privacy: .public)")
+        NSLog("[AmonPacketTunnel] %@", message)
     }
 }
 
@@ -282,12 +349,23 @@ private struct DevTunnelConfiguration {
     let dnsServers: [String]
     let mtu: Int
 
+    var summary: String {
+        "host=\(serverHost) port=\(serverPort) client=\(clientAddress) remote=\(remoteAddress) mtu=\(mtu) dns=\(dnsServers.joined(separator: ","))"
+    }
+
     init(protocolConfiguration: NEVPNProtocol) throws {
         guard let providerProtocol = protocolConfiguration as? NETunnelProviderProtocol,
               let providerConfiguration = providerProtocol.providerConfiguration
         else {
             throw PacketTunnelProvider.TunnelProviderError.invalidConfiguration("Amon couldn't read the tunnel provider configuration.")
         }
+
+        NSLog("[AmonPacketTunnel] raw providerConfiguration=%@", providerConfiguration.description)
+        NSLog(
+            "[AmonPacketTunnel] providerBundleIdentifier=%@ serverAddress=%@",
+            providerProtocol.providerBundleIdentifier ?? "<nil>",
+            providerProtocol.serverAddress ?? "<nil>"
+        )
 
         serverHost = try DevTunnelConfiguration.stringValue(
             for: PacketTunnelProvider.ConfigurationKey.serverHost,

@@ -16,6 +16,8 @@ This document describes the proof-of-concept tunnel layer wired into the iOS app
   - Durable local transport settings
 - `ios/AmonKit/Sources/AmonKit/Views/TransportSettingsView.swift`
   - In-app status and control surface
+- `tools/tunnel/amon_tunnel_daemon.py`
+  - Local laptop-side development daemon for handshake and packet logging
 
 The FastAPI backend remains separate. This tunnel code does not replace or absorb `backend/app`.
 
@@ -59,11 +61,11 @@ For this MVP, that service must:
 
 1. Listen on the configured TCP port, for example `9443`
 2. Accept the `AMON/1` handshake and reply with `AMON/1 OK`
-3. Read and write the length-prefixed packet frames
-4. Bridge packets to a real network interface or tunnel interface
-5. Enable IP forwarding / NAT so tunneled traffic can reach the wider network
+3. Read the length-prefixed packet frames
+4. Log packet summaries safely
+5. Stay running while the device tunnel is connected
 
-In practice, the laptop-side service is a small VPN/tunnel daemon or dev relay process you run separately from Amon's backend.
+The repo now includes a stage-1 daemon in `tools/tunnel/amon_tunnel_daemon.py` for this purpose. It is still separate from Amon's backend and it still does not provide real internet forwarding.
 
 ## Relationship to the backend
 
@@ -120,7 +122,11 @@ The simulator build should compile, but real tunnel establishment needs a device
 uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 ```
 
-2. Start the separate laptop tunnel endpoint on another port, such as `9443`
+2. Start the separate laptop tunnel endpoint on another port, such as `9443`:
+
+```bash
+python3 tools/tunnel/amon_tunnel_daemon.py --port 9443
+```
 3. Install the iOS app on a physical iPhone signed with the same Apple team as the extension
 4. In Amon Settings > Amon Tunnel:
    - set the laptop IP
@@ -138,5 +144,5 @@ uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 - There is no kill switch
 - There is no backend-issued tunnel credential flow yet
 - There is no relay fleet or server-side control plane
-- The laptop endpoint is external to this repo
+- The repo now includes only a stage-1 laptop endpoint for handshake and packet logging
 - The current protocol is development-oriented, not hardened

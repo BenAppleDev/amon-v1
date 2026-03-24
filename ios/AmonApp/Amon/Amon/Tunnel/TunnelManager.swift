@@ -2,11 +2,15 @@ import AmonKit
 import Combine
 import Foundation
 import NetworkExtension
+import OSLog
 
 @MainActor
 final class TunnelManager: ObservableObject {
-    static let tunnelProviderBundleIdentifier = "com.benappledev.Amon.TunnelExtension"
+    static let fallbackTunnelProviderBundleIdentifier = "com.benappledev.Amon.TunnelExtension"
     static let tunnelDisplayName = "Amon Tunnel"
+    private static let logger = Logger(subsystem: "com.benappledev.Amon", category: "TunnelManager")
+    private static let startTransitionPollCount = 12
+    private static let startTransitionPollDelayNanoseconds: UInt64 = 500_000_000
 
     private enum ConfigurationKey {
         static let serverHost = "serverHost"
@@ -18,10 +22,19 @@ final class TunnelManager: ObservableObject {
         static let mtu = "mtu"
     }
 
+    private enum StartOptionKey {
+        static let requestedAt = "requestedAt"
+        static let requestedHost = "requestedHost"
+        static let requestedPort = "requestedPort"
+        static let providerBundleIdentifier = "providerBundleIdentifier"
+    }
+
     @Published private(set) var statusSnapshot: TransportTunnelStatusSnapshot = .disconnected
+    @Published private(set) var diagnostics: [String] = []
 
     private var manager: NETunnelProviderManager?
     private var statusObservation: NSObjectProtocol?
+    private var resolvedProviderBundleIdentifier: String?
 
     deinit {
         if let statusObservation {
@@ -30,15 +43,24 @@ final class TunnelManager: ObservableObject {
     }
 
     func refreshFromPreferences(using settings: TransportPrivacySettings) async {
+        log("Refresh requested with settings \(configurationSummary(for: settings))")
+
+        resolvedProviderBundleIdentifier = resolveProviderBundleIdentifier()
+        log("Using provider bundle identifier \(providerBundleIdentifier)")
+
         do {
             manager = try await loadExistingManager()
             guard let manager else {
+                log("No saved tunnel manager found")
                 statusSnapshot = .disconnected
                 return
             }
+
+            log("Loaded saved manager with status \(describe(manager.connection.status)) and config \(configurationSummary(from: manager))")
             attachStatusObserver()
             updateStatusFromConnection(for: manager)
         } catch {
+            log("Refresh failed: \(errorDescription(for: error))", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
                 detail: humanReadableMessage(for: error)
@@ -47,7 +69,10 @@ final class TunnelManager: ObservableObject {
     }
 
     func connect(using settings: TransportPrivacySettings) async {
+        log("Connect requested with settings \(configurationSummary(for: settings))")
+
         guard settings.endpoint.isConfigured else {
+            log("Connect rejected because the laptop endpoint is not configured", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
                 detail: "Set your laptop endpoint before connecting."
@@ -60,15 +85,35 @@ final class TunnelManager: ObservableObject {
             detail: "Connecting to \(settings.endpoint.displayAddress)"
         )
 
+        resolvedProviderBundleIdentifier = resolveProviderBundleIdentifier()
+        log("Using provider bundle identifier \(providerBundleIdentifier)")
+
         do {
+            try validateSettings(settings)
             try validateProviderConfiguration()
+
             let manager = try await loadOrCreateManager()
-            try await installConfigurationIfNeeded(using: settings)
+            log("Using tunnel manager object \(String(describing: ObjectIdentifier(manager)))")
+
+            try await installConfigurationIfNeeded(using: settings, on: manager)
             self.manager = manager
             attachStatusObserver()
-            try manager.connection.startVPNTunnel()
+
+            let startOptions = makeStartOptions(from: settings)
+            if let session = manager.connection as? NETunnelProviderSession {
+                log("Starting NETunnelProviderSession with options \(startOptions)")
+                try session.startTunnel(options: startOptions)
+                log("NETunnelProviderSession.startTunnel returned without throwing; immediate status \(describe(manager.connection.status))")
+            } else {
+                log("Tunnel connection is \(String(describing: type(of: manager.connection))); falling back to startVPNTunnel()", level: .error)
+                try manager.connection.startVPNTunnel()
+                log("startVPNTunnel returned without throwing; immediate status \(describe(manager.connection.status))")
+            }
+
             updateStatusFromConnection(for: manager)
+            await monitorStartTransition(for: manager)
         } catch {
+            log("Connect failed: \(errorDescription(for: error))", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
                 detail: humanReadableMessage(for: error)
@@ -77,24 +122,34 @@ final class TunnelManager: ObservableObject {
     }
 
     func disconnect() {
+        log("Disconnect requested")
         manager?.connection.stopVPNTunnel()
         updateStatusFromConnection()
     }
 
+    func recordExternalEvent(_ message: String) {
+        log(message)
+    }
+
     private func attachStatusObserver() {
-        guard let connection = manager?.connection else { return }
+        guard let connection = manager?.connection else {
+            log("Status observer not attached because manager connection is missing", level: .error)
+            return
+        }
 
         if let statusObservation {
             NotificationCenter.default.removeObserver(statusObservation)
         }
 
+        log("Attaching NEVPNStatusDidChange observer")
         statusObservation = NotificationCenter.default.addObserver(
             forName: .NEVPNStatusDidChange,
             object: connection,
             queue: .main
         ) { [weak self] _ in
             guard let self else { return }
-            Task { @MainActor [self] in
+            Task { @MainActor in
+                self.log("Observed NEVPNStatusDidChange notification")
                 self.updateStatusFromConnection()
             }
         }
@@ -102,6 +157,7 @@ final class TunnelManager: ObservableObject {
 
     private func updateStatusFromConnection() {
         guard let manager else {
+            log("No active manager; reporting disconnected")
             statusSnapshot = .disconnected
             return
         }
@@ -110,6 +166,8 @@ final class TunnelManager: ObservableObject {
 
     private func updateStatusFromConnection(for manager: NETunnelProviderManager) {
         let endpointDetail = endpointSummary(from: manager)
+        log("Connection status is now \(describe(manager.connection.status)) (enabled=\(manager.isEnabled), endpoint=\(endpointDetail ?? "none"))")
+
         switch manager.connection.status {
         case .connected:
             statusSnapshot = TransportTunnelStatusSnapshot(
@@ -140,21 +198,31 @@ final class TunnelManager: ObservableObject {
     }
 
     private func loadExistingManager() async throws -> NETunnelProviderManager? {
+        log("Loading tunnel managers from system preferences")
         let existingManagers = try await loadAllManagers()
+        log("System returned \(existingManagers.count) tunnel manager(s)")
+
+        for (index, existing) in existingManagers.enumerated() {
+            let summary = configurationSummary(from: existing)
+            log("Manager[\(index)] \(summary)")
+        }
+
         return existingManagers.first(where: { existing in
             guard let protocolConfiguration = existing.protocolConfiguration as? NETunnelProviderProtocol else {
                 return false
             }
-            return protocolConfiguration.providerBundleIdentifier == Self.tunnelProviderBundleIdentifier
+            return protocolConfiguration.providerBundleIdentifier == providerBundleIdentifier
         })
     }
 
     private func loadOrCreateManager() async throws -> NETunnelProviderManager {
         if let manager {
+            log("Reusing cached tunnel manager")
             return manager
         }
 
         if let matched = try await loadExistingManager() {
+            log("Reusing existing persisted tunnel manager")
             manager = matched
             return matched
         }
@@ -162,33 +230,89 @@ final class TunnelManager: ObservableObject {
         let created = NETunnelProviderManager()
         created.localizedDescription = Self.tunnelDisplayName
         created.isEnabled = false
+        log("Created new NETunnelProviderManager")
         manager = created
         return created
     }
 
-    private func validateProviderConfiguration() throws {
-        let pluginBundles = Bundle.main.builtInPlugInsURL
-            .flatMap { try? FileManager.default.contentsOfDirectory(at: $0, includingPropertiesForKeys: nil) }
-            ?? []
-
-        let isProviderEmbedded = pluginBundles.contains { url in
-            guard let bundle = Bundle(url: url) else { return false }
-            return bundle.bundleIdentifier == Self.tunnelProviderBundleIdentifier
+    private func validateSettings(_ settings: TransportPrivacySettings) throws {
+        let host = settings.endpoint.serverHost.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalizedHost = host.lowercased()
+        guard !host.isEmpty else {
+            throw TunnelConfigurationError.invalidEndpointHost("Set your laptop host or IP before connecting.")
         }
 
-        guard isProviderEmbedded else {
-            throw TunnelConfigurationError.providerMissing
+        guard !host.contains("://") else {
+            throw TunnelConfigurationError.invalidEndpointHost("Use only the laptop host or IP address. Leave out http:// or https://.")
+        }
+
+        guard !["localhost", "127.0.0.1", "::1", "0.0.0.0"].contains(normalizedHost) else {
+            throw TunnelConfigurationError.invalidEndpointHost("Use your laptop's LAN IP address here, not localhost or 0.0.0.0.")
+        }
+
+        guard (1...65535).contains(settings.endpoint.serverPort) else {
+            throw TunnelConfigurationError.invalidPort
         }
     }
 
-    private func installConfigurationIfNeeded(using settings: TransportPrivacySettings) async throws {
-        guard let manager else { return }
+    private func validateProviderConfiguration() throws {
+        let bundles = embeddedPluginBundles()
+        let bundleDescriptions = bundles.map { bundle in
+            "\(bundle.bundleIdentifier ?? "<nil>")@\(bundle.bundleURL.lastPathComponent)"
+        }.joined(separator: ", ")
+        log("Embedded plugin bundles: \(bundleDescriptions.isEmpty ? "<none>" : bundleDescriptions)")
 
-        let protocolConfiguration = NETunnelProviderProtocol()
-        protocolConfiguration.providerBundleIdentifier = Self.tunnelProviderBundleIdentifier
-        protocolConfiguration.serverAddress = settings.endpoint.displayAddress
-        protocolConfiguration.disconnectOnSleep = false
-        protocolConfiguration.providerConfiguration = [
+        let isProviderEmbedded = bundles.contains { bundle in
+            bundle.bundleIdentifier == providerBundleIdentifier
+        }
+
+        guard isProviderEmbedded else {
+            throw TunnelConfigurationError.providerMissing(expectedBundleIdentifier: providerBundleIdentifier)
+        }
+    }
+
+    private func embeddedPluginBundles() -> [Bundle] {
+        let pluginURLs = Bundle.main.builtInPlugInsURL
+            .flatMap { try? FileManager.default.contentsOfDirectory(at: $0, includingPropertiesForKeys: nil) }
+            ?? []
+        return pluginURLs.compactMap(Bundle.init(url:))
+    }
+
+    private func resolveProviderBundleIdentifier() -> String {
+        if let resolvedProviderBundleIdentifier {
+            return resolvedProviderBundleIdentifier
+        }
+
+        let packetTunnelBundle = embeddedPluginBundles().first(where: { bundle in
+            guard let extensionAttributes = bundle.infoDictionary?["NSExtension"] as? [String: Any] else {
+                return false
+            }
+            let extensionPoint = extensionAttributes["NSExtensionPointIdentifier"] as? String
+            return extensionPoint == "com.apple.networkextension.packet-tunnel"
+        })
+
+        if let bundleIdentifier = packetTunnelBundle?.bundleIdentifier, !bundleIdentifier.isEmpty {
+            resolvedProviderBundleIdentifier = bundleIdentifier
+            log("Resolved packet tunnel provider bundle identifier \(bundleIdentifier) from embedded extension")
+            return bundleIdentifier
+        }
+
+        resolvedProviderBundleIdentifier = Self.fallbackTunnelProviderBundleIdentifier
+        log("Falling back to hardcoded provider bundle identifier \(Self.fallbackTunnelProviderBundleIdentifier)")
+        return Self.fallbackTunnelProviderBundleIdentifier
+    }
+
+    private var providerBundleIdentifier: String {
+        resolvedProviderBundleIdentifier ?? Self.fallbackTunnelProviderBundleIdentifier
+    }
+
+    private func installConfigurationIfNeeded(using settings: TransportPrivacySettings, on manager: NETunnelProviderManager) async throws {
+        if configurationMatchesExistingManager(manager, settings: settings) {
+            log("Persisted tunnel configuration already matches the requested endpoint; skipping save")
+            return
+        }
+
+        let providerConfiguration: [String: Any] = [
             ConfigurationKey.serverHost: settings.endpoint.serverHost,
             ConfigurationKey.serverPort: settings.endpoint.serverPort,
             ConfigurationKey.clientAddress: settings.endpoint.clientAddress,
@@ -198,16 +322,118 @@ final class TunnelManager: ObservableObject {
             ConfigurationKey.mtu: settings.endpoint.mtu,
         ]
 
+        let protocolConfiguration = NETunnelProviderProtocol()
+        protocolConfiguration.providerBundleIdentifier = providerBundleIdentifier
+        protocolConfiguration.serverAddress = settings.endpoint.displayAddress
+        protocolConfiguration.disconnectOnSleep = false
+        protocolConfiguration.providerConfiguration = providerConfiguration
+
         manager.localizedDescription = Self.tunnelDisplayName
         manager.protocolConfiguration = protocolConfiguration
         manager.isEnabled = settings.endpoint.isConfigured
 
+        log("Installing protocol configuration \(configurationSummary(for: settings))")
+        log("Saving tunnel configuration to system preferences")
         try await saveToPreferences(manager)
+        log("Tunnel configuration saved successfully")
+
+        log("Reloading tunnel configuration from system preferences")
         try await loadFromPreferences(manager)
+        log("Reloaded tunnel configuration successfully: \(configurationSummary(from: manager))")
+    }
+
+    private func configurationMatchesExistingManager(
+        _ manager: NETunnelProviderManager,
+        settings: TransportPrivacySettings
+    ) -> Bool {
+        guard let configuration = manager.protocolConfiguration as? NETunnelProviderProtocol else {
+            return false
+        }
+
+        let providerConfiguration = configuration.providerConfiguration ?? [:]
+        let storedHost = providerConfiguration[ConfigurationKey.serverHost] as? String
+        let storedPort = intValue(providerConfiguration[ConfigurationKey.serverPort])
+        let storedClient = providerConfiguration[ConfigurationKey.clientAddress] as? String
+        let storedSubnetMask = providerConfiguration[ConfigurationKey.subnetMask] as? String
+        let storedRemote = providerConfiguration[ConfigurationKey.remoteAddress] as? String
+        let storedMTU = intValue(providerConfiguration[ConfigurationKey.mtu])
+        let storedDNS = stringArrayValue(providerConfiguration[ConfigurationKey.dnsServers])
+
+        let endpoint = settings.endpoint
+        return configuration.providerBundleIdentifier == providerBundleIdentifier
+            && configuration.serverAddress == endpoint.displayAddress
+            && manager.isEnabled == endpoint.isConfigured
+            && storedHost == endpoint.serverHost
+            && storedPort == endpoint.serverPort
+            && storedClient == endpoint.clientAddress
+            && storedSubnetMask == endpoint.subnetMask
+            && storedRemote == endpoint.remoteAddress
+            && storedMTU == endpoint.mtu
+            && storedDNS == endpoint.dnsServers
     }
 
     private func endpointSummary(from manager: NETunnelProviderManager) -> String? {
         (manager.protocolConfiguration as? NETunnelProviderProtocol)?.serverAddress
+    }
+
+    private func configurationSummary(for settings: TransportPrivacySettings) -> String {
+        let endpoint = settings.endpoint
+        return "host=\(endpoint.serverHost.isEmpty ? "<empty>" : endpoint.serverHost) port=\(endpoint.serverPort) client=\(endpoint.clientAddress) remote=\(endpoint.remoteAddress) mtu=\(endpoint.mtu) dns=\(endpoint.dnsServers.joined(separator: ","))"
+    }
+
+    private func configurationSummary(from manager: NETunnelProviderManager) -> String {
+        guard let configuration = manager.protocolConfiguration as? NETunnelProviderProtocol else {
+            return "providerConfiguration=<missing>"
+        }
+
+        let providerConfiguration = configuration.providerConfiguration ?? [:]
+        let host = providerConfiguration[ConfigurationKey.serverHost] ?? "<missing>"
+        let port = providerConfiguration[ConfigurationKey.serverPort] ?? "<missing>"
+        let client = providerConfiguration[ConfigurationKey.clientAddress] ?? "<missing>"
+        let remote = providerConfiguration[ConfigurationKey.remoteAddress] ?? "<missing>"
+        let mtu = providerConfiguration[ConfigurationKey.mtu] ?? "<missing>"
+        let dns = (providerConfiguration[ConfigurationKey.dnsServers] as? [String])?.joined(separator: ",") ?? "<missing>"
+        return "bundle=\(configuration.providerBundleIdentifier ?? "<nil>") host=\(host) port=\(port) client=\(client) remote=\(remote) mtu=\(mtu) dns=\(dns)"
+    }
+
+    private func monitorStartTransition(for manager: NETunnelProviderManager) async {
+        for attempt in 1...Self.startTransitionPollCount {
+            let status = manager.connection.status
+            log("Post-start status poll \(attempt): \(describe(status))")
+            if status != .invalid && status != .disconnected {
+                return
+            }
+            try? await Task.sleep(nanoseconds: Self.startTransitionPollDelayNanoseconds)
+        }
+
+        let finalStatus = manager.connection.status
+        if finalStatus == .invalid || finalStatus == .disconnected {
+            let message = "iOS accepted the start request but the provider never reached a connecting state. Check PacketTunnelProvider logs in the device console."
+            log(message, level: .error)
+            statusSnapshot = TransportTunnelStatusSnapshot(
+                state: .failed,
+                detail: message
+            )
+        }
+    }
+
+    private func describe(_ status: NEVPNStatus) -> String {
+        switch status {
+        case .invalid:
+            return "invalid"
+        case .disconnected:
+            return "disconnected"
+        case .connecting:
+            return "connecting"
+        case .connected:
+            return "connected"
+        case .reasserting:
+            return "reasserting"
+        case .disconnecting:
+            return "disconnecting"
+        @unknown default:
+            return "unknown(\(status.rawValue))"
+        }
     }
 
     private func humanReadableMessage(for error: Error) -> String {
@@ -242,15 +468,77 @@ final class TunnelManager: ObservableObject {
 
         return error.localizedDescription
     }
+
+    private func errorDescription(for error: Error) -> String {
+        let nsError = error as NSError
+        return "\(nsError.domain) code=\(nsError.code) \(humanReadableMessage(for: error))"
+    }
+
+    private func makeStartOptions(from settings: TransportPrivacySettings) -> [String: NSObject] {
+        [
+            StartOptionKey.requestedAt: ISO8601DateFormatter().string(from: Date()) as NSString,
+            StartOptionKey.requestedHost: settings.endpoint.serverHost as NSString,
+            StartOptionKey.requestedPort: NSNumber(value: settings.endpoint.serverPort),
+            StartOptionKey.providerBundleIdentifier: providerBundleIdentifier as NSString,
+        ]
+    }
+
+    private func intValue(_ value: Any?) -> Int? {
+        if let intValue = value as? Int {
+            return intValue
+        }
+        if let numberValue = value as? NSNumber {
+            return numberValue.intValue
+        }
+        return nil
+    }
+
+    private func stringArrayValue(_ value: Any?) -> [String]? {
+        if let array = value as? [String] {
+            return array
+        }
+        if let array = value as? [NSString] {
+            return array.map(String.init)
+        }
+        if let array = value as? NSArray {
+            return array.compactMap { $0 as? String }
+        }
+        return nil
+    }
+
+    private func log(_ message: String, level: OSLogType = .info) {
+        let timestamp = ISO8601DateFormatter().string(from: Date())
+        let entry = "\(timestamp) \(message)"
+        diagnostics.append(entry)
+        if diagnostics.count > 40 {
+            diagnostics.removeFirst(diagnostics.count - 40)
+        }
+
+        switch level {
+        case .debug:
+            Self.logger.debug("\(message, privacy: .public)")
+        case .error, .fault:
+            Self.logger.error("\(message, privacy: .public)")
+        default:
+            Self.logger.info("\(message, privacy: .public)")
+        }
+        NSLog("[AmonTunnelManager] %@", message)
+    }
 }
 
 private enum TunnelConfigurationError: LocalizedError {
-    case providerMissing
+    case providerMissing(expectedBundleIdentifier: String)
+    case invalidEndpointHost(String)
+    case invalidPort
 
     var errorDescription: String? {
         switch self {
-        case .providerMissing:
-            return "The Amon Tunnel extension is not embedded in this build. Rebuild the app with the Packet Tunnel extension target included."
+        case .providerMissing(let expectedBundleIdentifier):
+            return "The Amon Tunnel extension (\(expectedBundleIdentifier)) is not embedded in this build. Rebuild the app with the Packet Tunnel extension target included."
+        case .invalidEndpointHost(let message):
+            return message
+        case .invalidPort:
+            return "Use a valid tunnel port between 1 and 65535."
         }
     }
 }

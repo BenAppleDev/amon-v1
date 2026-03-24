@@ -91,11 +91,15 @@ struct RootTabView: View {
         }
         .tint(AmonTheme.accent)
         .task {
+            tunnelManager.recordExternalEvent("RootTabView startup task began")
             await tunnelManager.refreshFromPreferences(using: transportSettingsStore.settings)
+            tunnelManager.recordExternalEvent("Tunnel preferences refresh completed during startup")
             await searchViewModel.restoreSessionIfNeeded()
+            tunnelManager.recordExternalEvent("Session restore finished; authenticated=\(searchViewModel.isAuthenticated)")
             await BrowserPrivacyController.clearWebsiteDataIfNeededOnLaunch(using: privacySettingsStore.settings)
             hasCompletedInitialSessionRestore = true
             if searchViewModel.isAuthenticated {
+                tunnelManager.recordExternalEvent("Handling authenticated state after session restore")
                 await handleAuthenticatedState(isSessionRestore: true)
             }
         }
@@ -115,17 +119,21 @@ struct RootTabView: View {
         }
         .onChange(of: transportSettingsStore.settings) { _, newValue in
             Task {
+                tunnelManager.recordExternalEvent("Transport settings changed to host=\(newValue.endpoint.serverHost.isEmpty ? "<empty>" : newValue.endpoint.serverHost) port=\(newValue.endpoint.serverPort) enabledWhenSignedIn=\(newValue.enabledWhenSignedIn) autoConnectOnRestore=\(newValue.autoConnectOnSessionRestore)")
                 await tunnelManager.refreshFromPreferences(using: newValue)
             }
         }
         .onChange(of: searchViewModel.isAuthenticated) { oldValue, newValue in
             guard hasCompletedInitialSessionRestore else { return }
+            tunnelManager.recordExternalEvent("Authentication state changed from \(oldValue) to \(newValue)")
             if !oldValue && newValue {
                 Task {
+                    tunnelManager.recordExternalEvent("Handling authenticated state after fresh sign-in")
                     await handleAuthenticatedState(isSessionRestore: false)
                 }
             } else if oldValue && !newValue {
                 pendingTunnelPrompt = nil
+                tunnelManager.recordExternalEvent("User signed out; disconnecting tunnel")
                 tunnelManager.disconnect()
             }
         }
@@ -135,12 +143,15 @@ struct RootTabView: View {
                 privacySettingsStore: privacySettingsStore,
                 transportSettingsStore: transportSettingsStore,
                 tunnelStatus: tunnelManager.statusSnapshot,
+                tunnelDiagnostics: tunnelManager.diagnostics,
                 connectTunnel: {
                     Task {
+                        tunnelManager.recordExternalEvent("Manual connect requested from settings")
                         await tunnelManager.connect(using: transportSettingsStore.settings)
                     }
                 },
                 disconnectTunnel: {
+                    tunnelManager.recordExternalEvent("Manual disconnect requested from settings")
                     tunnelManager.disconnect()
                 }
             )
@@ -152,30 +163,40 @@ struct RootTabView: View {
                 primaryButton: .default(Text("Connect")) {
                     transportSettingsStore.updateEnabledWhenSignedIn(true)
                     Task {
+                        tunnelManager.recordExternalEvent("Tunnel prompt accepted for \(prompt.rawValue)")
                         await tunnelManager.connect(using: transportSettingsStore.settings)
                     }
                 },
-                secondaryButton: .cancel(Text("Not now"))
+                secondaryButton: .cancel(Text("Not now")) {
+                    tunnelManager.recordExternalEvent("Tunnel prompt dismissed for \(prompt.rawValue)")
+                }
             )
         }
     }
 
     private func handleAuthenticatedState(isSessionRestore: Bool) async {
         let settings = transportSettingsStore.settings
+        tunnelManager.recordExternalEvent("Refreshing tunnel state for authenticated session; restore=\(isSessionRestore)")
         await tunnelManager.refreshFromPreferences(using: settings)
 
-        guard settings.endpoint.isConfigured else { return }
+        guard settings.endpoint.isConfigured else {
+            tunnelManager.recordExternalEvent("Authenticated state handling skipped because endpoint is not configured")
+            return
+        }
 
         if settings.enabledWhenSignedIn {
             if isSessionRestore && !settings.autoConnectOnSessionRestore {
                 if tunnelManager.statusSnapshot.state == .disconnected {
+                    tunnelManager.recordExternalEvent("Session restored with auto-connect disabled; prompting for reconnect")
                     pendingTunnelPrompt = .sessionRestore
                 }
                 return
             }
 
+            tunnelManager.recordExternalEvent("Auto-connect path chosen; requesting tunnel connect")
             await tunnelManager.connect(using: settings)
         } else if tunnelManager.statusSnapshot.state == .disconnected {
+            tunnelManager.recordExternalEvent("Tunnel not enabled when signed in; presenting opt-in prompt")
             pendingTunnelPrompt = isSessionRestore ? .sessionRestore : .signIn
         }
     }

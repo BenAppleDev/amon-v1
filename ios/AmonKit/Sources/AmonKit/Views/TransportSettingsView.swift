@@ -4,17 +4,20 @@ public struct TransportSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var store: TransportPrivacySettingsStore
     private let status: TransportTunnelStatusSnapshot
+    private let diagnostics: [String]
     private let connectAction: () -> Void
     private let disconnectAction: () -> Void
 
     public init(
         store: TransportPrivacySettingsStore,
         status: TransportTunnelStatusSnapshot,
+        diagnostics: [String],
         connectAction: @escaping () -> Void,
         disconnectAction: @escaping () -> Void
     ) {
         self.store = store
         self.status = status
+        self.diagnostics = diagnostics
         self.connectAction = connectAction
         self.disconnectAction = disconnectAction
     }
@@ -31,6 +34,7 @@ public struct TransportSettingsView: View {
                         statusSection
                         behaviorSection
                         endpointSection
+                        diagnosticsSection
                         limitsSection
                     }
                     .padding(.horizontal, 20)
@@ -236,6 +240,30 @@ public struct TransportSettingsView: View {
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
+            .amonCardStyle()
+        }
+    }
+
+    private var diagnosticsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Recent Activity")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 10) {
+                if diagnostics.isEmpty {
+                    Text("Tunnel startup activity will appear here after you try to connect.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(diagnostics.suffix(12).enumerated()), id: \.offset) { _, entry in
+                        Text(entry)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                    }
+                }
+            }
             .amonCardStyle()
         }
     }
