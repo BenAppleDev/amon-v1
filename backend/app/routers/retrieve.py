@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.rate_limit import RateLimiter
 from app.schemas import RetrieveRequest, StructuredRetrievalResponse
 from app.security import CurrentUser, get_current_user
-from app.services.retrieval import RetrievalService
+from app.services.retrieval import RetrievalError, RetrievalService
 
 router = APIRouter(prefix='/v1', tags=['retrieve'])
 
@@ -17,4 +17,13 @@ async def retrieve(
     db: Session = Depends(get_db),
 ) -> StructuredRetrievalResponse:
     RateLimiter(db).check_and_increment(current.user.id)
-    return await RetrievalService().retrieve(str(payload.url))
+    try:
+        return await RetrievalService().retrieve(str(payload.url))
+    except RetrievalError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail={
+                'code': exc.code,
+                'message': exc.message,
+            },
+        ) from exc

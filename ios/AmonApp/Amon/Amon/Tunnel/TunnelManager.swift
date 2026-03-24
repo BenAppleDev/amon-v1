@@ -31,10 +31,13 @@ final class TunnelManager: ObservableObject {
 
     func refreshFromPreferences(using settings: TransportPrivacySettings) async {
         do {
-            manager = try await loadOrCreateManager()
-            try await installConfigurationIfNeeded(using: settings)
+            manager = try await loadExistingManager()
+            guard let manager else {
+                statusSnapshot = .disconnected
+                return
+            }
             attachStatusObserver()
-            updateStatusFromConnection()
+            updateStatusFromConnection(for: manager)
         } catch {
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
@@ -58,11 +61,13 @@ final class TunnelManager: ObservableObject {
         )
 
         do {
+            try validateProviderConfiguration()
             let manager = try await loadOrCreateManager()
             try await installConfigurationIfNeeded(using: settings)
+            self.manager = manager
             attachStatusObserver()
             try manager.connection.startVPNTunnel()
-            updateStatusFromConnection()
+            updateStatusFromConnection(for: manager)
         } catch {
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
@@ -100,7 +105,10 @@ final class TunnelManager: ObservableObject {
             statusSnapshot = .disconnected
             return
         }
+        updateStatusFromConnection(for: manager)
+    }
 
+    private func updateStatusFromConnection(for manager: NETunnelProviderManager) {
         let endpointDetail = endpointSummary(from: manager)
         switch manager.connection.status {
         case .connected:
@@ -131,18 +139,22 @@ final class TunnelManager: ObservableObject {
         }
     }
 
+    private func loadExistingManager() async throws -> NETunnelProviderManager? {
+        let existingManagers = try await loadAllManagers()
+        return existingManagers.first(where: { existing in
+            guard let protocolConfiguration = existing.protocolConfiguration as? NETunnelProviderProtocol else {
+                return false
+            }
+            return protocolConfiguration.providerBundleIdentifier == Self.tunnelProviderBundleIdentifier
+        })
+    }
+
     private func loadOrCreateManager() async throws -> NETunnelProviderManager {
         if let manager {
             return manager
         }
 
-        let existingManagers = try await loadAllManagers()
-        if let matched = existingManagers.first(where: { existing in
-            guard let protocolConfiguration = existing.protocolConfiguration as? NETunnelProviderProtocol else {
-                return false
-            }
-            return protocolConfiguration.providerBundleIdentifier == Self.tunnelProviderBundleIdentifier
-        }) {
+        if let matched = try await loadExistingManager() {
             manager = matched
             return matched
         }
@@ -152,6 +164,21 @@ final class TunnelManager: ObservableObject {
         created.isEnabled = false
         manager = created
         return created
+    }
+
+    private func validateProviderConfiguration() throws {
+        let pluginBundles = Bundle.main.builtInPlugInsURL
+            .flatMap { try? FileManager.default.contentsOfDirectory(at: $0, includingPropertiesForKeys: nil) }
+            ?? []
+
+        let isProviderEmbedded = pluginBundles.contains { url in
+            guard let bundle = Bundle(url: url) else { return false }
+            return bundle.bundleIdentifier == Self.tunnelProviderBundleIdentifier
+        }
+
+        guard isProviderEmbedded else {
+            throw TunnelConfigurationError.providerMissing
+        }
     }
 
     private func installConfigurationIfNeeded(using settings: TransportPrivacySettings) async throws {
@@ -184,6 +211,10 @@ final class TunnelManager: ObservableObject {
     }
 
     private func humanReadableMessage(for error: Error) -> String {
+        if let tunnelError = error as? TunnelConfigurationError {
+            return tunnelError.localizedDescription
+        }
+
         if let configurationError = error as? NEVPNError {
             switch configurationError.code {
             case .configurationInvalid:
@@ -195,7 +226,7 @@ final class TunnelManager: ObservableObject {
             case .configurationStale:
                 return "The tunnel configuration changed underneath the app. Try again."
             case .configurationReadWriteFailed:
-                return "Amon couldn't save the system tunnel configuration."
+                return "This signed build could not save the tunnel configuration. Enable the Network Extension capability for both targets and install a build signed with a provisioning profile that includes packet-tunnel permission."
             case .configurationUnknown:
                 return "The device rejected the current tunnel configuration."
             @unknown default:
@@ -203,7 +234,24 @@ final class TunnelManager: ObservableObject {
             }
         }
 
+        let nsError = error as NSError
+        if (nsError.domain == "NEConfigurationErrorDomain" && nsError.code == 10)
+            || (nsError.domain == "NEVPNErrorDomain" && nsError.code == 5) {
+            return "This signed build does not currently have permission to install the Amon tunnel. Make sure the app and extension both have the Network Extension capability, then install a build signed with a provisioning profile that includes packet-tunnel permission."
+        }
+
         return error.localizedDescription
+    }
+}
+
+private enum TunnelConfigurationError: LocalizedError {
+    case providerMissing
+
+    var errorDescription: String? {
+        switch self {
+        case .providerMissing:
+            return "The Amon Tunnel extension is not embedded in this build. Rebuild the app with the Packet Tunnel extension target included."
+        }
     }
 }
 

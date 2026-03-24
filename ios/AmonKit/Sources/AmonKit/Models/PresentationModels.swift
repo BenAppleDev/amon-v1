@@ -28,8 +28,57 @@ enum SearchPresentation: Identifiable, Equatable {
 }
 
 enum AmonErrorPresenter {
-    private struct ServerDetailEnvelope: Decodable {
-        let detail: String
+    private struct ServerErrorBody: Decodable {
+        let code: String?
+        let detail: ServerErrorDetail?
+
+        var detailMessage: String? {
+            detail?.message ?? detail?.stringValue
+        }
+
+        var detailCode: String? {
+            detail?.code ?? code
+        }
+    }
+
+    private enum ServerErrorDetail: Decodable {
+        case string(String)
+        case object(ServerErrorObject)
+
+        var stringValue: String? {
+            if case .string(let value) = self {
+                return value
+            }
+            return nil
+        }
+
+        var message: String? {
+            if case .object(let value) = self {
+                return value.message
+            }
+            return nil
+        }
+
+        var code: String? {
+            if case .object(let value) = self {
+                return value.code
+            }
+            return nil
+        }
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if let value = try? container.decode(String.self) {
+                self = .string(value)
+                return
+            }
+            self = .object(try container.decode(ServerErrorObject.self))
+        }
+    }
+
+    private struct ServerErrorObject: Decodable {
+        let code: String?
+        let message: String?
     }
 
     static func message(for error: Error, fallback: String) -> String {
@@ -43,8 +92,24 @@ enum AmonErrorPresenter {
                 return "Amon received an unreadable response from the backend."
             case .serverError(let statusCode, let body):
                 let detail = serverDetail(from: body)
+                let code = serverCode(from: body)
+                if code == "retrieve_blocked" {
+                    return detail ?? "That site blocked Amon's clean-view fetch. You can still open the original page directly."
+                }
+                if code == "retrieve_timeout" {
+                    return detail ?? "Amon couldn't prepare a clean view before the site timed out. You can still open the original page directly."
+                }
+                if code == "retrieve_not_found" {
+                    return detail ?? "Amon couldn't find that page to prepare a clean view."
+                }
+                if code == "retrieve_unreachable" || code == "retrieve_client_error" || code == "retrieve_upstream_error" {
+                    return detail ?? "Amon couldn't prepare a clean view for that page right now."
+                }
                 if statusCode == 503 {
                     return detail ?? "Amon can't reach that service right now. Check that the backend is running."
+                }
+                if statusCode == 403 {
+                    return detail ?? "That request was blocked."
                 }
                 if statusCode >= 500 {
                     return detail ?? "The backend couldn't complete that request right now."
@@ -84,10 +149,15 @@ enum AmonErrorPresenter {
 
     private static func serverDetail(from body: String) -> String? {
         guard !body.isEmpty, let data = body.data(using: .utf8) else { return nil }
-        if let envelope = try? JSONDecoder().decode(ServerDetailEnvelope.self, from: data) {
-            return envelope.detail
+        if let envelope = try? JSONDecoder().decode(ServerErrorBody.self, from: data) {
+            return envelope.detailMessage
         }
         return body.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+
+    private static func serverCode(from body: String) -> String? {
+        guard !body.isEmpty, let data = body.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(ServerErrorBody.self, from: data).detailCode
     }
 }
 
