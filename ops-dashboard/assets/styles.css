@@ -568,6 +568,12 @@ tbody tr.is-selected {
   margin-top: 22px;
 }
 
+.auth-form__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .auth-form label {
   display: grid;
   gap: 8px;

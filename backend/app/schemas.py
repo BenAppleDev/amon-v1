@@ -350,6 +350,62 @@ class InternalProtectedTerminationCounters(BaseModel):
     failure_reason_counts: dict[str, int] = Field(default_factory=dict)
 
 
+class OpsEnvironmentView(BaseModel):
+    key: str
+    label: str
+    app_env: str
+
+
+class OpsAuthStatusResponse(BaseModel):
+    authenticated: bool
+    environment: OpsEnvironmentView
+    operator_id: str | None = None
+    auth_method: str | None = None
+    session_expires_at: datetime | None = None
+    dev_token_login_enabled: bool = False
+
+
+class OpsDevLoginRequest(BaseModel):
+    admin_token: str = Field(min_length=3, max_length=200)
+    operator_id: str | None = Field(default=None, min_length=3, max_length=255)
+
+
+class ProtectedSessionOpsSnapshotView(BaseModel):
+    recorded_at: datetime
+    environment: str
+    total_sessions: int = 0
+    active_sessions: int = 0
+    active_streams: int = 0
+    users_with_active_sessions: int = 0
+    users_with_live_streams: int = 0
+    total_workers: int = 0
+    healthy_workers: int = 0
+    degraded_workers: int = 0
+    total_worker_capacity: int = 0
+    total_worker_stream_capacity: int = 0
+    total_assigned_sessions: int = 0
+    quota_rejections_total: int = 0
+    protocol_errors_total: int = 0
+    heartbeat_timeouts_total: int = 0
+    dropped_events_total: int = 0
+
+
+class ProtectedSessionOpsSnapshotSeries(BaseModel):
+    environment: OpsEnvironmentView
+    snapshots: list[ProtectedSessionOpsSnapshotView] = Field(default_factory=list)
+
+
+class ProtectedSessionOpsHistoricalSummary(BaseModel):
+    environment: OpsEnvironmentView
+    window_hours: int
+    total_events: int = 0
+    event_counts: dict[str, int] = Field(default_factory=dict)
+    reason_counts: dict[str, int] = Field(default_factory=dict)
+    terminal_reason_counts: dict[str, int] = Field(default_factory=dict)
+    stream_error_counts: dict[str, int] = Field(default_factory=dict)
+    latest_snapshot: ProtectedSessionOpsSnapshotView | None = None
+
+
 class ItemSourcePayload(BaseModel):
     item_id: str | None = None
     title: str

@@ -74,3 +74,58 @@ class RateLimitWindow(TimestampMixin, Base):
     request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     user: Mapped['User'] = relationship(back_populates='rate_limits')
+
+
+class OpsOperatorSession(Base):
+    __tablename__ = 'ops_operator_sessions'
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    operator_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    environment: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    auth_method: Mapped[str] = mapped_column(String(64), nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class ProtectedSessionOpsEventRecord(Base):
+    __tablename__ = 'protected_session_ops_events'
+
+    event_id: Mapped[str] = mapped_column(String, primary_key=True)
+    environment: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    session_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    domain: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    worker_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    reason_code: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    state: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    disposition: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    budget_tier: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    metric_value: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class ProtectedSessionOpsSnapshotRecord(Base):
+    __tablename__ = 'protected_session_ops_snapshots'
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    environment: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    total_sessions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_sessions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_streams: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    users_with_active_sessions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    users_with_live_streams: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_workers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    healthy_workers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    degraded_workers: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_worker_capacity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_worker_stream_capacity: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_assigned_sessions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    quota_rejections_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    protocol_errors_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    heartbeat_timeouts_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    dropped_events_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

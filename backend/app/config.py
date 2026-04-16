@@ -68,6 +68,15 @@ class Settings(BaseSettings):
         default=4, alias='PROTECTED_SESSION_STREAM_SUBSCRIBER_QUEUE_SIZE'
     )
     internal_admin_token: str | None = Field(default=None, alias='INTERNAL_ADMIN_TOKEN')
+    ops_environment_key: str = Field(default='local', alias='OPS_ENVIRONMENT_KEY')
+    ops_environment_label: str = Field(default='Local', alias='OPS_ENVIRONMENT_LABEL')
+    ops_session_cookie_name: str = Field(default='amon_ops_session', alias='OPS_SESSION_COOKIE_NAME')
+    ops_session_ttl_hours: int = Field(default=12, alias='OPS_SESSION_TTL_HOURS')
+    ops_session_cookie_secure: bool = Field(default=False, alias='OPS_SESSION_COOKIE_SECURE')
+    ops_allow_dev_token_login: bool = Field(default=True, alias='OPS_ALLOW_DEV_TOKEN_LOGIN')
+    ops_trusted_proxy_secret: str | None = Field(default=None, alias='OPS_TRUSTED_PROXY_SECRET')
+    ops_allowed_operator_ids: List[str] = Field(default_factory=list, alias='OPS_ALLOWED_OPERATOR_IDS')
+    ops_history_snapshot_interval_seconds: int = Field(default=30, alias='OPS_HISTORY_SNAPSHOT_INTERVAL_SECONDS')
     protected_session_max_links: int = Field(default=12, alias='PROTECTED_SESSION_MAX_LINKS')
     protected_session_max_text_blocks: int = Field(default=6, alias='PROTECTED_SESSION_MAX_TEXT_BLOCKS')
     protected_session_max_response_bytes: int = Field(
@@ -78,7 +87,7 @@ class Settings(BaseSettings):
         alias='CORS_ALLOW_ORIGINS',
     )
 
-    @field_validator('protected_session_allowed_hosts', 'cors_allow_origins', mode='before')
+    @field_validator('protected_session_allowed_hosts', 'cors_allow_origins', 'ops_allowed_operator_ids', mode='before')
     @classmethod
     def split_csv_values(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, list):
@@ -101,6 +110,11 @@ class Settings(BaseSettings):
     @classmethod
     def normalize_search_provider(cls, value: str) -> str:
         return value.strip().lower()
+
+    @field_validator('ops_environment_key', 'ops_environment_label', mode='before')
+    @classmethod
+    def normalize_ops_strings(cls, value: str) -> str:
+        return value.strip()
 
 
 @lru_cache(maxsize=1)

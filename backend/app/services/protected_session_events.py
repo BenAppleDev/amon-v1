@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from collections import Counter, deque
 from dataclasses import dataclass
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from app.config import Settings, get_settings
 from app.security import create_record_id, utcnow
+
+if TYPE_CHECKING:
+    from app.services.protected_session_ops_history import ProtectedSessionOpsHistoryStore
 
 
 @dataclass(frozen=True)
@@ -26,8 +29,14 @@ class ProtectedSessionEvent:
 
 
 class ProtectedSessionEventSink:
-    def __init__(self, settings: Settings | None = None) -> None:
+    def __init__(
+        self,
+        settings: Settings | None = None,
+        *,
+        history_store: 'ProtectedSessionOpsHistoryStore | None' = None,
+    ) -> None:
         self.settings = settings or get_settings()
+        self.history_store = history_store
         self._events: deque[ProtectedSessionEvent] = deque(maxlen=self.settings.protected_session_event_buffer_size)
         self._event_counts: Counter[str] = Counter()
         self._reason_counts: Counter[str] = Counter()
@@ -83,6 +92,8 @@ class ProtectedSessionEventSink:
         if duration_ms is not None and duration_ms >= 0:
             self._duration_totals[event_type] += duration_ms
             self._duration_counts[event_type] += 1
+        if self.history_store is not None:
+            self.history_store.persist_event(event)
         return event
 
     def recent_events(self, *, limit: int = 50) -> list[ProtectedSessionEvent]:

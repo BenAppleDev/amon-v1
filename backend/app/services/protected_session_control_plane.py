@@ -15,15 +15,19 @@ from app.schemas import (
     InternalProtectedStreamCounters,
     InternalProtectedTerminationCounters,
     InternalProtectedWorkersOverview,
+    OpsEnvironmentView,
     ProtectedSessionActionRequest,
     ProtectedSessionEventView,
     ProtectedSessionMetadataView,
+    ProtectedSessionOpsHistoricalSummary,
+    ProtectedSessionOpsSnapshotSeries,
     ProtectedSessionState,
     ProtectedSessionWorkerView,
     ServeDecisionResponse,
 )
 from app.security import CurrentUser, create_record_id, utcnow
 from app.services.protected_session_events import ProtectedSessionEventSink
+from app.services.protected_session_ops_history import ProtectedSessionOpsHistoryStore
 from app.services.protected_session_policy import ProtectedSessionPolicyEngine, ServeDecision, normalize_host
 from app.services.protected_session_registry import ProtectedSessionMetadataRegistry
 from app.services.protected_session_workers import ProtectedSessionWorkerRegistry
@@ -45,13 +49,15 @@ class ProtectedSessionControlPlane:
         registry: ProtectedSessionMetadataRegistry | None = None,
         workers: ProtectedSessionWorkerRegistry | None = None,
         events: ProtectedSessionEventSink | None = None,
+        history_store: ProtectedSessionOpsHistoryStore | None = None,
         manager: ProtectedSessionManager | None = None,
     ) -> None:
         self.settings = settings or get_settings()
         self.policy_engine = policy_engine or ProtectedSessionPolicyEngine(self.settings)
         self.registry = registry or ProtectedSessionMetadataRegistry()
         self.workers = workers or ProtectedSessionWorkerRegistry(self.settings)
-        self.events = events or ProtectedSessionEventSink(self.settings)
+        self.history_store = history_store or ProtectedSessionOpsHistoryStore(settings=self.settings)
+        self.events = events or ProtectedSessionEventSink(self.settings, history_store=self.history_store)
         self.manager = manager or ProtectedSessionManager(
             settings=self.settings,
             transport=transport,
@@ -65,6 +71,9 @@ class ProtectedSessionControlPlane:
 
     async def shutdown(self) -> None:
         await self.manager.shutdown()
+
+    def environment_view(self) -> OpsEnvironmentView:
+        return self.history_store.environment_view()
 
     async def decide_url_open(
         self,
@@ -143,12 +152,14 @@ class ProtectedSessionControlPlane:
         )
 
         try:
-            return await self.manager.create_session(
+            created = await self.manager.create_session(
                 user_id=current.user.id,
                 url=url,
                 session_id=planned_session_id,
                 worker=worker,
             )
+            self._capture_history_snapshot_if_due(force=True)
+            return created
         except ProtectedSessionError as exc:
             self.workers.release_session(planned_session_id)
             metadata = self.registry.get(planned_session_id)
@@ -165,6 +176,7 @@ class ProtectedSessionControlPlane:
                     disposition=decision.disposition,
                     budget_tier=decision.budget_tier,
                 )
+            self._capture_history_snapshot_if_due(force=True)
             raise
 
     async def get_state(self, *, current: CurrentUser, session_id: str) -> ProtectedSessionState:
@@ -211,12 +223,15 @@ class ProtectedSessionControlPlane:
         )
         self.registry.increment_action_count(session_id)
         self.registry.mark_state(session_id, state=state.status)
+        self._capture_history_snapshot_if_due()
         return state
 
     async def end_session(self, *, current: CurrentUser, session_id: str) -> ProtectedSessionEndResponse:
         self._assert_session_owned_by_user(session_id=session_id, user_id=current.user.id)
         self.registry.mark_state(session_id, state='terminating')
-        return await self.manager.end_session(user_id=current.user.id, session_id=session_id)
+        result = await self.manager.end_session(user_id=current.user.id, session_id=session_id)
+        self._capture_history_snapshot_if_due(force=True)
+        return result
 
     async def subscribe_stream(
         self,
@@ -302,6 +317,7 @@ class ProtectedSessionControlPlane:
                 disposition=metadata.policy_decision.disposition,
                 budget_tier=metadata.policy_decision.budget_tier,
             )
+            self._capture_history_snapshot_if_due()
             return runtime, subscriber, subscribed
 
     async def note_stream_detached(
@@ -345,6 +361,7 @@ class ProtectedSessionControlPlane:
                     disposition=metadata.policy_decision.disposition,
                     budget_tier=metadata.policy_decision.budget_tier,
                 )
+            self._capture_history_snapshot_if_due()
 
     async def note_stream_dropped_events(
         self,
@@ -368,6 +385,7 @@ class ProtectedSessionControlPlane:
             budget_tier=metadata.policy_decision.budget_tier,
             metric_value=count,
         )
+        self._capture_history_snapshot_if_due()
 
     async def note_stream_protocol_error(
         self,
@@ -391,6 +409,7 @@ class ProtectedSessionControlPlane:
             disposition=metadata.policy_decision.disposition,
             budget_tier=metadata.policy_decision.budget_tier,
         )
+        self._capture_history_snapshot_if_due()
 
     async def note_stream_action_ack(
         self,
@@ -413,6 +432,7 @@ class ProtectedSessionControlPlane:
             disposition=metadata.policy_decision.disposition,
             budget_tier=metadata.policy_decision.budget_tier,
         )
+        self._capture_history_snapshot_if_due()
 
     async def note_stream_action_result(
         self,
@@ -437,6 +457,7 @@ class ProtectedSessionControlPlane:
             budget_tier=metadata.policy_decision.budget_tier,
             duration_ms=duration_ms,
         )
+        self._capture_history_snapshot_if_due()
 
     def sessions_overview(self) -> InternalProtectedSessionsOverview:
         sessions = [ProtectedSessionMetadataView(**self.registry.to_view_dict(item)) for item in self.registry.list_sessions()]
@@ -574,6 +595,19 @@ class ProtectedSessionControlPlane:
             events=recent_events,
         )
 
+    def historical_events_feed(self, *, limit: int = 50) -> InternalProtectedEventFeed:
+        events = self.history_store.recent_events(limit=limit)
+        return InternalProtectedEventFeed(
+            total_events=len(events),
+            events=events,
+        )
+
+    def historical_snapshot_series(self, *, limit: int = 72) -> ProtectedSessionOpsSnapshotSeries:
+        return self.history_store.snapshot_series(limit=limit)
+
+    def historical_summary(self, *, window_hours: int = 24) -> ProtectedSessionOpsHistoricalSummary:
+        return self.history_store.historical_summary(window_hours=window_hours)
+
     async def _on_runtime_started(self, runtime: ProtectedSessionRuntime) -> None:
         metadata = self.registry.get(runtime.id)
         if metadata is None:
@@ -598,6 +632,7 @@ class ProtectedSessionControlPlane:
             disposition=metadata.policy_decision.disposition,
             budget_tier=metadata.policy_decision.budget_tier,
         )
+        self._capture_history_snapshot_if_due()
 
     async def _on_runtime_terminal(self, runtime: ProtectedSessionRuntime, detail_message: str) -> None:
         metadata = self.registry.get(runtime.id)
@@ -645,6 +680,7 @@ class ProtectedSessionControlPlane:
                 disposition=metadata.policy_decision.disposition,
                 budget_tier=metadata.policy_decision.budget_tier,
             )
+        self._capture_history_snapshot_if_due(force=True)
 
     async def _on_runtime_updated(
         self,
@@ -682,8 +718,10 @@ class ProtectedSessionControlPlane:
                 disposition=metadata.policy_decision.disposition,
                 budget_tier=metadata.policy_decision.budget_tier,
             )
+            self._capture_history_snapshot_if_due()
             return
         self.registry.note_state_update(runtime.id, frame_updated=False)
+        self._capture_history_snapshot_if_due()
 
     def _enforce_session_start_quotas(
         self,
@@ -797,6 +835,9 @@ class ProtectedSessionControlPlane:
             disposition=decision.disposition,
             budget_tier=decision.budget_tier,
         )
+
+    def _capture_history_snapshot_if_due(self, *, force: bool = False) -> None:
+        self.history_store.maybe_capture_snapshot(self.overview(), force=force)
 
     @staticmethod
     def _decision_response(decision: ServeDecision) -> ServeDecisionResponse:

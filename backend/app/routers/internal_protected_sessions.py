@@ -12,6 +12,8 @@ from app.schemas import (
     InternalProtectedTerminationCounters,
     InternalProtectedWorkersOverview,
     ProtectedSessionMetadataView,
+    ProtectedSessionOpsHistoricalSummary,
+    ProtectedSessionOpsSnapshotSeries,
 )
 from app.security_internal import require_internal_admin
 from app.services.protected_session_control_plane import get_protected_session_control_plane
@@ -83,4 +85,22 @@ async def protected_recent_events(
     _: None = Depends(require_internal_admin),
 ) -> InternalProtectedEventFeed:
     control_plane = get_protected_session_control_plane()
-    return control_plane.events_feed(limit=limit)
+    return control_plane.historical_events_feed(limit=limit)
+
+
+@router.get('/history/summary', response_model=ProtectedSessionOpsHistoricalSummary)
+async def protected_history_summary(
+    hours: int = Query(default=24, ge=1, le=168),
+    _: None = Depends(require_internal_admin),
+) -> ProtectedSessionOpsHistoricalSummary:
+    control_plane = get_protected_session_control_plane()
+    return control_plane.historical_summary(window_hours=hours)
+
+
+@router.get('/history/snapshots', response_model=ProtectedSessionOpsSnapshotSeries)
+async def protected_history_snapshots(
+    limit: int = Query(default=72, ge=1, le=240),
+    _: None = Depends(require_internal_admin),
+) -> ProtectedSessionOpsSnapshotSeries:
+    control_plane = get_protected_session_control_plane()
+    return control_plane.historical_snapshot_series(limit=limit)

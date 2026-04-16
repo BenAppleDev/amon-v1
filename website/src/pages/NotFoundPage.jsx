@@ -1,0 +1,21 @@
+import { Link } from "react-router-dom";
+import { PageHero } from "../components/PageHero";
+import { Seo } from "../components/Seo";
+
+export function NotFoundPage() {
+  return (
+    <>
+      <Seo title="Not Found" description="This page could not be found." />
+      <PageHero
+        eyebrow="404"
+        title="Page not found."
+        lede="That route does not exist on the public site."
+        aside={
+          <Link className="button" to="/">
+            Back home
+          </Link>
+        }
+      />
+    </>
+  );
+}

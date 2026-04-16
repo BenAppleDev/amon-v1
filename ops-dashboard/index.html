@@ -74,8 +74,12 @@
           </div>
           <div class="meta-banner__details">
             <div>
-              <span>API base</span>
-              <strong id="api-base-label">Not configured</strong>
+              <span>Environment</span>
+              <strong id="environment-label">Unknown</strong>
+            </div>
+            <div>
+              <span>Operator</span>
+              <strong id="operator-label">Not signed in</strong>
             </div>
             <div>
               <span>Last sync</span>
@@ -95,8 +99,9 @@
         <p class="eyebrow">Operator Access</p>
         <h2>Connect to the internal metadata APIs</h2>
         <p class="auth-card__copy">
-          This first pass is intended for local and trusted internal environments. The dashboard
-          requires the internal admin token and does not unlock any content inspection capabilities.
+          This dashboard now prefers a server-side operator session. In staging and production,
+          access should come from a trusted proxy or backend-for-frontend boundary. Local/dev can
+          still use a short-lived dev token exchange.
         </p>
 
         <form id="auth-form" class="auth-form">
@@ -114,23 +119,39 @@
           </label>
 
           <label>
-            <span>Internal admin token</span>
+            <span>Dev token (local only)</span>
             <input
               id="admin-token-input"
-              name="token"
+              name="adminToken"
               type="password"
               autocomplete="current-password"
-              placeholder="amon-internal-dev"
-              required
+              placeholder="Leave blank for trusted proxy session"
             />
           </label>
 
-          <button class="button button--primary" type="submit">Connect</button>
+          <label>
+            <span>Operator ID</span>
+            <input
+              id="operator-id-input"
+              name="operatorId"
+              type="text"
+              autocomplete="username"
+              placeholder="ops-local@example.com"
+            />
+          </label>
+
+          <div class="auth-form__actions">
+            <button class="button button--primary" type="button" data-action="bootstrap-auth">
+              Use trusted operator session
+            </button>
+            <button class="button button--ghost" type="submit">Use dev token</button>
+          </div>
         </form>
 
         <p class="auth-card__hint">
-          For production, place this UI behind a real operator identity layer and a trusted proxy.
-          Do not ship long-lived admin tokens as public browser config.
+          Production should terminate behind a real operator identity layer or trusted proxy that
+          injects operator headers server-side. The browser should not hold long-lived admin
+          credentials.
         </p>
 
         <p class="auth-card__error hidden" id="auth-error"></p>

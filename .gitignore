@@ -6,3 +6,5 @@ __pycache__/
 .pytest_cache/
 backend/amon_server.db
 DerivedData/
+website/node_modules/
+website/dist/

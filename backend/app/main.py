@@ -11,6 +11,9 @@ from app.routers.compare import router as compare_router
 from app.routers.health import router as health_router
 from app.routers.internal_protected_sessions import router as internal_protected_sessions_router
 from app.routers.me import router as me_router
+from app.routers.ops_auth import router as ops_auth_router
+from app.routers.ops_protected_sessions import router as ops_protected_sessions_router
+from app.routers.ops_surface import router as ops_surface_router
 from app.routers.protected_sessions import router as protected_sessions_router
 from app.routers.research import router as research_router
 from app.routers.retrieve import router as retrieve_router
@@ -53,5 +56,8 @@ app.include_router(search_router)
 app.include_router(retrieve_router)
 app.include_router(protected_sessions_router)
 app.include_router(internal_protected_sessions_router)
+app.include_router(ops_auth_router)
+app.include_router(ops_protected_sessions_router)
+app.include_router(ops_surface_router)
 app.include_router(compare_router)
 app.include_router(research_router)
