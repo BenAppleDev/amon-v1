@@ -59,7 +59,7 @@ export function WorkflowGraphic({ compact = false }) {
         <p>{modeSteps[3].line}</p>
       </article>
 
-      <div className="workflow-caption">Not just one tool, but one workflow.</div>
+      <div className="workflow-caption">One workflow. Four modes.</div>
     </div>
   );
 }

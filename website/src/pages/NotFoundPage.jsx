@@ -9,10 +9,10 @@ export function NotFoundPage() {
       <PageHero
         eyebrow="404"
         title="Page not found."
-        lede="That route does not exist on the public site."
+        lede="That page is not here."
         aside={
           <Link className="button" to="/">
-            Back home
+            Return home
           </Link>
         }
       />

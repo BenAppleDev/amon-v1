@@ -11,10 +11,12 @@ from starlette.websockets import WebSocketDisconnect
 from app.config import Settings
 from app.models import Entitlement, SessionRecord, User
 from app.routers import internal_protected_sessions as internal_router_module
+from app.routers import ops_protected_sessions as ops_router_module
 from app.routers import protected_sessions as protected_sessions_router_module
 from app.schemas import ProtectedSessionActionRequest
 from app.security import CurrentUser, utcnow
 from app.services.protected_session_control_plane import ProtectedSessionControlPlane
+from app.services.protected_session_ops_history import ProtectedSessionOpsHistoryStore
 from app.services.protected_sessions import ProtectedSessionError
 
 
@@ -111,14 +113,22 @@ def _blocked_destination_transport() -> httpx.MockTransport:
 def _patch_router_control_plane(monkeypatch, control_plane: ProtectedSessionControlPlane) -> None:
     monkeypatch.setattr(protected_sessions_router_module, 'get_protected_session_control_plane', lambda: control_plane)
     monkeypatch.setattr(internal_router_module, 'get_protected_session_control_plane', lambda: control_plane)
+    monkeypatch.setattr(ops_router_module, 'get_protected_session_control_plane', lambda: control_plane)
+
+
+def _control_plane(*, settings: Settings, transport: httpx.AsyncBaseTransport, db_session_factory) -> ProtectedSessionControlPlane:
+    history_store = ProtectedSessionOpsHistoryStore(settings=settings, session_factory=db_session_factory)
+    return ProtectedSessionControlPlane(
+        settings=settings,
+        transport=transport,
+        history_store=history_store,
+    )
 
 
 @pytest.mark.asyncio
-async def test_control_plane_decisions_cover_recommend_local_clean_and_deny():
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com'),
-        transport=_simple_transport(),
-    )
+async def test_control_plane_decisions_cover_recommend_local_clean_and_deny(db_session_factory):
+    settings = Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com')
+    control_plane = _control_plane(settings=settings, transport=_simple_transport(), db_session_factory=db_session_factory)
     try:
         current = _current_user()
 
@@ -154,14 +164,12 @@ async def test_control_plane_decisions_cover_recommend_local_clean_and_deny():
 
 
 @pytest.mark.asyncio
-async def test_control_plane_enforces_concurrent_session_limit_and_releases_worker_on_end():
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(
-            PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
-            PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='1',
-        ),
-        transport=_simple_transport(),
+async def test_control_plane_enforces_concurrent_session_limit_and_releases_worker_on_end(db_session_factory):
+    settings = Settings(
+        PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
+        PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='1',
     )
+    control_plane = _control_plane(settings=settings, transport=_simple_transport(), db_session_factory=db_session_factory)
     try:
         current = _current_user()
 
@@ -188,16 +196,18 @@ async def test_control_plane_enforces_concurrent_session_limit_and_releases_work
 
 
 @pytest.mark.asyncio
-async def test_control_plane_enforces_session_start_window_and_action_limit():
+async def test_control_plane_enforces_session_start_window_and_action_limit(db_session_factory):
     current = _current_user()
 
-    start_limited = ProtectedSessionControlPlane(
-        settings=Settings(
-            PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
-            PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='3',
-            PROTECTED_SESSION_MAX_SESSION_STARTS_PER_WINDOW='1',
-        ),
+    start_settings = Settings(
+        PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
+        PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='3',
+        PROTECTED_SESSION_MAX_SESSION_STARTS_PER_WINDOW='1',
+    )
+    start_limited = _control_plane(
+        settings=start_settings,
         transport=_simple_transport(),
+        db_session_factory=db_session_factory,
     )
     try:
         created = await start_limited.create_session(current=current, url='https://example.com/start')
@@ -210,12 +220,14 @@ async def test_control_plane_enforces_session_start_window_and_action_limit():
     finally:
         await start_limited.shutdown()
 
-    action_limited = ProtectedSessionControlPlane(
-        settings=Settings(
-            PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
-            PROTECTED_SESSION_MAX_ACTIONS_PER_SESSION='1',
-        ),
+    action_settings = Settings(
+        PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
+        PROTECTED_SESSION_MAX_ACTIONS_PER_SESSION='1',
+    )
+    action_limited = _control_plane(
+        settings=action_settings,
         transport=_simple_transport(),
+        db_session_factory=db_session_factory,
     )
     try:
         created = await action_limited.create_session(current=current, url='https://example.com/start')
@@ -242,11 +254,9 @@ async def test_control_plane_enforces_session_start_window_and_action_limit():
 
 
 @pytest.mark.asyncio
-async def test_control_plane_records_blocked_redirect_and_form_events():
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com'),
-        transport=_blocked_destination_transport(),
-    )
+async def test_control_plane_records_blocked_redirect_and_form_events(db_session_factory):
+    settings = Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com')
+    control_plane = _control_plane(settings=settings, transport=_blocked_destination_transport(), db_session_factory=db_session_factory)
     try:
         current = _current_user()
 
@@ -276,11 +286,9 @@ async def test_control_plane_records_blocked_redirect_and_form_events():
         await control_plane.shutdown()
 
 
-def test_internal_admin_routes_are_metadata_only_and_decision_route_is_exposed(client, monkeypatch):
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com'),
-        transport=_simple_transport(),
-    )
+def test_internal_admin_routes_are_metadata_only_and_decision_route_is_exposed(client, monkeypatch, db_session_factory):
+    settings = Settings(PROTECTED_SESSION_ALLOWED_HOSTS='example.com')
+    control_plane = _control_plane(settings=settings, transport=_simple_transport(), db_session_factory=db_session_factory)
     try:
         _patch_router_control_plane(monkeypatch, control_plane)
 
@@ -364,17 +372,15 @@ def test_internal_admin_routes_are_metadata_only_and_decision_route_is_exposed(c
 
 
 @pytest.mark.asyncio
-async def test_control_plane_tracks_live_stream_limits_and_worker_degraded_mode():
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(
-            PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
-            PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='2',
-            PROTECTED_SESSION_MAX_LIVE_STREAMS='2',
-            PROTECTED_SESSION_MAX_LIVE_STREAMS_PER_USER='1',
-            PROTECTED_SESSION_WORKER_STREAM_CAPACITY='1',
-        ),
-        transport=_simple_transport(),
+async def test_control_plane_tracks_live_stream_limits_and_worker_degraded_mode(db_session_factory):
+    settings = Settings(
+        PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
+        PROTECTED_SESSION_MAX_CONCURRENT_SESSIONS_PER_USER='2',
+        PROTECTED_SESSION_MAX_LIVE_STREAMS='2',
+        PROTECTED_SESSION_MAX_LIVE_STREAMS_PER_USER='1',
+        PROTECTED_SESSION_WORKER_STREAM_CAPACITY='1',
     )
+    control_plane = _control_plane(settings=settings, transport=_simple_transport(), db_session_factory=db_session_factory)
     try:
         current = _current_user()
         first = await control_plane.create_session(current=current, url='https://example.com/start')
@@ -416,15 +422,13 @@ async def test_control_plane_tracks_live_stream_limits_and_worker_degraded_mode(
         await control_plane.shutdown()
 
 
-def test_internal_admin_stream_health_updates_on_protocol_error_and_heartbeat_timeout(client, monkeypatch):
-    control_plane = ProtectedSessionControlPlane(
-        settings=Settings(
-            PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
-            PROTECTED_SESSION_STREAM_IDLE_TIMEOUT_SECONDS='1',
-            PROTECTED_SESSION_STREAM_HEARTBEAT_SECONDS='10',
-        ),
-        transport=_simple_transport(),
+def test_internal_admin_stream_health_updates_on_protocol_error_and_heartbeat_timeout(client, monkeypatch, db_session_factory):
+    settings = Settings(
+        PROTECTED_SESSION_ALLOWED_HOSTS='example.com',
+        PROTECTED_SESSION_STREAM_IDLE_TIMEOUT_SECONDS='1',
+        PROTECTED_SESSION_STREAM_HEARTBEAT_SECONDS='10',
     )
+    control_plane = _control_plane(settings=settings, transport=_simple_transport(), db_session_factory=db_session_factory)
     try:
         _patch_router_control_plane(monkeypatch, control_plane)
 

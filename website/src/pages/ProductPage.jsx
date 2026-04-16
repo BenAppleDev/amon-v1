@@ -16,11 +16,12 @@ export function ProductPage() {
       <PageHero
         eyebrow="Product"
         title="One workflow. Four modes."
-        lede="Amon is meant to be a normal place to begin online inquiry, then become more useful as the task becomes meaningful."
+        lede="Amon starts as a normal place to begin, then deepens as the question becomes more important."
         aside={
-          <p>
-            Search / Browse → Clean View → Protected Session → Workspace
-          </p>
+          <>
+            <span className="note-kicker">Sequence</span>
+            <p>Search / Browse → Clean View → Protected Session → Workspace</p>
+          </>
         }
       />
 
@@ -48,8 +49,8 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame">
           <Reveal className="section-heading">
-            <span className="eyebrow">What makes it different</span>
-            <h2>Progressive depth instead of one browser mode for everything.</h2>
+            <span className="eyebrow">Difference</span>
+            <h2>The modes are meant to work together.</h2>
           </Reveal>
 
           <div className="comparison-grid">
@@ -57,17 +58,17 @@ export function ProductPage() {
               <h3>What Amon is</h3>
               <ul className="bullet-list">
                 <li>A workflow for inquiry.</li>
-                <li>A calmer reading and decision environment.</li>
-                <li>A place to keep meaningful work locally.</li>
+                <li>A calmer reading surface.</li>
+                <li>A local place for meaningful work.</li>
               </ul>
             </Reveal>
 
             <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
               <h3>What Amon is not</h3>
               <ul className="bullet-list">
-                <li>Not just a search engine.</li>
-                <li>Not just a browser.</li>
-                <li>Not just a VPN or generic AI wrapper.</li>
+                <li>Not a browser replacement.</li>
+                <li>Not just search.</li>
+                <li>Not a generic AI wrapper.</li>
               </ul>
             </Reveal>
           </div>
@@ -79,7 +80,7 @@ export function ProductPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Next</span>
-              <h2>See whether Amon fits your workflow.</h2>
+              <h2>See whether the workflow fits.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">

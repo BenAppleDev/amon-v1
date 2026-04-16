@@ -1,8 +1,8 @@
 from functools import lru_cache
-from typing import List
+from typing import Annotated, List
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     app_env: str = Field(default='development', alias='APP_ENV')
     app_name: str = Field(default='Amon API', alias='APP_NAME')
     app_version: str = Field(default='0.1.0', alias='APP_VERSION')
+    api_external_origin: str = Field(default='http://127.0.0.1:8000', alias='API_EXTERNAL_ORIGIN')
+    ops_surface_origin: str = Field(default='http://127.0.0.1:8000/ops/', alias='OPS_SURFACE_ORIGIN')
 
     database_url: str = Field(default='sqlite:///./amon_server.db', alias='DATABASE_URL')
     search_provider: str = Field(default='mock', alias='SEARCH_PROVIDER')
@@ -20,7 +22,7 @@ class Settings(BaseSettings):
 
     requests_per_minute: int = Field(default=60, alias='REQUESTS_PER_MINUTE')
     session_ttl_hours: int = Field(default=24, alias='SESSION_TTL_HOURS')
-    protected_session_allowed_hosts: List[str] = Field(
+    protected_session_allowed_hosts: Annotated[List[str], NoDecode] = Field(
         default_factory=lambda: ['example.com', 'books.toscrape.com', 'quotes.toscrape.com', 'httpbin.org'],
         alias='PROTECTED_SESSION_ALLOWED_HOSTS',
     )
@@ -72,22 +74,50 @@ class Settings(BaseSettings):
     ops_environment_label: str = Field(default='Local', alias='OPS_ENVIRONMENT_LABEL')
     ops_session_cookie_name: str = Field(default='amon_ops_session', alias='OPS_SESSION_COOKIE_NAME')
     ops_session_ttl_hours: int = Field(default=12, alias='OPS_SESSION_TTL_HOURS')
-    ops_session_cookie_secure: bool = Field(default=False, alias='OPS_SESSION_COOKIE_SECURE')
-    ops_allow_dev_token_login: bool = Field(default=True, alias='OPS_ALLOW_DEV_TOKEN_LOGIN')
+    ops_session_cookie_secure: bool | None = Field(default=None, alias='OPS_SESSION_COOKIE_SECURE')
+    ops_session_cookie_domain: str | None = Field(default=None, alias='OPS_SESSION_COOKIE_DOMAIN')
+    ops_session_cookie_same_site: str = Field(default='lax', alias='OPS_SESSION_COOKIE_SAME_SITE')
+    ops_allow_dev_token_login: bool = Field(default=False, alias='OPS_ALLOW_DEV_TOKEN_LOGIN')
     ops_trusted_proxy_secret: str | None = Field(default=None, alias='OPS_TRUSTED_PROXY_SECRET')
-    ops_allowed_operator_ids: List[str] = Field(default_factory=list, alias='OPS_ALLOWED_OPERATOR_IDS')
+    ops_allowed_operator_ids: Annotated[List[str], NoDecode] = Field(default_factory=list, alias='OPS_ALLOWED_OPERATOR_IDS')
     ops_history_snapshot_interval_seconds: int = Field(default=30, alias='OPS_HISTORY_SNAPSHOT_INTERVAL_SECONDS')
     protected_session_max_links: int = Field(default=12, alias='PROTECTED_SESSION_MAX_LINKS')
     protected_session_max_text_blocks: int = Field(default=6, alias='PROTECTED_SESSION_MAX_TEXT_BLOCKS')
     protected_session_max_response_bytes: int = Field(
         default=1_000_000, alias='PROTECTED_SESSION_MAX_RESPONSE_BYTES'
     )
-    cors_allow_origins: List[str] = Field(
-        default_factory=lambda: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    public_site_origins: Annotated[List[str], NoDecode] = Field(
+        default_factory=lambda: ['https://www.getamon.com', 'https://getamon.com'],
+        alias='PUBLIC_SITE_ORIGINS',
+    )
+    ops_frontend_origins: Annotated[List[str], NoDecode] = Field(
+        default_factory=lambda: ['https://ops.getamon.com', 'http://localhost:3000', 'http://127.0.0.1:3000'],
+        alias='OPS_FRONTEND_ORIGINS',
+    )
+    cors_allow_origins: Annotated[List[str], NoDecode] = Field(
+        default_factory=list,
         alias='CORS_ALLOW_ORIGINS',
     )
+    trusted_host_patterns: Annotated[List[str], NoDecode] = Field(
+        default_factory=lambda: ['127.0.0.1', 'localhost', 'api.getamon.com', 'ops.getamon.com'],
+        alias='TRUSTED_HOST_PATTERNS',
+    )
+    trust_proxy_headers: bool = Field(default=False, alias='TRUST_PROXY_HEADERS')
+    trusted_proxy_ips: Annotated[List[str], NoDecode] = Field(
+        default_factory=lambda: ['127.0.0.1', '::1'],
+        alias='TRUSTED_PROXY_IPS',
+    )
 
-    @field_validator('protected_session_allowed_hosts', 'cors_allow_origins', 'ops_allowed_operator_ids', mode='before')
+    @field_validator(
+        'protected_session_allowed_hosts',
+        'public_site_origins',
+        'ops_frontend_origins',
+        'cors_allow_origins',
+        'trusted_host_patterns',
+        'trusted_proxy_ips',
+        'ops_allowed_operator_ids',
+        mode='before',
+    )
     @classmethod
     def split_csv_values(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, list):
@@ -106,15 +136,59 @@ class Settings(BaseSettings):
                 normalized.append(host)
         return list(dict.fromkeys(normalized))
 
+    @field_validator('public_site_origins', 'ops_frontend_origins', 'cors_allow_origins')
+    @classmethod
+    def normalize_origins(cls, value: list[str]) -> list[str]:
+        normalized: list[str] = []
+        for item in value:
+            origin = item.strip().rstrip('/')
+            if origin:
+                normalized.append(origin)
+        return list(dict.fromkeys(normalized))
+
+    @field_validator('trusted_host_patterns', 'trusted_proxy_ips', 'ops_allowed_operator_ids')
+    @classmethod
+    def normalize_string_lists(cls, value: list[str]) -> list[str]:
+        normalized: list[str] = []
+        for item in value:
+            cleaned = item.strip()
+            if cleaned:
+                normalized.append(cleaned)
+        return list(dict.fromkeys(normalized))
+
     @field_validator('search_provider', mode='before')
     @classmethod
     def normalize_search_provider(cls, value: str) -> str:
         return value.strip().lower()
 
-    @field_validator('ops_environment_key', 'ops_environment_label', mode='before')
+    @field_validator('ops_environment_key', 'ops_environment_label', 'api_external_origin', 'ops_surface_origin', mode='before')
     @classmethod
     def normalize_ops_strings(cls, value: str) -> str:
         return value.strip()
+
+    @field_validator('ops_session_cookie_domain', mode='before')
+    @classmethod
+    def normalize_cookie_domain(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip().lower()
+        return cleaned or None
+
+    @field_validator('ops_session_cookie_same_site', mode='before')
+    @classmethod
+    def normalize_same_site(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {'lax', 'strict', 'none'}:
+            raise ValueError('OPS_SESSION_COOKIE_SAME_SITE must be one of: lax, strict, none')
+        return normalized
+
+    def resolved_cors_allow_origins(self) -> list[str]:
+        return list(dict.fromkeys([*self.public_site_origins, *self.ops_frontend_origins, *self.cors_allow_origins]))
+
+    def resolved_ops_session_cookie_secure(self) -> bool:
+        if self.ops_session_cookie_secure is not None:
+            return self.ops_session_cookie_secure
+        return self.app_env not in {'development', 'local'}
 
 
 @lru_cache(maxsize=1)

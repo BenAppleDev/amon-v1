@@ -13,26 +13,23 @@ export function AboutPage() {
 
       <PageHero
         eyebrow="About / Vision"
-        title="Built around a simple discomfort."
-        lede="The public web is useful. The default workflow around it often is not. Amon exists to give inquiry a calmer shape."
+        title="Why Amon exists."
+        lede="Important online questions tend to outgrow ordinary browsing. Amon gives that shift a calmer shape."
       />
 
       <section className="page-section">
         <div className="frame comparison-grid">
           <Reveal className="comparison-panel">
-            <h3>Why it exists</h3>
+            <h3>The product idea</h3>
             <p>
-              Important questions usually move from quick searching into focused reading, deeper
-              tasks, and saved work. Amon gives that progression a clearer structure.
+              Some questions move from quick searching into focused reading, deeper tasks, and
+              saved work. Amon gives that progression a clearer structure.
             </p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>Why the public site is separate</h3>
-            <p>
-              The public website should explain the product and invite interest. It should stay
-              separate from internal surfaces.
-            </p>
+            <h3>The public surface</h3>
+            <p>The public site explains the product. Internal surfaces stay separate.</p>
           </Reveal>
         </div>
       </section>
@@ -42,7 +39,7 @@ export function AboutPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Next</span>
-              <h2>See the workflow, then get in touch.</h2>
+              <h2>See the workflow.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/product">

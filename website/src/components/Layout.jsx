@@ -57,7 +57,7 @@ export function SiteLayout() {
 
             <div className="site-actions">
               <Link className="button button-secondary" to="/product">
-                See the workflow
+                See workflow
               </Link>
               <Link className="button" to="/contact">
                 Request access
@@ -78,7 +78,7 @@ export function SiteLayout() {
                 <span className="brand-word">Amon</span>
               </Link>
               <p className="footer-copy">
-                A private decision environment for inquiry on the public web.
+                Private by default. Deeper when needed.
               </p>
             </div>
 

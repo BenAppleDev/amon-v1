@@ -1,8 +1,5 @@
-const STORAGE_KEY = 'amon-ops-dashboard-auth';
-const DEFAULT_API_BASE =
-  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:8000'
-    : 'https://api.getamon.com';
+const STORAGE_KEY = 'amon-ops-dashboard-preferences';
+const DEFAULT_API_BASE = window.location.pathname.startsWith('/ops') ? '' : 'http://127.0.0.1:8000';
 
 const ROUTES = {
   overview: {
@@ -32,8 +29,16 @@ const ROUTES = {
 };
 
 const state = {
-  auth: loadStoredAuth(),
+  apiBase: loadStoredApiBase(),
   route: normalizeRoute(window.location.hash),
+  auth: {
+    authenticated: false,
+    environment: null,
+    operatorId: null,
+    authMethod: null,
+    sessionExpiresAt: null,
+    devTokenLoginEnabled: false,
+  },
   data: {
     overview: null,
     sessions: null,
@@ -43,6 +48,8 @@ const state = {
     quota: null,
     terminations: null,
     events: null,
+    historySummary: null,
+    historySnapshots: null,
   },
   errors: {},
   isLoading: false,
@@ -61,11 +68,13 @@ const elements = {
   authError: document.getElementById('auth-error'),
   apiBaseInput: document.getElementById('api-base-input'),
   adminTokenInput: document.getElementById('admin-token-input'),
+  operatorIdInput: document.getElementById('operator-id-input'),
   routeEyebrow: document.getElementById('route-eyebrow'),
   routeTitle: document.getElementById('route-title'),
   connectionPill: document.getElementById('connection-pill'),
   autoRefreshLabel: document.getElementById('auto-refresh-label'),
-  apiBaseLabel: document.getElementById('api-base-label'),
+  environmentLabel: document.getElementById('environment-label'),
+  operatorLabel: document.getElementById('operator-label'),
   lastSyncLabel: document.getElementById('last-sync-label'),
   alertStrip: document.getElementById('alert-strip'),
   viewRoot: document.getElementById('view-root'),
@@ -73,17 +82,11 @@ const elements = {
 
 initialize();
 
-function initialize() {
-  elements.apiBaseInput.value = state.auth?.apiBase || DEFAULT_API_BASE;
-  elements.adminTokenInput.value = state.auth?.token || '';
+async function initialize() {
+  elements.apiBaseInput.value = state.apiBase;
   bindEvents();
   syncNav();
-
-  if (state.auth?.apiBase && state.auth?.token) {
-    connectAndLoad({ showGateOnFailure: true });
-  } else {
-    updateAuthGate(true);
-  }
+  await refreshAuthStatus({ revealGateOnUnauthed: true, loadDataOnSuccess: true });
 }
 
 function bindEvents() {
@@ -95,18 +98,35 @@ function bindEvents() {
 
   elements.authForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const formData = new FormData(elements.authForm);
-    const apiBase = String(formData.get('apiBase') || '').trim();
-    const token = String(formData.get('token') || '').trim();
+    const apiBase = stripTrailingSlash(String(new FormData(elements.authForm).get('apiBase') || '').trim());
+    const adminToken = String(new FormData(elements.authForm).get('adminToken') || '').trim();
+    const operatorId = String(new FormData(elements.authForm).get('operatorId') || '').trim();
 
-    if (!apiBase || !token) {
-      showAuthError('Enter both the API base URL and the internal admin token.');
+    if (!adminToken) {
+      showAuthError('Enter a dev token for local development, or use the trusted operator session button.');
       return;
     }
 
-    state.auth = { apiBase: stripTrailingSlash(apiBase), token };
-    storeAuth(state.auth);
-    await connectAndLoad({ showGateOnFailure: true });
+    state.apiBase = apiBase || DEFAULT_API_BASE;
+    storeApiBase(state.apiBase);
+    showAuthError('');
+
+    try {
+      const status = await authRequest('/ops/auth/session', {
+        method: 'POST',
+        body: {
+          admin_token: adminToken,
+          operator_id: operatorId || 'dev-operator',
+        },
+      });
+      applyAuthStatus(status);
+      updateAuthGate(false);
+      syncAutoRefresh();
+      await loadDashboardData();
+      elements.adminTokenInput.value = '';
+    } catch (error) {
+      showAuthError(humanizeError(error));
+    }
   });
 
   document.body.addEventListener('click', async (event) => {
@@ -121,7 +141,7 @@ function bindEvents() {
       return;
     }
     if (action === 'sign-out') {
-      signOut();
+      await signOut();
       return;
     }
     if (action === 'toggle-auto-refresh') {
@@ -145,36 +165,48 @@ function bindEvents() {
       state.selectedSessionDetail = null;
       state.selectedSessionError = null;
       render();
+      return;
+    }
+    if (action === 'bootstrap-auth') {
+      const apiBase = stripTrailingSlash(String(new FormData(elements.authForm).get('apiBase') || '').trim());
+      state.apiBase = apiBase || DEFAULT_API_BASE;
+      storeApiBase(state.apiBase);
+      await refreshAuthStatus({ revealGateOnUnauthed: true, loadDataOnSuccess: true });
     }
   });
 }
 
-async function connectAndLoad({ showGateOnFailure }) {
-  if (!state.auth?.apiBase || !state.auth?.token) {
-    updateAuthGate(true);
-    return;
-  }
-
+async function refreshAuthStatus({ revealGateOnUnauthed, loadDataOnSuccess }) {
   showAuthError('');
-  elements.connectionPill.textContent = 'Connecting';
-  elements.connectionPill.className = 'status-pill';
-
   try {
-    await apiRequest('/internal/protected-sessions/overview');
-    updateAuthGate(false);
+    const status = await authRequest('/ops/auth/status');
+    applyAuthStatus(status);
+    if (status.authenticated) {
+      updateAuthGate(false);
+      syncAutoRefresh();
+      if (loadDataOnSuccess) {
+        await loadDashboardData();
+      } else {
+        render();
+      }
+      return;
+    }
     syncAutoRefresh();
-    await loadDashboardData();
+    if (revealGateOnUnauthed) {
+      updateAuthGate(true);
+    }
+    render();
   } catch (error) {
-    elements.connectionPill.textContent = 'Connection failed';
-    if (showGateOnFailure) {
+    if (revealGateOnUnauthed) {
       updateAuthGate(true);
       showAuthError(humanizeError(error));
     }
+    render();
   }
 }
 
 async function loadDashboardData() {
-  if (!state.auth) {
+  if (!state.auth.authenticated) {
     return;
   }
 
@@ -182,14 +214,16 @@ async function loadDashboardData() {
   render();
 
   const endpoints = {
-    overview: '/internal/protected-sessions/overview',
-    sessions: '/internal/protected-sessions/sessions/active',
-    workers: '/internal/protected-sessions/workers',
-    stream: '/internal/protected-sessions/counters/stream',
-    policy: '/internal/protected-sessions/counters/policy',
-    quota: '/internal/protected-sessions/counters/quota',
-    terminations: '/internal/protected-sessions/counters/terminations',
-    events: '/internal/protected-sessions/events?limit=60',
+    overview: '/ops/api/protected-sessions/overview',
+    sessions: '/ops/api/protected-sessions/sessions/active',
+    workers: '/ops/api/protected-sessions/workers',
+    stream: '/ops/api/protected-sessions/counters/stream',
+    policy: '/ops/api/protected-sessions/counters/policy',
+    quota: '/ops/api/protected-sessions/counters/quota',
+    terminations: '/ops/api/protected-sessions/counters/terminations',
+    events: '/ops/api/protected-sessions/events?limit=60',
+    historySummary: '/ops/api/protected-sessions/history/summary?hours=24',
+    historySnapshots: '/ops/api/protected-sessions/history/snapshots?limit=24',
   };
 
   const endpointEntries = Object.entries(endpoints);
@@ -223,7 +257,7 @@ async function loadDashboardData() {
 }
 
 async function loadSessionDetail(sessionId, { quiet = false } = {}) {
-  if (!state.auth || !sessionId) {
+  if (!state.auth.authenticated || !sessionId) {
     return;
   }
 
@@ -233,11 +267,22 @@ async function loadSessionDetail(sessionId, { quiet = false } = {}) {
   }
 
   try {
-    state.selectedSessionDetail = await apiRequest(`/internal/protected-sessions/sessions/${sessionId}`);
+    state.selectedSessionDetail = await apiRequest(`/ops/api/protected-sessions/sessions/${sessionId}`);
   } catch (error) {
     state.selectedSessionDetail = null;
     state.selectedSessionError = humanizeError(error);
   }
+}
+
+function applyAuthStatus(status) {
+  state.auth = {
+    authenticated: Boolean(status.authenticated),
+    environment: status.environment || null,
+    operatorId: status.operator_id || null,
+    authMethod: status.auth_method || null,
+    sessionExpiresAt: status.session_expires_at || null,
+    devTokenLoginEnabled: Boolean(status.dev_token_login_enabled),
+  };
 }
 
 function render() {
@@ -245,14 +290,19 @@ function render() {
   elements.routeEyebrow.textContent = routeConfig.eyebrow;
   elements.routeTitle.textContent = routeConfig.title;
   elements.autoRefreshLabel.textContent = state.autoRefresh ? 'On' : 'Off';
-  elements.apiBaseLabel.textContent = state.auth?.apiBase || 'Not configured';
+  elements.environmentLabel.textContent = state.auth.environment
+    ? `${state.auth.environment.label} · ${state.auth.environment.app_env}`
+    : 'Unknown';
+  elements.operatorLabel.textContent = state.auth.authenticated
+    ? `${state.auth.operatorId || 'operator'} · ${state.auth.authMethod || 'session'}`
+    : 'Not signed in';
   elements.lastSyncLabel.textContent = state.lastUpdatedAt ? formatTimestamp(state.lastUpdatedAt) : 'Never';
 
-  if (state.auth) {
-    elements.connectionPill.textContent = state.isLoading ? 'Syncing' : 'Connected';
+  if (state.auth.authenticated) {
+    elements.connectionPill.textContent = state.isLoading ? 'Syncing' : 'Operator session';
     elements.connectionPill.className = 'status-pill';
   } else {
-    elements.connectionPill.textContent = 'Disconnected';
+    elements.connectionPill.textContent = 'Sign-in required';
     elements.connectionPill.className = 'status-pill';
   }
 
@@ -291,10 +341,14 @@ function renderOverviewView() {
   const sessions = state.data.sessions;
   const workers = state.data.workers;
   const stream = state.data.stream;
+  const historySummary = state.data.historySummary;
+  const historySnapshots = state.data.historySnapshots;
 
-  if (!overview || !sessions || !workers || !stream) {
+  if (!overview || !sessions || !workers || !stream || !historySummary || !historySnapshots) {
     return renderLoadingState('Loading overview metadata...');
   }
+
+  const latestSnapshot = historySummary.latest_snapshot;
 
   return `
     <section class="metric-grid">
@@ -303,7 +357,7 @@ function renderOverviewView() {
       ${metricCard('Healthy workers', overview.healthy_workers, `${overview.degraded_workers} degraded workers`)}
       ${metricCard('Quota rejections', overview.quota_rejections_total, 'Current process lifetime')}
       ${metricCard('Protocol errors', overview.protocol_errors_total, `${overview.heartbeat_timeouts_total} heartbeat timeouts`)}
-      ${metricCard('Dropped events', overview.dropped_events_total, `${stream.frame_update_count} frame updates sent`)}
+      ${metricCard('24h metadata events', historySummary.total_events, `${historySnapshots.snapshots.length} persisted snapshots`)}
     </section>
 
     <section class="two-column">
@@ -320,16 +374,17 @@ function renderOverviewView() {
       <article class="panel">
         <div class="panel__header">
           <div>
-            <h3>Worker capacity</h3>
-            <p>Assignment and stream capacity across the current in-process worker fleet.</p>
+            <h3>Durable ops history</h3>
+            <p>Persisted metadata summary for this environment over the last 24 hours.</p>
           </div>
         </div>
         <div class="detail-list">
-          ${detailRow('Total workers', workers.total_workers)}
-          ${detailRow('Session capacity', workers.total_capacity)}
-          ${detailRow('Live stream capacity', workers.total_stream_capacity)}
-          ${detailRow('Assigned sessions', workers.total_assigned_sessions)}
-          ${detailRow('Active streams', workers.total_active_streams)}
+          ${detailRow('Environment', historySummary.environment.label)}
+          ${detailRow('Window', `${historySummary.window_hours} hours`)}
+          ${detailRow('Persisted events', historySummary.total_events)}
+          ${detailRow('Latest snapshot', latestSnapshot ? formatTimestamp(latestSnapshot.recorded_at) : 'No snapshot yet')}
+          ${detailRow('Snapshot active streams', latestSnapshot ? latestSnapshot.active_streams : 0)}
+          ${detailRow('Snapshot protocol errors', latestSnapshot ? latestSnapshot.protocol_errors_total : 0)}
         </div>
       </article>
     </section>
@@ -348,11 +403,11 @@ function renderOverviewView() {
       <article class="panel">
         <div class="panel__header">
           <div>
-            <h3>Recent events</h3>
-            <p>Latest metadata-only events from the current event buffer.</p>
+            <h3>Recent persisted snapshots</h3>
+            <p>Metadata-only snapshot points used for later trend views and operational history.</p>
           </div>
         </div>
-        ${renderEventFeed(state.data.events?.events?.slice(0, 8) || [], { compact: true })}
+        ${renderSnapshotList(historySnapshots.snapshots)}
       </article>
     </section>
   `;
@@ -426,8 +481,9 @@ function renderWorkersView() {
 function renderStreamView() {
   const stream = state.data.stream;
   const sessions = state.data.sessions;
+  const historySummary = state.data.historySummary;
 
-  if (!stream || !sessions) {
+  if (!stream || !sessions || !historySummary) {
     return renderLoadingState('Loading stream telemetry...');
   }
 
@@ -438,7 +494,7 @@ function renderStreamView() {
       ${metricCard('Resumes', stream.successful_resumes, `${stream.heartbeat_timeout_count} heartbeat timeouts`)}
       ${metricCard('Dropped events', stream.dropped_events_total, `${stream.protocol_error_count} protocol errors`)}
       ${metricCard('State / frame updates', `${stream.state_update_count} / ${stream.frame_update_count}`, formatDuration(stream.average_action_duration_ms))}
-      ${metricCard('Action acks', renderAckSummary(stream.action_ack_counts), renderResultSummary(stream.action_result_counts))}
+      ${metricCard('24h stream reasons', Object.keys(historySummary.stream_error_counts || {}).length, 'Persisted protocol/stream reason categories')}
     </section>
 
     <section class="two-column">
@@ -455,21 +511,31 @@ function renderStreamView() {
       <article class="panel">
         <div class="panel__header">
           <div>
-            <h3>Sessions with stream churn</h3>
-            <p>Active sessions showing dropped events, protocol errors, or heartbeat timeouts.</p>
+            <h3>Persisted stream error reasons</h3>
+            <p>Recent durable stream/protocol error categories across the current environment.</p>
           </div>
         </div>
-        ${renderAttentionSessionList(
-          sessions.sessions.filter(
-            (session) =>
-              session.heartbeat_timeout_count > 0 ||
-              session.protocol_error_count > 0 ||
-              session.dropped_events_total > 0 ||
-              session.reconnect_attempts > 0
-          ),
-          'No active sessions are currently showing stream churn.'
-        )}
+        ${renderDictionaryGrid(historySummary.stream_error_counts, 'No persisted stream error reasons yet.')}
       </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <h3>Sessions with stream churn</h3>
+          <p>Active sessions showing dropped events, protocol errors, or heartbeat timeouts.</p>
+        </div>
+      </div>
+      ${renderAttentionSessionList(
+        sessions.sessions.filter(
+          (session) =>
+            session.heartbeat_timeout_count > 0 ||
+            session.protocol_error_count > 0 ||
+            session.dropped_events_total > 0 ||
+            session.reconnect_attempts > 0
+        ),
+        'No active sessions are currently showing stream churn.'
+      )}
     </section>
   `;
 }
@@ -478,8 +544,9 @@ function renderPolicyView() {
   const policy = state.data.policy;
   const quota = state.data.quota;
   const terminations = state.data.terminations;
+  const historySummary = state.data.historySummary;
 
-  if (!policy || !quota || !terminations) {
+  if (!policy || !quota || !terminations || !historySummary) {
     return renderLoadingState('Loading policy and quota counters...');
   }
 
@@ -525,21 +592,21 @@ function renderPolicyView() {
       <article class="panel">
         <div class="panel__header">
           <div>
-            <h3>Failure reason categories</h3>
-            <p>Failure-side reasons for runtime or stream termination.</p>
+            <h3>Persisted reason counts</h3>
+            <p>Durable metadata-only reason categories across the last 24 hours.</p>
           </div>
         </div>
-        ${renderDictionaryGrid(terminations.failure_reason_counts, 'No failure reasons recorded yet.')}
+        ${renderDictionaryGrid(historySummary.reason_counts, 'No durable reason counts recorded yet.')}
       </article>
 
       <article class="panel">
         <div class="panel__header">
           <div>
             <h3>Recent policy events</h3>
-            <p>Most recent metadata-only policy-related events from the event sink.</p>
+            <p>Most recent metadata-only policy-related events from the persistent event store.</p>
           </div>
         </div>
-        ${renderEventFeed(policy.recent_events || [], { compact: true })}
+        ${renderEventFeed((state.data.events?.events || []).slice(0, 10), { compact: true })}
       </article>
     </section>
   `;
@@ -556,7 +623,7 @@ function renderEventsView() {
       <div class="panel__header">
         <div>
           <h3>Recent metadata-only event feed</h3>
-          <p>${events.total_events} events currently retained in the in-process buffer.</p>
+          <p>${events.total_events} persisted events currently shown for this environment.</p>
         </div>
         <span class="badge">${events.events.length} shown</span>
       </div>
@@ -772,6 +839,33 @@ function renderEventFeed(events, { compact = false } = {}) {
   `;
 }
 
+function renderSnapshotList(snapshots) {
+  if (!snapshots?.length) {
+    return '<div class="empty-state">No durable snapshots have been written yet.</div>';
+  }
+
+  const recent = snapshots.slice(-8).reverse();
+  return `
+    <div class="stat-list">
+      ${recent
+        .map(
+          (snapshot) => `
+            <div class="stat-row">
+              <span>
+                <strong>${formatTimestamp(snapshot.recorded_at)}</strong>
+                <span class="soft"> · ${snapshot.active_sessions} sessions · ${snapshot.active_streams} streams</span>
+              </span>
+              <span class="soft">
+                ${snapshot.protocol_errors_total} protocol · ${snapshot.quota_rejections_total} quota
+              </span>
+            </div>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+}
+
 function renderAttentionSessionList(sessions, emptyMessage = 'No sessions currently match the attention filters.') {
   if (!sessions.length) {
     return `<div class="empty-state">${emptyMessage}</div>`;
@@ -825,20 +919,6 @@ function renderWorkerHealthPill(health, reason) {
   return `<span class="${variant}">${escapeHtml(health)}${reason ? ` · ${escapeHtml(reason)}` : ''}</span>`;
 }
 
-function renderAckSummary(counts) {
-  if (!counts) {
-    return '0';
-  }
-  return `${counts.accepted || 0} accepted · ${counts.rejected || 0} rejected · ${counts.failed || 0} failed`;
-}
-
-function renderResultSummary(counts) {
-  if (!counts) {
-    return 'No action results yet';
-  }
-  return `${counts.completed || 0} completed · ${counts.failed || 0} failed`;
-}
-
 function renderEventSummary(event) {
   const bits = [event.reason_code, event.state, event.disposition, event.worker_id]
     .filter(Boolean)
@@ -880,7 +960,7 @@ function syncAutoRefresh() {
     window.clearInterval(state.intervalId);
     state.intervalId = null;
   }
-  if (state.autoRefresh && state.auth) {
+  if (state.autoRefresh && state.auth.authenticated) {
     state.intervalId = window.setInterval(() => {
       loadDashboardData();
     }, 15000);
@@ -902,9 +982,23 @@ function showAuthError(message) {
   elements.authError.classList.remove('hidden');
 }
 
-function signOut() {
-  state.auth = null;
-  clearStoredAuth();
+async function signOut() {
+  if (state.auth.authenticated) {
+    try {
+      await authRequest('/ops/auth/logout', { method: 'POST' });
+    } catch {
+      // best-effort logout
+    }
+  }
+
+  state.auth = {
+    authenticated: false,
+    environment: state.auth.environment,
+    operatorId: null,
+    authMethod: null,
+    sessionExpiresAt: null,
+    devTokenLoginEnabled: state.auth.devTokenLoginEnabled,
+  };
   state.data = {
     overview: null,
     sessions: null,
@@ -914,6 +1008,8 @@ function signOut() {
     quota: null,
     terminations: null,
     events: null,
+    historySummary: null,
+    historySnapshots: null,
   };
   state.errors = {};
   state.lastUpdatedAt = null;
@@ -926,12 +1022,15 @@ function signOut() {
   render();
 }
 
-async function apiRequest(path) {
-  const response = await fetch(`${state.auth.apiBase}${path}`, {
+async function authRequest(path, { method = 'GET', body } = {}) {
+  const response = await fetch(composeUrl(path), {
+    method,
+    credentials: 'include',
     headers: {
       'Accept': 'application/json',
-      'X-Amon-Internal-Token': state.auth.token,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!response.ok) {
@@ -947,31 +1046,53 @@ async function apiRequest(path) {
   return response.json();
 }
 
-function loadStoredAuth() {
+async function apiRequest(path) {
+  const response = await fetch(composeUrl(path), {
+    credentials: 'include',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (response.status === 401) {
+    state.auth.authenticated = false;
+    updateAuthGate(true);
+    syncAutoRefresh();
+    throw new Error('Operator session required.');
+  }
+
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    const detail =
+      maybeJson?.detail?.message ||
+      maybeJson?.detail ||
+      maybeJson?.message ||
+      `${response.status} ${response.statusText}`;
+    throw new Error(String(detail));
+  }
+
+  return response.json();
+}
+
+function composeUrl(path) {
+  return `${state.apiBase}${path}`;
+}
+
+function loadStoredApiBase() {
   try {
     const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      return null;
+      return DEFAULT_API_BASE;
     }
     const parsed = JSON.parse(raw);
-    if (!parsed?.apiBase || !parsed?.token) {
-      return null;
-    }
-    return {
-      apiBase: stripTrailingSlash(parsed.apiBase),
-      token: parsed.token,
-    };
+    return stripTrailingSlash(parsed.apiBase || DEFAULT_API_BASE);
   } catch {
-    return null;
+    return DEFAULT_API_BASE;
   }
 }
 
-function storeAuth(auth) {
-  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
-}
-
-function clearStoredAuth() {
-  window.sessionStorage.removeItem(STORAGE_KEY);
+function storeApiBase(apiBase) {
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ apiBase }));
 }
 
 function normalizeRoute(hash) {
@@ -987,7 +1108,7 @@ function humanizeError(error) {
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return 'Unable to reach the internal metadata API.';
+  return 'Unable to reach the ops API.';
 }
 
 function formatTimestamp(value) {

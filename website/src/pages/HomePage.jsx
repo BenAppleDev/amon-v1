@@ -17,10 +17,8 @@ export function HomePage() {
           <Reveal className="hero-copy">
             <span className="eyebrow">Private decision environment</span>
             <h1>Private by default. Deeper when needed.</h1>
-            <p className="hero-lede">Amon is a workflow for inquiry on the public web.</p>
-            <p className="hero-support">
-              Begin with Search and Browse. Go deeper only when the question deserves it.
-            </p>
+            <p className="hero-lede">A private workflow for meaningful questions online.</p>
+            <p className="hero-support">Start normally. Go deeper only when the question deserves it.</p>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Request access
@@ -56,11 +54,8 @@ export function HomePage() {
         <div className="frame">
           <Reveal className="section-heading">
             <span className="eyebrow">Workflow</span>
-            <h2>One question can move through four modes.</h2>
-            <p>
-              Amon feels normal at the start. It becomes more useful when the task becomes
-              meaningful.
-            </p>
+            <h2>One question. Four modes.</h2>
+            <p>Amon stays quiet at the start, then becomes more useful as the stakes rise.</p>
           </Reveal>
 
           <div className="mode-grid">
@@ -75,8 +70,7 @@ export function HomePage() {
           </div>
 
           <Reveal className="section-note" delay={180}>
-            Protected Session is the deeper mode for selected public-web tasks. It is not a claim
-            that every website or every live-site flow is covered.
+            Protected Session is the deeper mode, not the default for everything.
           </Reveal>
         </div>
       </section>
@@ -85,7 +79,8 @@ export function HomePage() {
         <div className="frame">
           <Reveal className="section-heading">
             <span className="eyebrow">When this matters</span>
-            <h2>More useful when the task becomes meaningful.</h2>
+            <h2>More useful when the question matters more.</h2>
+            <p>Not every search needs more. Some do.</p>
           </Reveal>
 
           <div className="scenario-grid">
@@ -104,8 +99,8 @@ export function HomePage() {
           <div>
             <Reveal className="section-heading">
               <span className="eyebrow">Trust</span>
-              <h2>A different posture, stated plainly.</h2>
-              <p>Less theater. Clearer boundaries. Honest scope.</p>
+              <h2>A calmer trust posture.</h2>
+              <p>Minimize what should not linger. Keep what matters local.</p>
             </Reveal>
 
             <Reveal delay={100}>
@@ -115,7 +110,7 @@ export function HomePage() {
 
           <div className="trust-copy">
             <Reveal className="trust-block" delay={80}>
-              <h3>What feels different</h3>
+              <h3>Designed to minimize</h3>
               <ul className="bullet-list">
                 <li>Minimize durable service-side query and page content.</li>
                 <li>Keep saved work in a local workspace by default.</li>
@@ -124,7 +119,7 @@ export function HomePage() {
             </Reveal>
 
             <Reveal className="trust-block trust-block-muted" delay={150}>
-              <h3>What we do not imply</h3>
+              <h3>Not claimed</h3>
               <ul className="bullet-list">
                 {nonClaims.map((claim) => (
                   <li key={claim}>{claim}</li>
@@ -140,8 +135,8 @@ export function HomePage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Request access</span>
-              <h2>Tell us how you work online.</h2>
-              <p>A short note is enough. The current front door is email.</p>
+              <h2>If this fits your workflow, get in touch.</h2>
+              <p>A short note is enough.</p>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">

@@ -14,7 +14,7 @@ export function FAQPage() {
       <PageHero
         eyebrow="FAQ"
         title="Short answers."
-        lede="The public site should remove confusion fast. These answers stay brief and scope-disciplined."
+        lede="A few quick clarifications."
       />
 
       <section className="page-section">

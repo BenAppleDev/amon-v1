@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app import models  # noqa: F401  # ensure models register
 from app.config import get_settings
@@ -40,9 +42,22 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+if settings.trust_proxy_headers:
+    app.add_middleware(
+        ProxyHeadersMiddleware,
+        trusted_hosts=settings.trusted_proxy_ips or '127.0.0.1',
+    )
+
+if settings.trusted_host_patterns:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.trusted_host_patterns,
+        www_redirect=False,
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_allow_origins or ['*'],
+    allow_origins=settings.resolved_cors_allow_origins() or ['*'],
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],

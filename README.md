@@ -6,6 +6,7 @@ This repository is a local-development starter for Amon v1.
 
 - `backend/` — FastAPI backend with transient search, retrieve, compare, research endpoints
 - `website/` — React + Vite public-facing website for `getamon.com`
+- `ops-dashboard/` — internal metadata-only ops dashboard frontend
 - `shared/schema/` — SQL schema files for server and local encrypted storage
 - `shared/openapi/` — generated OpenAPI specification for the backend
 - `shared/http/` — ready-to-run HTTP request examples for the local dev flow
@@ -61,3 +62,8 @@ uvicorn app.main:app --reload
 - harden the iOS local store to full encrypted-database semantics if you want SQLCipher
 - add richer clean-view parsing and workspace editing
 - add CI and release automation
+
+## Deployment notes
+
+- Public site deployment notes: [website/README.md](/Users/ben/amon-v1/website/README.md)
+- Track 2 Cloudflare-oriented topology: [docs/deployment/cloudflare-track2-topology.md](/Users/ben/amon-v1/docs/deployment/cloudflare-track2-topology.md)

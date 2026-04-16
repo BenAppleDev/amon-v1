@@ -16,7 +16,7 @@ export function PrivacyPage() {
       <PageHero
         eyebrow="Privacy"
         title="Different posture. Clear limits."
-        lede="The public site should explain the trust boundary quickly: what Amon is designed to minimize, what stays local by default, and what it does not claim."
+        lede="What Amon minimizes, what stays local, and what it does not claim."
       />
 
       <section className="page-section">
@@ -27,7 +27,7 @@ export function PrivacyPage() {
 
           <div className="stack">
             <Reveal className="trust-block">
-              <h3>What we can say plainly</h3>
+              <h3>Designed to minimize</h3>
               <ul className="bullet-list">
                 <li>The service direction is to minimize durable query and page content.</li>
                 <li>Saved work belongs in a local workspace by default.</li>
@@ -36,7 +36,7 @@ export function PrivacyPage() {
             </Reveal>
 
             <Reveal className="trust-block trust-block-muted" delay={120}>
-              <h3>What we do not claim</h3>
+              <h3>Not claimed</h3>
               <ul className="bullet-list">
                 {nonClaims.map((claim) => (
                   <li key={claim}>{claim}</li>
@@ -50,18 +50,18 @@ export function PrivacyPage() {
       <section className="page-section">
         <div className="frame comparison-grid">
           <Reveal className="comparison-panel">
-            <h3>Protected Session, in user language</h3>
+            <h3>Protected Session</h3>
             <p>
-              It is a more controlled mode for selected public-web tasks. Use it when the live
-              site is necessary, not as the default for everything.
+              A more controlled mode for selected public-web tasks. Use it when the live site is
+              necessary, not as the default.
             </p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>Scope discipline</h3>
+            <h3>Scope</h3>
             <p>
-              The strongest trust signal is honest scope. Amon should never imply universal site
-              support or total anonymity.
+              The strongest trust signal is honest scope. No universal site support. No promise of
+              total anonymity.
             </p>
           </Reveal>
         </div>

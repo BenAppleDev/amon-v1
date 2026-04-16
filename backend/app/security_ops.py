@@ -72,8 +72,9 @@ def create_ops_session(
         key=settings.ops_session_cookie_name,
         value=session.id,
         httponly=True,
-        samesite='lax',
-        secure=settings.ops_session_cookie_secure,
+        samesite=settings.ops_session_cookie_same_site,
+        secure=settings.resolved_ops_session_cookie_secure(),
+        domain=settings.ops_session_cookie_domain,
         path='/ops',
         expires=int(session.expires_at.timestamp()),
     )

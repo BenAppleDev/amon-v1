@@ -19,13 +19,18 @@ def clear_settings_cache() -> Generator[None, None, None]:
 
 
 @pytest.fixture()
-def client() -> Generator[TestClient, None, None]:
+def db_session_factory():
     engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
     TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
     Base.metadata.create_all(bind=engine)
+    return TestingSessionLocal
+
+
+@pytest.fixture()
+def client(db_session_factory) -> Generator[TestClient, None, None]:
 
     def override_get_db():
-        db = TestingSessionLocal()
+        db = db_session_factory()
         try:
             yield db
         finally:
