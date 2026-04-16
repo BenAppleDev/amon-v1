@@ -2,6 +2,8 @@
 
 This document describes the intended deployment shape for the Track 2 product and ops surfaces.
 
+For deployment checklists by environment, see [deployment-runbooks.md](/Users/ben/amon-v1/docs/deployment/deployment-runbooks.md).
+
 ## Topology
 
 - `www.getamon.com`
@@ -56,10 +58,12 @@ This document describes the intended deployment shape for the Track 2 product an
   - `/ops/assets/*`
   - `/ops/auth/*`
   - `/ops/api/protected-sessions/*`
+- The repo-side backend mount is currently fixed at `OPS_BACKEND_PATH_PREFIX=/ops`.
 - For an initial `ops.getamon.com` deployment, the simplest shape is:
   - point `ops.getamon.com` to the same backend origin through Cloudflare
   - keep the backend ops path prefix as `/ops/`
   - optionally add an edge redirect or path normalization later if you want a cleaner root-host UX
+  - if you edge-rewrite `ops.getamon.com/` to `/ops/`, keep the backend mount itself unchanged
 
 ## Auth and session model
 
@@ -132,6 +136,7 @@ It does not persist:
 - `APP_ENV=development`
 - `API_EXTERNAL_ORIGIN=http://127.0.0.1:8000`
 - `OPS_SURFACE_ORIGIN=http://127.0.0.1:8000/ops/`
+- `OPS_BACKEND_PATH_PREFIX=/ops`
 - `TRUST_PROXY_HEADERS=false`
 - `OPS_ALLOW_DEV_TOKEN_LOGIN=true` or rely on development default behavior
 
@@ -139,6 +144,7 @@ It does not persist:
 
 - `API_EXTERNAL_ORIGIN=https://api.getamon.com`
 - `OPS_SURFACE_ORIGIN=https://ops.getamon.com/ops/` or your chosen edge-routed equivalent
+- `OPS_BACKEND_PATH_PREFIX=/ops`
 - `PUBLIC_SITE_ORIGINS=https://www.getamon.com,https://getamon.com`
 - `OPS_FRONTEND_ORIGINS=https://ops.getamon.com`
 - `TRUST_PROXY_HEADERS=true`

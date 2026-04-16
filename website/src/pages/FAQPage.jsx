@@ -8,12 +8,12 @@ export function FAQPage() {
     <>
       <Seo
         title="FAQ"
-        description="Short answers about Amon's scope, privacy posture, and workflow."
+        description="Short answers about Amon's scope, posture, and category."
       />
 
       <PageHero
         eyebrow="FAQ"
-        title="Short answers."
+        title="Questions people will ask."
         lede="A few quick clarifications."
       />
 

@@ -10,13 +10,13 @@ export function PrivacyPage() {
     <>
       <Seo
         title="Privacy"
-        description="A concise view of Amon's privacy posture and scope limits."
+        description="What Amon minimizes, what stays with the user, and what it does not claim."
       />
 
       <PageHero
         eyebrow="Privacy"
-        title="Different posture. Clear limits."
-        lede="What Amon minimizes, what stays local, and what it does not claim."
+        title="What Amon minimizes."
+        lede="A sober view of what the service is meant to minimize, what stays with the user, and what Amon does not claim."
       />
 
       <section className="page-section">
@@ -27,16 +27,24 @@ export function PrivacyPage() {
 
           <div className="stack">
             <Reveal className="trust-block">
-              <h3>Designed to minimize</h3>
+              <h3>What Amon minimizes</h3>
               <ul className="bullet-list">
-                <li>The service direction is to minimize durable query and page content.</li>
-                <li>Saved work belongs in a local workspace by default.</li>
-                <li>Protected Session is for selected public-web tasks that need more care.</li>
+                <li>Durable query text.</li>
+                <li>Durable result sets.</li>
+                <li>Durable page content on its servers.</li>
               </ul>
             </Reveal>
 
-            <Reveal className="trust-block trust-block-muted" delay={120}>
-              <h3>Not claimed</h3>
+            <Reveal className="trust-block" delay={80}>
+              <h3>What stays with you</h3>
+              <ul className="bullet-list">
+                <li>Saved work belongs in a local workspace by default.</li>
+                <li>Meaningful inquiry should not automatically become a server-side archive.</li>
+              </ul>
+            </Reveal>
+
+            <Reveal className="trust-block trust-block-muted" delay={160}>
+              <h3>What Amon does not claim</h3>
               <ul className="bullet-list">
                 {nonClaims.map((claim) => (
                   <li key={claim}>{claim}</li>
@@ -51,18 +59,12 @@ export function PrivacyPage() {
         <div className="frame comparison-grid">
           <Reveal className="comparison-panel">
             <h3>Protected Session</h3>
-            <p>
-              A more controlled mode for selected public-web tasks. Use it when the live site is
-              necessary, not as the default.
-            </p>
+            <p>A deeper, more controlled mode for selected public-web tasks that need more structure and care.</p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
             <h3>Scope</h3>
-            <p>
-              The strongest trust signal is honest scope. No universal site support. No promise of
-              total anonymity.
-            </p>
+            <p>Amon should stay explicit about scope. It is not promising universal support or total anonymity.</p>
           </Reveal>
         </div>
       </section>
@@ -71,19 +73,16 @@ export function PrivacyPage() {
         <div className="frame">
           <Reveal className="cta-panel">
             <div>
-              <span className="eyebrow">Contact</span>
-              <h2>Questions about fit or trust?</h2>
+              <span className="eyebrow">FAQ</span>
+              <h2>Still comparing the category?</h2>
             </div>
             <div className="button-row">
-              <Link className="button" to="/contact">
+              <Link className="button" to="/faq">
+                Read FAQ
+              </Link>
+              <Link className="button button-secondary" to="/contact">
                 Request access
               </Link>
-              <a
-                className="button button-secondary"
-                href="mailto:hello@getamon.com?subject=Amon%20privacy%20question"
-              >
-                Ask by email
-              </a>
             </div>
           </Reveal>
         </div>

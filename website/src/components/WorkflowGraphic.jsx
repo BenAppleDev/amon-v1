@@ -11,8 +11,8 @@ export function WorkflowGraphic({ compact = false }) {
       >
         <defs>
           <linearGradient id="flowStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#206B4A" />
-            <stop offset="100%" stopColor="#993F2D" />
+            <stop offset="0%" stopColor="#C6FF61" />
+            <stop offset="100%" stopColor="#FF5E4F" />
           </linearGradient>
         </defs>
         <path
@@ -29,10 +29,10 @@ export function WorkflowGraphic({ compact = false }) {
           strokeLinecap="round"
           strokeWidth="4"
         />
-        <circle cx="72" cy="118" r="8" fill="#206B4A" />
-        <circle cx="366" cy="188" r="8" fill="#206B4A" />
-        <circle cx="598" cy="116" r="8" fill="#993F2D" />
-        <circle cx="604" cy="412" r="8" fill="#993F2D" />
+        <circle cx="72" cy="118" r="8" fill="#C6FF61" />
+        <circle cx="366" cy="188" r="8" fill="#F5F1EA" />
+        <circle cx="598" cy="116" r="8" fill="#FF5E4F" />
+        <circle cx="604" cy="412" r="8" fill="#FF5E4F" />
       </svg>
 
       <article className="workflow-plane workflow-plane-search">

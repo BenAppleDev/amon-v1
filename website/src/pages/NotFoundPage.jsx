@@ -8,7 +8,7 @@ export function NotFoundPage() {
       <Seo title="Not Found" description="This page could not be found." />
       <PageHero
         eyebrow="404"
-        title="Page not found."
+        title="Not found."
         lede="That page is not here."
         aside={
           <Link className="button" to="/">

@@ -1,153 +1,145 @@
 import { Link } from "react-router-dom";
-import { BoundaryGraphic } from "../components/BoundaryGraphic";
+import { HeroField } from "../components/HeroField";
+import { ModeRail } from "../components/ModeRail";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { WorkflowGraphic } from "../components/WorkflowGraphic";
-import { homeScenarios, modeSteps, nonClaims, positioningStatements } from "../content/site";
+import {
+  everydayDecisions,
+  homeBelief,
+  modeSteps,
+  shiftNowLines,
+  shiftThenLines,
+  spaceLines
+} from "../content/site";
 
 export function HomePage() {
   return (
     <>
-      <Seo
-        description="Amon is a private decision environment for searching, browsing, and thinking through meaningful questions online."
-      />
+      <Seo description="Amon is a place to think through things online — without someone looking over your shoulder." />
 
-      <section className="hero">
+      <section className="hero hero-home">
         <div className="frame hero-grid">
           <Reveal className="hero-copy">
-            <span className="eyebrow">Private decision environment</span>
-            <h1>Private by default. Deeper when needed.</h1>
-            <p className="hero-lede">A private workflow for meaningful questions online.</p>
-            <p className="hero-support">Start normally. Go deeper only when the question deserves it.</p>
+            <span className="eyebrow">Private by default. Deeper when needed.</span>
+            <h1>A place to think through things online.</h1>
+            <p className="hero-lede">Without someone looking over your shoulder.</p>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Request access
               </Link>
               <Link className="button button-secondary" to="/product">
-                See how it works
+                Read how it works
               </Link>
             </div>
-            <p className="hero-flow">Search / Browse → Clean View → Protected Session → Workspace</p>
           </Reveal>
 
-          <Reveal delay={120}>
-            <WorkflowGraphic />
+          <Reveal className="hero-stage" delay={120}>
+            <HeroField />
           </Reveal>
         </div>
       </section>
 
-      <section className="position-band">
-        <div className="frame position-band-grid">
-          {positioningStatements.map((statement, index) => (
-            <Reveal
-              key={statement}
-              className={`position-band-item${index === positioningStatements.length - 1 ? " is-strong" : ""}`}
-              delay={index * 50}
-            >
-              {statement}
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="page-section">
-        <div className="frame">
-          <Reveal className="section-heading">
-            <span className="eyebrow">Workflow</span>
-            <h2>One question. Four modes.</h2>
-            <p>Amon stays quiet at the start, then becomes more useful as the stakes rise.</p>
-          </Reveal>
-
-          <div className="mode-grid">
-            {modeSteps.map((mode, index) => (
-              <Reveal key={mode.id} className="mode-tile" delay={index * 60}>
-                <span className="mode-number">{mode.number}</span>
-                <h3>{mode.name}</h3>
-                <p className="mode-line">{mode.line}</p>
-                <p>{mode.detail}</p>
-              </Reveal>
+      <section className="page-section shift-section">
+        <div className="frame shift-grid">
+          <Reveal className="shift-column">
+            <span className="shift-label">Once</span>
+            {shiftThenLines.map((line) => (
+              <p key={line} className="shift-line">
+                {line}
+              </p>
             ))}
-          </div>
+          </Reveal>
 
-          <Reveal className="section-note" delay={180}>
-            Protected Session is the deeper mode, not the default for everything.
+          <Reveal className="shift-column shift-column-now" delay={120}>
+            <span className="shift-label">Now</span>
+            {shiftNowLines.map((line) => (
+              <p key={line} className="shift-line">
+                {line}
+              </p>
+            ))}
+            <p className="shift-note">
+              Online inquiry no longer just finds answers. It builds a profile.
+            </p>
           </Reveal>
         </div>
       </section>
 
-      <section className="page-section">
-        <div className="frame">
+      <section className="page-section everyday-section">
+        <div className="frame everyday-grid">
           <Reveal className="section-heading">
-            <span className="eyebrow">When this matters</span>
-            <h2>More useful when the question matters more.</h2>
-            <p>Not every search needs more. Some do.</p>
+            <span className="eyebrow">Ordinary life</span>
+            <h2>These are not edge cases.</h2>
+            <p>Moving. Jobs. Purchases. Personal questions. Next steps.</p>
           </Reveal>
 
-          <div className="scenario-grid">
-            {homeScenarios.map((scenario, index) => (
-              <Reveal key={scenario.title} className="scenario" delay={index * 70}>
-                <h3>{scenario.title}</h3>
-                <p>{scenario.copy}</p>
+          <div className="everyday-list">
+            {everydayDecisions.map((item, index) => (
+              <Reveal key={item} className="everyday-item" delay={index * 60}>
+                {item}
               </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="page-section">
-        <div className="frame trust-grid">
-          <div>
-            <Reveal className="section-heading">
-              <span className="eyebrow">Trust</span>
-              <h2>A calmer trust posture.</h2>
-              <p>Minimize what should not linger. Keep what matters local.</p>
-            </Reveal>
+      <section className="page-section belief-section">
+        <div className="frame belief-stage">
+          <Reveal className="belief-copy">
+            <span className="eyebrow">Why Amon exists</span>
+            <p className="belief-quote">{homeBelief}</p>
+            <p className="belief-support">
+              Not just for privacy experts. For ordinary people making real decisions.
+            </p>
+          </Reveal>
+        </div>
+      </section>
 
-            <Reveal delay={100}>
-              <BoundaryGraphic />
-            </Reveal>
-          </div>
+      <section className="page-section response-section">
+        <div className="frame response-grid">
+          <Reveal className="section-heading">
+            <span className="eyebrow">How Amon responds</span>
+            <h2>It starts familiar. Then it deepens.</h2>
+            <p>Amon does not replace the internet. It changes how you move through it.</p>
+          </Reveal>
 
-          <div className="trust-copy">
-            <Reveal className="trust-block" delay={80}>
-              <h3>Designed to minimize</h3>
-              <ul className="bullet-list">
-                <li>Minimize durable service-side query and page content.</li>
-                <li>Keep saved work in a local workspace by default.</li>
-                <li>Use deeper modes selectively instead of making everything equally exposed.</li>
-              </ul>
-            </Reveal>
+          <Reveal delay={100}>
+            <ModeRail steps={modeSteps} />
+          </Reveal>
+        </div>
+      </section>
 
-            <Reveal className="trust-block trust-block-muted" delay={150}>
-              <h3>Not claimed</h3>
-              <ul className="bullet-list">
-                {nonClaims.map((claim) => (
-                  <li key={claim}>{claim}</li>
-                ))}
-              </ul>
-            </Reveal>
-          </div>
+      <section className="page-section space-section">
+        <div className="frame space-stage">
+          <Reveal>
+            <span className="eyebrow">Space</span>
+            <div className="space-lines">
+              {spaceLines.map((line, index) => (
+                <p key={line} className={`space-line${index === spaceLines.length - 1 ? " is-last" : ""}`}>
+                  {line}
+                </p>
+              ))}
+            </div>
+            <p className="space-note">
+              A meaningful question should not immediately become a permanent record.
+            </p>
+          </Reveal>
         </div>
       </section>
 
       <section className="page-section page-section-cta">
         <div className="frame">
-          <Reveal className="cta-panel">
+          <Reveal className="cta-panel cta-panel-home">
             <div>
               <span className="eyebrow">Request access</span>
-              <h2>If this fits your workflow, get in touch.</h2>
-              <p>A short note is enough.</p>
+              <h2>If that sounds right, get in touch.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Join the waitlist
               </Link>
-              <a
-                className="button button-secondary"
-                href="mailto:hello@getamon.com?subject=Request%20access%20to%20Amon"
-              >
-                hello@getamon.com
-              </a>
+              <Link className="button button-secondary" to="/privacy">
+                Read the privacy posture
+              </Link>
             </div>
           </Reveal>
         </div>

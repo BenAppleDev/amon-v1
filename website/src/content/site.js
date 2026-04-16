@@ -7,6 +7,36 @@ export const navLinks = [
   { to: "/contact", label: "Contact" }
 ];
 
+export const shiftThenLines = [
+  "You searched.",
+  "You clicked.",
+  "You read.",
+  "You moved on."
+];
+
+export const shiftNowLines = [
+  "Now every question gets recorded.",
+  "Interpreted.",
+  "Connected.",
+  "Folded into a profile."
+];
+
+export const everydayDecisions = [
+  "Where to live",
+  "What to buy",
+  "Whether to change jobs",
+  "What decision to make next"
+];
+
+export const homeBelief =
+  "There should be a place online where people can think through things without being turned into a profile.";
+
+export const spaceLines = [
+  "Space to explore.",
+  "Space to compare.",
+  "Space to think."
+];
+
 export const modeSteps = [
   {
     id: "search",
@@ -35,29 +65,6 @@ export const modeSteps = [
     name: "Workspace",
     line: "Keep what matters.",
     detail: "Save sources and thinking into a local workspace."
-  }
-];
-
-export const positioningStatements = [
-  "Not just search",
-  "Not just a browser",
-  "Not just a VPN",
-  "Not just an AI wrapper",
-  "One workflow"
-];
-
-export const homeScenarios = [
-  {
-    title: "A decision matters",
-    copy: "Research for a move, purchase, trip, hire, or other consequential choice."
-  },
-  {
-    title: "A source deserves attention",
-    copy: "Shift into a cleaner surface when the material is worth real focus."
-  },
-  {
-    title: "The live site is necessary",
-    copy: "Use the deeper mode for selected public-web tasks that need more structure."
   }
 ];
 
@@ -95,32 +102,26 @@ export const faqItems = [
   {
     question: "Is it a browser?",
     answer:
-      "Not broadly. Browsing is part of it, but Amon is really a workflow for inquiry."
+      "Not in the replace-everything sense. Browsing is part of it, but Amon is a workflow for inquiry."
   },
   {
-    question: "What does private by default mean here?",
+    question: "Is it a VPN?",
     answer:
-      "Minimize durable service-side query and page content. Keep saved work local by default."
+      "No. Amon is not a VPN product. It is a place to search, browse, compare, and think more deliberately."
+  },
+  {
+    question: "Does Amon store my history?",
+    answer:
+      "The product direction is to minimize durable service-side query and page content, while keeping saved work local by default."
   },
   {
     question: "What is Protected Session?",
     answer:
-      "A deeper, more controlled mode for selected public-web tasks that need the live site."
+      "A deeper, more controlled mode for selected public-web tasks that need more structure and care."
   },
   {
-    question: "Does Amon work for every site?",
+    question: "What is in scope today?",
     answer:
-      "No. Scope matters. Amon is not promising universal support."
-  },
-  {
-    question: "How do I request access?",
-    answer:
-      "Email hello@getamon.com with a short note about your workflow."
+      "Amon is not claiming universal support across every website and every live-site flow. Scope stays explicit."
   }
-];
-
-export const contactPrompts = [
-  "The kind of inquiry work you do.",
-  "Which mode matters most: Search, Clean View, Protected Session, or Workspace.",
-  "Whether you are asking about access, partnership, or feedback."
 ];

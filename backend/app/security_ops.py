@@ -35,7 +35,9 @@ def ops_environment_view() -> OpsEnvironmentView:
 
 def ops_dev_token_login_enabled() -> bool:
     settings = get_settings()
-    return bool(settings.ops_allow_dev_token_login or settings.app_env == 'development')
+    return bool(expected_internal_admin_token(settings)) and bool(
+        settings.ops_allow_dev_token_login or settings.app_env == 'development'
+    )
 
 
 def _validate_operator_id(operator_id: str) -> str:
@@ -75,7 +77,7 @@ def create_ops_session(
         samesite=settings.ops_session_cookie_same_site,
         secure=settings.resolved_ops_session_cookie_secure(),
         domain=settings.ops_session_cookie_domain,
-        path='/ops',
+        path=settings.resolved_ops_session_cookie_path(),
         expires=int(session.expires_at.timestamp()),
     )
     return session
@@ -89,7 +91,7 @@ def clear_ops_session(response: Response, session: OpsOperatorSession | None = N
         db.commit()
     response.delete_cookie(
         key=settings.ops_session_cookie_name,
-        path='/ops',
+        path=settings.resolved_ops_session_cookie_path(),
     )
 
 

@@ -59,6 +59,7 @@ For a future `ops.getamon.com` deployment:
 2. Put `ops.getamon.com` behind a real operator identity layer such as Cloudflare Access, Tailscale, or another internal auth boundary.
 3. Configure the backend environment for:
    - `OPS_SURFACE_ORIGIN`
+   - `OPS_BACKEND_PATH_PREFIX=/ops`
    - `PUBLIC_SITE_ORIGINS`
    - `OPS_FRONTEND_ORIGINS`
    - `TRUST_PROXY_HEADERS=true`
@@ -73,6 +74,7 @@ For a future `ops.getamon.com` deployment:
    - `OPS_SESSION_COOKIE_SECURE=true`
    - `OPS_ALLOW_DEV_TOKEN_LOGIN=false`
 6. Keep the public website on Vercel and the product APIs on `api.getamon.com`. The ops surface is meant for a distinct operator trust boundary, not a public route.
+7. If you want `ops.getamon.com/` to feel root-mounted, use an edge rewrite to the backend’s `/ops/` routes for now. The repo-side ops mount is still `/ops`.
 
 ## Deliberate non-features
 

@@ -10,13 +10,13 @@ export function ProductPage() {
     <>
       <Seo
         title="Product"
-        description="How Amon works across Search and Browse, Clean View, Protected Session, and Workspace."
+        description="How Amon moves from Search and Browse to Clean View, Protected Session, and Workspace."
       />
 
       <PageHero
         eyebrow="Product"
-        title="One workflow. Four modes."
-        lede="Amon starts as a normal place to begin, then deepens as the question becomes more important."
+        title="How Amon works."
+        lede="Amon starts where online inquiry usually starts. Then it deepens as the question becomes more important."
         aside={
           <>
             <span className="note-kicker">Sequence</span>
@@ -47,31 +47,21 @@ export function ProductPage() {
       </section>
 
       <section className="page-section">
-        <div className="frame">
-          <Reveal className="section-heading">
-            <span className="eyebrow">Difference</span>
-            <h2>The modes are meant to work together.</h2>
+        <div className="frame product-summary-grid">
+          <Reveal className="comparison-panel">
+            <h3>Starts familiar</h3>
+            <p>Search, browse, and open pages as you normally would.</p>
           </Reveal>
 
-          <div className="comparison-grid">
-            <Reveal className="comparison-panel">
-              <h3>What Amon is</h3>
-              <ul className="bullet-list">
-                <li>A workflow for inquiry.</li>
-                <li>A calmer reading surface.</li>
-                <li>A local place for meaningful work.</li>
-              </ul>
-            </Reveal>
+          <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
+            <h3>Gets deeper when needed</h3>
+            <p>Move into cleaner reading and more structured modes only when the question matters.</p>
+          </Reveal>
 
-            <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-              <h3>What Amon is not</h3>
-              <ul className="bullet-list">
-                <li>Not a browser replacement.</li>
-                <li>Not just search.</li>
-                <li>Not a generic AI wrapper.</li>
-              </ul>
-            </Reveal>
-          </div>
+          <Reveal className="comparison-panel" delay={160}>
+            <h3>Keeps the work</h3>
+            <p>What matters can stay with you in a local workspace instead of a default cloud archive.</p>
+          </Reveal>
         </div>
       </section>
 
@@ -80,14 +70,14 @@ export function ProductPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Next</span>
-              <h2>See whether the workflow fits.</h2>
+              <h2>Read the privacy posture.</h2>
             </div>
             <div className="button-row">
-              <Link className="button" to="/contact">
-                Request access
+              <Link className="button" to="/privacy">
+                Read privacy
               </Link>
-              <Link className="button button-secondary" to="/privacy">
-                Read the privacy posture
+              <Link className="button button-secondary" to="/contact">
+                Request access
               </Link>
             </div>
           </Reveal>

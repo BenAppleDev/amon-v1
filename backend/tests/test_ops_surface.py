@@ -4,6 +4,7 @@ import asyncio
 from datetime import timedelta
 
 import httpx
+import pytest
 
 from app.config import Settings
 from app.models import Entitlement, SessionRecord, User
@@ -86,6 +87,92 @@ def _control_plane(*, settings: Settings, transport: httpx.AsyncBaseTransport, d
         transport=transport,
         history_store=history_store,
     )
+
+
+def test_cloudflare_ready_settings_resolve_origins_and_secure_cookie_defaults():
+    production = Settings(
+        APP_ENV='production',
+        API_EXTERNAL_ORIGIN='https://api.getamon.com',
+        OPS_SURFACE_ORIGIN='https://ops.getamon.com/ops/',
+        PUBLIC_SITE_ORIGINS='https://www.getamon.com,https://getamon.com',
+        OPS_FRONTEND_ORIGINS='https://ops.getamon.com',
+        CORS_ALLOW_ORIGINS='https://staging-www.getamon.com',
+        TRUST_PROXY_HEADERS='true',
+        TRUSTED_PROXY_IPS='10.0.0.1',
+        TRUSTED_HOST_PATTERNS='api.getamon.com,ops.getamon.com',
+        OPS_TRUSTED_PROXY_SECRET='proxy-secret',
+    )
+    development = Settings(APP_ENV='development')
+
+    assert production.resolved_cors_allow_origins() == [
+        'https://www.getamon.com',
+        'https://getamon.com',
+        'https://ops.getamon.com',
+        'https://staging-www.getamon.com',
+    ]
+    assert production.resolved_ops_session_cookie_secure() is True
+    assert development.resolved_ops_session_cookie_secure() is False
+    assert development.resolved_cors_allow_origins() == [
+        'https://www.getamon.com',
+        'https://getamon.com',
+        'https://ops.getamon.com',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+    ]
+    assert development.resolved_ops_session_cookie_path() == '/ops'
+
+
+def test_production_like_settings_fail_fast_when_proxy_bootstrap_is_missing():
+    with pytest.raises(ValueError) as exc_info:
+        Settings(
+            APP_ENV='production',
+            API_EXTERNAL_ORIGIN='https://api.getamon.com',
+            OPS_SURFACE_ORIGIN='https://ops.getamon.com/ops/',
+            PUBLIC_SITE_ORIGINS='https://www.getamon.com,https://getamon.com',
+            OPS_FRONTEND_ORIGINS='https://ops.getamon.com',
+            TRUST_PROXY_HEADERS='true',
+            TRUSTED_PROXY_IPS='10.0.0.1',
+            TRUSTED_HOST_PATTERNS='api.getamon.com,ops.getamon.com',
+        )
+
+    assert 'OPS_TRUSTED_PROXY_SECRET is required outside local development' in str(exc_info.value)
+
+
+def test_production_like_settings_fail_fast_on_insecure_origins_and_localhost_cors():
+    with pytest.raises(ValueError) as exc_info:
+        Settings(
+            APP_ENV='production',
+            API_EXTERNAL_ORIGIN='http://api.getamon.com',
+            OPS_SURFACE_ORIGIN='https://ops.getamon.com/ops/',
+            PUBLIC_SITE_ORIGINS='https://www.getamon.com',
+            OPS_FRONTEND_ORIGINS='https://ops.getamon.com,http://localhost:3000',
+            TRUST_PROXY_HEADERS='true',
+            TRUSTED_PROXY_IPS='10.0.0.1',
+            TRUSTED_HOST_PATTERNS='api.getamon.com,ops.getamon.com',
+            OPS_TRUSTED_PROXY_SECRET='proxy-secret',
+        )
+
+    error_message = str(exc_info.value)
+    assert 'API_EXTERNAL_ORIGIN must use https outside local development.' in error_message
+    assert 'OPS_FRONTEND_ORIGINS must not contain loopback/local origins outside local development' in error_message
+
+
+def test_ops_backend_path_prefix_is_flagged_if_changed_before_repo_supports_it():
+    with pytest.raises(ValueError) as exc_info:
+        Settings(
+            APP_ENV='staging',
+            API_EXTERNAL_ORIGIN='https://api-staging.getamon.com',
+            OPS_SURFACE_ORIGIN='https://ops-staging.getamon.com/ops/',
+            OPS_BACKEND_PATH_PREFIX='/internal-ops',
+            PUBLIC_SITE_ORIGINS='https://staging-www.getamon.com',
+            OPS_FRONTEND_ORIGINS='https://ops-staging.getamon.com',
+            TRUST_PROXY_HEADERS='true',
+            TRUSTED_PROXY_IPS='10.0.0.1',
+            TRUSTED_HOST_PATTERNS='api-staging.getamon.com,ops-staging.getamon.com',
+            OPS_TRUSTED_PROXY_SECRET='proxy-secret',
+        )
+
+    assert "OPS_BACKEND_PATH_PREFIX is currently fixed to '/ops'" in str(exc_info.value)
 
 
 def test_ops_dev_login_uses_cookie_backed_session_for_metadata_routes(client, monkeypatch, db_session_factory):

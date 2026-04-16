@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'amon-ops-dashboard-preferences';
-const DEFAULT_API_BASE = window.location.pathname.startsWith('/ops') ? '' : 'http://127.0.0.1:8000';
+const IS_LOCAL_BROWSER = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+const DEFAULT_API_BASE = IS_LOCAL_BROWSER && !window.location.pathname.startsWith('/ops') ? 'http://127.0.0.1:8000' : '';
 
 const ROUTES = {
   overview: {
