@@ -1,3 +1,4 @@
+import json
 from fnmatch import fnmatch
 from functools import lru_cache
 from typing import Annotated, List
@@ -146,6 +147,13 @@ class Settings(BaseSettings):
             return value
         if not value:
             return []
+        if isinstance(value, str) and value.lstrip().startswith('['):
+            try:
+                parsed = json.loads(value)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
         return [item.strip() for item in value.split(',') if item.strip()]
 
     @field_validator('protected_session_allowed_hosts')
@@ -327,6 +335,9 @@ class Settings(BaseSettings):
                 'OPS_ALLOW_DEV_TOKEN_LOGIN=true requires INTERNAL_ADMIN_TOKEN unless APP_ENV=development '
                 "(which has the built-in 'amon-internal-dev' fallback)."
             )
+
+        if self.ops_session_cookie_same_site == 'none' and not self.resolved_ops_session_cookie_secure():
+            errors.append('OPS_SESSION_COOKIE_SAME_SITE=none requires OPS_SESSION_COOKIE_SECURE=true.')
 
         if errors:
             formatted = '\n'.join(f'- {item}' for item in errors)

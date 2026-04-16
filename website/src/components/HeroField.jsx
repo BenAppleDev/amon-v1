@@ -10,23 +10,37 @@ export function HeroField() {
         </defs>
         <ellipse cx="336" cy="248" rx="220" ry="168" fill="url(#heroSpotlight)" />
         <path
-          d="M92 122C164 122 204 146 238 186C278 232 316 260 400 260H512"
+          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H526"
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeLinecap="round"
+          strokeWidth="4.5"
+        />
+        <path
+          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H526"
           fill="none"
           stroke="rgba(198,255,97,0.72)"
           strokeLinecap="round"
           strokeWidth="2.5"
         />
         <path
-          d="M240 186C278 232 286 330 364 378C410 406 456 412 530 412"
+          d="M236 186C278 230 288 328 364 378C412 406 458 412 530 412"
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeLinecap="round"
+          strokeWidth="4.5"
+        />
+        <path
+          d="M236 186C278 230 288 328 364 378C412 406 458 412 530 412"
           fill="none"
           stroke="rgba(255,94,79,0.6)"
           strokeLinecap="round"
           strokeWidth="2.5"
         />
-        <circle cx="92" cy="122" r="6" fill="rgba(198,255,97,0.92)" />
-        <circle cx="240" cy="186" r="6" fill="rgba(255,255,255,0.82)" />
-        <circle cx="400" cy="260" r="6" fill="rgba(255,255,255,0.82)" />
-        <circle cx="530" cy="412" r="6" fill="rgba(255,94,79,0.92)" />
+        <circle cx="96" cy="124" r="7" fill="#060606" stroke="rgba(198,255,97,0.92)" strokeWidth="2.5" />
+        <circle cx="236" cy="186" r="7" fill="#060606" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" />
+        <circle cx="404" cy="258" r="7" fill="#060606" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" />
+        <circle cx="530" cy="412" r="7" fill="#060606" stroke="rgba(255,94,79,0.92)" strokeWidth="2.5" />
       </svg>
 
       <div className="hero-field-label hero-field-label-search">search</div>

@@ -8,6 +8,18 @@ This is the narrow runbook for the current Track 2 deployment shape.
 
 This document is intentionally operational and concise. For topology details, see [cloudflare-track2-topology.md](/Users/ben/amon-v1/docs/deployment/cloudflare-track2-topology.md).
 
+## Startup Validation
+
+The backend now fails fast on deployment-shape mistakes such as:
+
+- non-HTTPS API or ops origins outside local development
+- missing trusted-proxy bootstrap configuration for non-local ops deployments
+- loopback CORS origins left enabled in staging/production
+- `SameSite=None` cookies without `Secure`
+- attempts to move the backend ops mount away from `/ops` before the repo supports it
+
+If the service exits during startup, fix the env mismatch rather than weakening the validator.
+
 ## Local / Dev Checklist
 
 Use this when running everything on your machine.

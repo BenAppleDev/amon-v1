@@ -16,23 +16,37 @@ export function WorkflowGraphic({ compact = false }) {
           </linearGradient>
         </defs>
         <path
-          d="M72 118C170 118 170 188 290 188H366C480 188 470 116 598 116"
+          d="M76 118C172 118 176 188 290 188H366C476 188 474 116 594 116"
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <path
+          d="M76 118C172 118 176 188 290 188H366C476 188 474 116 594 116"
           fill="none"
           stroke="url(#flowStroke)"
           strokeLinecap="round"
           strokeWidth="4"
         />
         <path
-          d="M366 188C366 260 328 300 328 362C328 402 378 412 452 412H604"
+          d="M366 188C366 258 330 300 330 362C330 400 380 408 454 408H602"
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <path
+          d="M366 188C366 258 330 300 330 362C330 400 380 408 454 408H602"
           fill="none"
           stroke="url(#flowStroke)"
           strokeLinecap="round"
           strokeWidth="4"
         />
-        <circle cx="72" cy="118" r="8" fill="#C6FF61" />
-        <circle cx="366" cy="188" r="8" fill="#F5F1EA" />
-        <circle cx="598" cy="116" r="8" fill="#FF5E4F" />
-        <circle cx="604" cy="412" r="8" fill="#FF5E4F" />
+        <circle cx="76" cy="118" r="9" fill="#090909" stroke="#C6FF61" strokeWidth="3" />
+        <circle cx="366" cy="188" r="9" fill="#090909" stroke="#F5F1EA" strokeWidth="3" />
+        <circle cx="594" cy="116" r="9" fill="#090909" stroke="#FF5E4F" strokeWidth="3" />
+        <circle cx="602" cy="408" r="9" fill="#090909" stroke="#FF5E4F" strokeWidth="3" />
       </svg>
 
       <article className="workflow-plane workflow-plane-search">

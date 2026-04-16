@@ -103,6 +103,7 @@ def test_cloudflare_ready_settings_resolve_origins_and_secure_cookie_defaults():
         OPS_TRUSTED_PROXY_SECRET='proxy-secret',
     )
     development = Settings(APP_ENV='development')
+    json_list_development = Settings(APP_ENV='development', CORS_ALLOW_ORIGINS='[\"http://localhost:3000\"]')
 
     assert production.resolved_cors_allow_origins() == [
         'https://www.getamon.com',
@@ -119,6 +120,7 @@ def test_cloudflare_ready_settings_resolve_origins_and_secure_cookie_defaults():
         'http://localhost:3000',
         'http://127.0.0.1:3000',
     ]
+    assert json_list_development.cors_allow_origins == ['http://localhost:3000']
     assert development.resolved_ops_session_cookie_path() == '/ops'
 
 
@@ -173,6 +175,17 @@ def test_ops_backend_path_prefix_is_flagged_if_changed_before_repo_supports_it()
         )
 
     assert "OPS_BACKEND_PATH_PREFIX is currently fixed to '/ops'" in str(exc_info.value)
+
+
+def test_cookie_same_site_none_requires_secure_cookie():
+    with pytest.raises(ValueError) as exc_info:
+        Settings(
+            APP_ENV='development',
+            OPS_SESSION_COOKIE_SAME_SITE='none',
+            OPS_SESSION_COOKIE_SECURE='false',
+        )
+
+    assert 'OPS_SESSION_COOKIE_SAME_SITE=none requires OPS_SESSION_COOKIE_SECURE=true.' in str(exc_info.value)
 
 
 def test_ops_dev_login_uses_cookie_backed_session_for_metadata_routes(client, monkeypatch, db_session_factory):

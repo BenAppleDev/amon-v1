@@ -131,6 +131,8 @@ It does not persist:
 
 ## Recommended environment settings
 
+The backend now validates this deployment shape at startup and fails fast when critical settings are missing or unsafe for the chosen environment.
+
 ### Local / dev
 
 - `APP_ENV=development`
