@@ -21,7 +21,7 @@ struct RootTabView: View {
 
     init() {
         AmonTheme.applyGlobalAppearance()
-        let baseURL = URL(string: "http://10.250.121.117:8000")!
+        let baseURL = URL(string: "https://api.getamon.com")!
         let apiClient = AmonAPIClient(baseURL: baseURL)
         let privacySettingsStore = PrivacySettingsStore()
         let transportSettingsStore = TransportPrivacySettingsStore()

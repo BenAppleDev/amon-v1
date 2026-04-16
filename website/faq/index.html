@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FAQ | Amon</title>
+    <meta
+      name="description"
+      content="Common questions about Amon's scope, privacy posture, and product direction."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Manrope:wght@400;500;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell">
+        <a class="brand" href="/">
+          <span class="brand-mark">A</span>
+          <span>Amon</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Toggle navigation" data-nav-toggle>
+          Menu
+        </button>
+        <nav class="site-nav" aria-label="Primary" data-site-nav>
+          <a href="/">Home</a>
+          <a href="/product/">Product</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/faq/" aria-current="page">FAQ</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+        </nav>
+        <div class="actions">
+          <a class="button-secondary" href="/about/">About</a>
+          <a class="button" href="/contact/">Request access</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="shell reveal">
+          <span class="eyebrow">FAQ</span>
+          <h1>Short answers, no hand-waving.</h1>
+          <p class="lede">
+            The public site should remove confusion, not add it. These answers keep the language aligned with the current product direction and the repo’s actual architecture.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell accordion">
+          <article class="faq-item reveal">
+            <h3>What is Amon?</h3>
+            <p>
+              Amon is a product direction for working with the public web more carefully: private-by-default search and retrieval, cleaner reading, protected sessions for selected tasks, and a local workspace for the material you intentionally keep.
+            </p>
+          </article>
+          <article class="faq-item reveal">
+            <h3>Is Amon a browser?</h3>
+            <p>
+              Not in the “replace every browser behavior everywhere” sense. The current public description is narrower: Amon helps with searching, reading, selected live-site tasks, and local workspace organization around public-web material.
+            </p>
+          </article>
+          <article class="faq-item reveal">
+            <h3>What does private by default mean here?</h3>
+            <p>
+              It means the product is being designed to minimize durable service-side storage for queries, results, and page content, while treating saved user work as something that belongs in a local workspace by default.
+            </p>
+          </article>
+          <article class="faq-item reveal">
+            <h3>What is Protected Session?</h3>
+            <p>
+              Protected Session is the mode for selected public-web tasks that need the real site itself, such as interactive pages or forms. It exists because some work cannot stay inside search and clean reading alone.
+            </p>
+          </article>
+          <article class="faq-item reveal">
+            <h3>Is everything already finished?</h3>
+            <p>
+              No. The site intentionally describes the current product direction and architecture without claiming that every mode is fully mature or broadly available yet.
+            </p>
+          </article>
+          <article class="faq-item reveal">
+            <h3>How do I request access?</h3>
+            <p>
+              Use the contact page or email <a class="inline-link" href="mailto:hello@getamon.com">hello@getamon.com</a>. That is the simplest production-safe CTA for the first public site.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <div class="footer-copy">Amon. Clear scope, clear language. <span data-year></span></div>
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/product/">Product</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

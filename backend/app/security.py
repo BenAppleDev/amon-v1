@@ -35,14 +35,13 @@ class CurrentUser:
         self.session = session
 
 
-async def get_current_user(
-    authorization: str | None = Header(default=None),
-    db: Session = Depends(get_db),
-) -> CurrentUser:
+def extract_bearer_token(authorization: str | None) -> str:
     if not authorization or not authorization.lower().startswith('bearer '):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing bearer token')
+    return authorization.split(' ', 1)[1].strip()
 
-    token = authorization.split(' ', 1)[1].strip()
+
+def resolve_current_user_from_token(token: str, db: Session) -> CurrentUser:
     session_record = db.get(SessionRecord, token)
     now = utcnow()
 
@@ -60,6 +59,14 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid session state')
 
     return CurrentUser(user=user, entitlement=entitlement, session=session_record)
+
+
+async def get_current_user(
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+) -> CurrentUser:
+    token = extract_bearer_token(authorization)
+    return resolve_current_user_from_token(token, db)
 
 
 def build_session_record(user_id: str) -> SessionRecord:

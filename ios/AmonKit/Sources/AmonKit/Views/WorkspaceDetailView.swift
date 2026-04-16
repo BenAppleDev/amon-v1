@@ -5,6 +5,7 @@ public struct WorkspaceDetailView: View {
     @ObservedObject private var viewModel: WorkspaceDetailViewModel
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     private let apiClient: any AmonAPIClienting
+    @State private var presentedProtectedPage: PresentedProtectedPage?
 
     init(
         viewModel: WorkspaceDetailViewModel,
@@ -94,6 +95,12 @@ public struct WorkspaceDetailView: View {
                                     } label: {
                                         Label("Open", systemImage: "arrow.up.right.square")
                                     }
+
+                                    Button {
+                                        presentedProtectedPage = PresentedProtectedPage(title: item.displayTitle, url: url)
+                                    } label: {
+                                        Label("Open Protected Session", systemImage: "lock.shield")
+                                    }
                                 }
 
                                 Button {
@@ -169,6 +176,13 @@ public struct WorkspaceDetailView: View {
         .background(AmonTheme.canvas)
         .navigationTitle(viewModel.workspace?.title ?? "Workspace")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $presentedProtectedPage) { destination in
+            ProtectedSessionPageView(
+                title: destination.title,
+                url: destination.url,
+                apiClient: apiClient
+            )
+        }
         .refreshable {
             viewModel.refresh()
         }
@@ -176,4 +190,11 @@ public struct WorkspaceDetailView: View {
             viewModel.refresh()
         }
     }
+}
+
+private struct PresentedProtectedPage: Identifiable, Hashable {
+    let title: String
+    let url: URL
+
+    var id: URL { url }
 }

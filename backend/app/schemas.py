@@ -45,6 +45,311 @@ class StructuredRetrievalResponse(BaseModel):
     retrieved_at: datetime
 
 
+class ProtectedSessionCreateRequest(BaseModel):
+    url: HttpUrl
+
+
+class ProtectedSessionLink(BaseModel):
+    id: str
+    label: str
+    url: HttpUrl
+
+
+class ProtectedSessionField(BaseModel):
+    name: str
+    label: str
+    field_type: str
+    value: str | None = None
+    placeholder: str | None = None
+
+
+class ProtectedSessionForm(BaseModel):
+    id: str
+    action_url: HttpUrl
+    method: Literal['get', 'post']
+    submit_label: str
+    fields: list[ProtectedSessionField] = Field(default_factory=list)
+
+
+class ProtectedSessionPage(BaseModel):
+    url: HttpUrl
+    title: str
+    domain: str
+    excerpt: str | None = None
+    text_blocks: list[str] = Field(default_factory=list)
+    links: list[ProtectedSessionLink] = Field(default_factory=list)
+    forms: list[ProtectedSessionForm] = Field(default_factory=list)
+    fetched_at: datetime
+
+
+class ProtectedSessionFrame(BaseModel):
+    revision: int
+    mime_type: Literal['image/svg+xml']
+    document: str
+    width: int
+    height: int
+    generated_at: datetime
+
+
+class ProtectedSessionState(BaseModel):
+    session_id: str
+    status: Literal['creating', 'active', 'terminating', 'closed', 'expired', 'failed']
+    allowed_host: str
+    started_at: datetime
+    expires_at: datetime
+    last_activity_at: datetime
+    can_go_back: bool
+    can_go_forward: bool
+    content_revision: int = 0
+    runtime_kind: str = 'visual_stream_session'
+    stream_transport: Literal['websocket'] | None = 'websocket'
+    worker_id: str | None = None
+    worker_type: str | None = None
+    worker_state: str | None = None
+    worker_health: str | None = None
+    current_frame: ProtectedSessionFrame | None = None
+    current_page: ProtectedSessionPage | None = None
+    detail_message: str | None = None
+
+
+class ProtectedSessionActionRequest(BaseModel):
+    action: Literal['reload', 'back', 'forward', 'click_link', 'update_field', 'submit_form', 'navigate_to_url']
+    link_id: str | None = Field(default=None, min_length=1, max_length=80)
+    form_id: str | None = Field(default=None, min_length=1, max_length=80)
+    field_name: str | None = Field(default=None, min_length=1, max_length=200)
+    value: str | None = Field(default=None, max_length=4000)
+    url: HttpUrl | None = None
+
+
+class ProtectedSessionEndResponse(BaseModel):
+    session_id: str
+    status: Literal['ended'] = 'ended'
+
+
+class ProtectedSessionStreamEvent(BaseModel):
+    event: Literal['state', 'terminal', 'health']
+    session_id: str
+    state: ProtectedSessionState | None = None
+    revision: int | None = None
+    worker_state: str | None = None
+    worker_health: str | None = None
+
+
+class ProtectedSessionStreamClientMessage(BaseModel):
+    type: Literal['subscribe', 'action', 'ping', 'detach']
+    client_message_id: str | None = Field(default=None, min_length=1, max_length=120)
+    client_action_id: str | None = Field(default=None, min_length=1, max_length=120)
+    last_stream_sequence: int | None = Field(default=None, ge=0)
+    expected_content_revision: int | None = Field(default=None, ge=0)
+    action: ProtectedSessionActionRequest | None = None
+
+
+class ProtectedSessionStreamServerMessage(BaseModel):
+    type: Literal['subscribed', 'action_ack', 'state', 'heartbeat', 'terminal', 'error']
+    session_id: str
+    stream_sequence: int
+    content_revision: int | None = Field(default=None, ge=0)
+    state: ProtectedSessionState | None = None
+    resumed: bool | None = None
+    source_action_id: str | None = None
+    client_action_id: str | None = None
+    action_status: Literal['accepted', 'failed', 'rejected'] | None = None
+    code: str | None = None
+    message: str | None = None
+    worker_state: str | None = None
+    worker_health: str | None = None
+    dropped_events: int | None = Field(default=None, ge=0)
+
+
+class ServeDecisionRequest(BaseModel):
+    url: HttpUrl
+    intent: Literal['open', 'protected_session'] = 'open'
+
+
+class ServeDecisionResponse(BaseModel):
+    disposition: Literal['ALLOW_LOCAL', 'ALLOW_CLEAN_VIEW', 'RECOMMEND_PROTECTED', 'ALLOW_PROTECTED', 'DENY']
+    reason_code: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    policy_version: str
+    site_class: str | None = None
+    budget_tier: str | None = None
+
+
+class ProtectedSessionPolicySummary(BaseModel):
+    disposition: Literal['ALLOW_LOCAL', 'ALLOW_CLEAN_VIEW', 'RECOMMEND_PROTECTED', 'ALLOW_PROTECTED', 'DENY']
+    reason_code: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    policy_version: str
+    site_class: str | None = None
+    budget_tier: str | None = None
+
+
+class ProtectedSessionQuotaSummary(BaseModel):
+    budget_tier: str | None = None
+    max_concurrent_sessions_per_user: int
+    max_session_starts_per_window: int
+    session_start_window_seconds: int
+    max_actions_per_session: int
+
+
+class ProtectedSessionMetadataView(BaseModel):
+    session_id: str
+    user_id: str
+    domain: str
+    state: str
+    created_at: datetime
+    last_activity_at: datetime
+    action_count: int
+    termination_reason: str | None = None
+    policy: ProtectedSessionPolicySummary
+    quota: ProtectedSessionQuotaSummary
+    worker_id: str | None = None
+    worker_type: str | None = None
+    runtime_kind: str | None = None
+    worker_state: str | None = None
+    worker_health: str | None = None
+    frame_revision: int | None = None
+    frames_emitted: int = 0
+    last_frame_at: datetime | None = None
+    active_streams: int = 0
+    total_stream_attaches: int = 0
+    total_stream_detaches: int = 0
+    reconnect_attempts: int = 0
+    successful_resumes: int = 0
+    heartbeat_timeout_count: int = 0
+    dropped_events_total: int = 0
+    protocol_error_count: int = 0
+    last_protocol_error_code: str | None = None
+    state_update_count: int = 0
+    frame_update_count: int = 0
+    action_ack_accepted_count: int = 0
+    action_ack_failed_count: int = 0
+    action_ack_rejected_count: int = 0
+    action_completed_count: int = 0
+    action_failed_count: int = 0
+    average_action_duration_ms: float | None = None
+    last_action_duration_ms: int | None = None
+    last_stream_attached_at: datetime | None = None
+    last_stream_detached_at: datetime | None = None
+
+
+class InternalProtectedSessionsOverview(BaseModel):
+    total_sessions: int
+    active_sessions: int
+    state_counts: dict[str, int] = Field(default_factory=dict)
+    sessions: list[ProtectedSessionMetadataView] = Field(default_factory=list)
+
+
+class InternalProtectedOverview(BaseModel):
+    generated_at: datetime
+    total_sessions: int = 0
+    active_sessions: int = 0
+    active_streams: int = 0
+    users_with_active_sessions: int = 0
+    users_with_live_streams: int = 0
+    total_workers: int = 0
+    healthy_workers: int = 0
+    degraded_workers: int = 0
+    total_worker_capacity: int = 0
+    total_worker_stream_capacity: int = 0
+    total_assigned_sessions: int = 0
+    quota_rejections_total: int = 0
+    protocol_errors_total: int = 0
+    heartbeat_timeouts_total: int = 0
+    dropped_events_total: int = 0
+
+
+class ProtectedSessionWorkerView(BaseModel):
+    worker_id: str
+    worker_type: str
+    capacity: int
+    stream_capacity: int
+    state: str
+    health: str = 'healthy'
+    capabilities: list[str] = Field(default_factory=list)
+    assigned_sessions: list[str] = Field(default_factory=list)
+    assigned_count: int
+    active_streams: int = 0
+    assignment_count: int = 0
+    release_count: int = 0
+    attach_count: int = 0
+    detach_count: int = 0
+    heartbeat_timeout_count: int = 0
+    protocol_error_count: int = 0
+    degraded_reason: str | None = None
+
+
+class InternalProtectedWorkersOverview(BaseModel):
+    total_workers: int
+    total_capacity: int
+    total_stream_capacity: int
+    total_assigned_sessions: int
+    total_active_streams: int
+    workers: list[ProtectedSessionWorkerView] = Field(default_factory=list)
+
+
+class ProtectedSessionEventView(BaseModel):
+    event_id: str
+    event_type: str
+    occurred_at: datetime
+    session_id: str | None = None
+    user_id: str | None = None
+    domain: str | None = None
+    worker_id: str | None = None
+    reason_code: str | None = None
+    state: str | None = None
+    disposition: str | None = None
+    budget_tier: str | None = None
+    metric_value: int | None = None
+    duration_ms: int | None = None
+
+
+class InternalProtectedEventFeed(BaseModel):
+    total_events: int = 0
+    events: list[ProtectedSessionEventView] = Field(default_factory=list)
+
+
+class InternalProtectedPolicyCounters(BaseModel):
+    policy_decisions: dict[str, int] = Field(default_factory=dict)
+    event_counts: dict[str, int] = Field(default_factory=dict)
+    reason_counts: dict[str, int] = Field(default_factory=dict)
+    recent_events: list[ProtectedSessionEventView] = Field(default_factory=list)
+
+
+class InternalProtectedQuotaCounters(BaseModel):
+    quota_rejections: dict[str, int] = Field(default_factory=dict)
+    total_rejections: int = 0
+    active_sessions_total: int = 0
+    users_with_active_sessions: int = 0
+
+
+class InternalProtectedStreamCounters(BaseModel):
+    active_streams_total: int = 0
+    users_with_live_streams: int = 0
+    attach_count: int = 0
+    detach_count: int = 0
+    reconnect_attempts: int = 0
+    successful_resumes: int = 0
+    heartbeat_timeout_count: int = 0
+    dropped_events_total: int = 0
+    protocol_error_count: int = 0
+    protocol_error_codes: dict[str, int] = Field(default_factory=dict)
+    state_update_count: int = 0
+    frame_update_count: int = 0
+    action_ack_counts: dict[str, int] = Field(default_factory=dict)
+    action_result_counts: dict[str, int] = Field(default_factory=dict)
+    average_action_duration_ms: float | None = None
+    worker_assignments: int = 0
+    worker_releases: int = 0
+    total_live_stream_capacity: int = 0
+
+
+class InternalProtectedTerminationCounters(BaseModel):
+    terminal_event_counts: dict[str, int] = Field(default_factory=dict)
+    terminal_reason_counts: dict[str, int] = Field(default_factory=dict)
+    failure_reason_counts: dict[str, int] = Field(default_factory=dict)
+
+
 class ItemSourcePayload(BaseModel):
     item_id: str | None = None
     title: str

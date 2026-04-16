@@ -107,11 +107,15 @@ public struct PrivacySettingsView: View {
                         set: { store.updateBrowsingMode($0) }
                     )
                 ) {
-                    ForEach(DefaultBrowsingMode.allCases) { mode in
+                    ForEach([DefaultBrowsingMode.standard, .cleanView], id: \.id) { mode in
                         Text(mode.title).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)
+
+                Text("Protected Session is available as an explicit action for supported hosts. It always uses a short-lived remote session in this build.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
 
                 settingHeader(
                     title: "Website session state",

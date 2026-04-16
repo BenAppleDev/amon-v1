@@ -56,6 +56,80 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
         try await request(path: "/v1/retrieve", method: "POST", body: RetrieveRequestDTO(url: url), requiresAuth: true)
     }
 
+    public func serveDecision(url: String, intent: ServeDecisionIntentDTO = .open) async throws -> ServeDecisionResponseDTO {
+        try await request(
+            path: "/v1/protected-sessions/decision",
+            method: "POST",
+            body: ServeDecisionRequestDTO(url: url, intent: intent),
+            requiresAuth: true
+        )
+    }
+
+    public func createProtectedSession(url: String) async throws -> ProtectedSessionStateDTO {
+        try await request(
+            path: "/v1/protected-sessions",
+            method: "POST",
+            body: ProtectedSessionCreateRequestDTO(url: url),
+            requiresAuth: true
+        )
+    }
+
+    public func makeProtectedSessionStreamRequest(sessionID: String) throws -> URLRequest {
+        guard
+            var components = URLComponents(
+                url: baseURL
+                    .appendingPathComponent("v1")
+                    .appendingPathComponent("protected-sessions")
+                    .appendingPathComponent(sessionID)
+                    .appendingPathComponent("stream"),
+                resolvingAgainstBaseURL: true
+            )
+        else {
+            throw AmonAPIError.invalidURL
+        }
+
+        switch components.scheme?.lowercased() {
+        case "https":
+            components.scheme = "wss"
+        case "http":
+            components.scheme = "ws"
+        default:
+            throw AmonAPIError.invalidURL
+        }
+
+        guard let url = components.url else {
+            throw AmonAPIError.invalidURL
+        }
+
+        guard let token = try keychain.readSessionToken() else {
+            throw AmonAPIError.unauthorized
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
+    }
+
+    public func getProtectedSessionState(sessionID: String) async throws -> ProtectedSessionStateDTO {
+        try await request(path: "/v1/protected-sessions/\(sessionID)", method: "GET", requiresAuth: true)
+    }
+
+    public func sendProtectedSessionAction(
+        sessionID: String,
+        action: ProtectedSessionActionRequestDTO
+    ) async throws -> ProtectedSessionStateDTO {
+        try await request(
+            path: "/v1/protected-sessions/\(sessionID)/actions",
+            method: "POST",
+            body: action,
+            requiresAuth: true
+        )
+    }
+
+    public func endProtectedSession(sessionID: String) async throws -> ProtectedSessionEndResponseDTO {
+        try await request(path: "/v1/protected-sessions/\(sessionID)", method: "DELETE", requiresAuth: true)
+    }
+
     public func compare(title: String, items: [Item]) async throws -> CompareResponseDTO {
         let payload = CompareRequestDTO(title: title, items: items.map(ItemSourcePayloadDTO.init(item:)))
         return try await request(path: "/v1/compare", method: "POST", body: payload, requiresAuth: true)

@@ -34,6 +34,7 @@ public enum PrivacyPreset: String, CaseIterable, Codable, Identifiable, Sendable
 public enum DefaultBrowsingMode: String, CaseIterable, Codable, Identifiable, Sendable {
     case standard
     case cleanView = "clean_view"
+    case protectedSession = "protected_session"
 
     public var id: String { rawValue }
 
@@ -43,6 +44,8 @@ public enum DefaultBrowsingMode: String, CaseIterable, Codable, Identifiable, Se
             return "Standard"
         case .cleanView:
             return "Clean View"
+        case .protectedSession:
+            return "Protected Session"
         }
     }
 
@@ -52,6 +55,8 @@ public enum DefaultBrowsingMode: String, CaseIterable, Codable, Identifiable, Se
             return "Sites open directly on this device."
         case .cleanView:
             return "Amon fetches readable content on your behalf first."
+        case .protectedSession:
+            return "Amon opens supported sites in a remote ephemeral session."
         }
     }
 }

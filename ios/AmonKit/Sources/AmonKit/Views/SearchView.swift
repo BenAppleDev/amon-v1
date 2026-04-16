@@ -6,6 +6,9 @@ public struct SearchView: View {
     private let openAppMenu: () -> Void
     @FocusState private var isSearchFieldFocused: Bool
     @State private var presentedPage: PresentedPage?
+    @State private var openRecommendation: OpenRecommendationPresentation?
+    @State private var serveDecisionCache: [String: ServeDecisionResponseDTO] = [:]
+    @State private var decidingOpenResultID: String?
     @State private var isPresentingWorkspaceChooser = false
     @State private var newWorkspaceTitle = ""
     @State private var pendingWorkspaceAction: PendingWorkspaceAction?
@@ -76,8 +79,40 @@ public struct SearchView: View {
                     title: page.title,
                     url: page.url,
                     apiClient: viewModel.apiClient,
-                    privacySettingsStore: privacySettingsStore
+                    privacySettingsStore: privacySettingsStore,
+                    requestedMode: page.requestedMode
                 )
+            }
+            .confirmationDialog(
+                openRecommendation?.dialogTitle ?? "Open",
+                isPresented: Binding(
+                    get: { openRecommendation != nil },
+                    set: { isPresented in
+                        if !isPresented {
+                            openRecommendation = nil
+                        }
+                    }
+                ),
+                titleVisibility: .visible,
+                presenting: openRecommendation
+            ) { recommendation in
+                Button("Open Normally") {
+                    openPage(title: recommendation.title, url: recommendation.url, mode: .standard)
+                }
+
+                Button("Clean View") {
+                    openPage(title: recommendation.title, url: recommendation.url, mode: .cleanView)
+                }
+
+                if recommendation.showsProtectedSession {
+                    Button(recommendation.protectedSessionTitle) {
+                        openPage(title: recommendation.title, url: recommendation.url, mode: .protectedSession)
+                    }
+                }
+            } message: { recommendation in
+                if let message = recommendation.message {
+                    Text(message)
+                }
             }
             .sheet(isPresented: $isPresentingWorkspaceChooser, onDismiss: {
                 pendingWorkspaceAction = nil
@@ -227,19 +262,31 @@ public struct SearchView: View {
         } else {
             LazyVStack(spacing: 14) {
                 ForEach(viewModel.results, id: \.id) { result in
-                    SearchResultCard(
-                        result: result,
-                        isSelected: viewModel.isSelected(result),
-                        isSaved: viewModel.isSaved(result),
-                        isBusy: viewModel.isSavingLocally || viewModel.isRunningCompare || viewModel.isRunningResearch,
-                        onOpen: {
-                            guard let url = URL(string: result.url) else { return }
-                            presentedPage = PresentedPage(title: result.title, url: url)
-                        },
-                        onSave: {
-                            AmonHaptics.success()
-                            runAction(.saveResult(result.id))
-                        },
+                        SearchResultCard(
+                            result: result,
+                            isSelected: viewModel.isSelected(result),
+                            isSaved: viewModel.isSaved(result),
+                            isBusy: viewModel.isSavingLocally || viewModel.isRunningCompare || viewModel.isRunningResearch,
+                            isPreparingOpenChoice: decidingOpenResultID == result.id,
+                            onOpenChooser: {
+                                presentOpenOptions(for: result)
+                            },
+                            onOpenNormally: {
+                                guard let url = URL(string: result.url) else { return }
+                                openPage(title: result.title, url: url, mode: .standard)
+                            },
+                            onOpenCleanView: {
+                                guard let url = URL(string: result.url) else { return }
+                                openPage(title: result.title, url: url, mode: .cleanView)
+                            },
+                            onOpenProtected: {
+                                guard let url = URL(string: result.url) else { return }
+                                openPage(title: result.title, url: url, mode: .protectedSession)
+                            },
+                            onSave: {
+                                AmonHaptics.success()
+                                runAction(.saveResult(result.id))
+                            },
                         onToggleSelection: {
                             AmonHaptics.selection()
                             viewModel.toggleSelection(for: result.id)
@@ -377,12 +424,49 @@ public struct SearchView: View {
             ? "Research Library"
             : "Workspace \(viewModel.availableWorkspaces.count + 1)"
     }
+
+    private func presentOpenOptions(for result: SearchResult) {
+        guard let url = URL(string: result.url) else { return }
+
+        if let cachedDecision = serveDecisionCache[result.url] {
+            openRecommendation = OpenRecommendationPresentation(
+                title: result.title,
+                url: url,
+                decision: cachedDecision
+            )
+            return
+        }
+
+        guard decidingOpenResultID == nil else { return }
+        decidingOpenResultID = result.id
+
+        Task {
+            let decision = try? await viewModel.apiClient.serveDecision(url: result.url, intent: .open)
+            await MainActor.run {
+                decidingOpenResultID = nil
+                if let decision {
+                    serveDecisionCache[result.url] = decision
+                }
+                openRecommendation = OpenRecommendationPresentation(
+                    title: result.title,
+                    url: url,
+                    decision: decision
+                )
+            }
+        }
+    }
+
+    private func openPage(title: String, url: URL, mode: DefaultBrowsingMode) {
+        presentedPage = PresentedPage(title: title, url: url, requestedMode: mode)
+        openRecommendation = nil
+    }
 }
 
 private struct PresentedPage: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let url: URL
+    let requestedMode: DefaultBrowsingMode?
 }
 
 private enum PendingWorkspaceAction {
@@ -397,7 +481,11 @@ private struct SearchResultCard: View {
     let isSelected: Bool
     let isSaved: Bool
     let isBusy: Bool
-    let onOpen: () -> Void
+    let isPreparingOpenChoice: Bool
+    let onOpenChooser: () -> Void
+    let onOpenNormally: () -> Void
+    let onOpenCleanView: () -> Void
+    let onOpenProtected: () -> Void
     let onSave: () -> Void
     let onToggleSelection: () -> Void
     let onQuickCompare: () -> Void
@@ -446,10 +534,14 @@ private struct SearchResultCard: View {
             }
 
             HStack(spacing: 10) {
-                Button(action: onOpen) {
-                    AmonActionChip(title: "Open", systemImage: "arrow.up.right.square")
+                Button(action: onOpenChooser) {
+                    AmonActionChip(
+                        title: isPreparingOpenChoice ? "Checking..." : "Open",
+                        systemImage: isPreparingOpenChoice ? "ellipsis.circle" : "arrow.up.right.square"
+                    )
                 }
                 .buttonStyle(.plain)
+                .disabled(isPreparingOpenChoice)
 
                 Button(action: onSave) {
                     AmonActionChip(
@@ -485,8 +577,20 @@ private struct SearchResultCard: View {
         )
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .contextMenu {
-            Button(action: onOpen) {
-                Label("Open", systemImage: "arrow.up.right.square")
+            Button(action: onOpenChooser) {
+                Label("Choose How to Open", systemImage: "arrow.up.right.square")
+            }
+
+            Button(action: onOpenNormally) {
+                Label("Open Normally", systemImage: "arrow.up.right.square")
+            }
+
+            Button(action: onOpenCleanView) {
+                Label("Clean View", systemImage: "doc.text")
+            }
+
+            Button(action: onOpenProtected) {
+                Label("Open Protected Session", systemImage: "lock.shield")
             }
 
             Button(action: onSave) {
@@ -514,6 +618,50 @@ private struct SearchResultCard: View {
                 summary: result.snippet,
                 metadata: result.metadataPills
             )
+        }
+    }
+}
+
+private struct OpenRecommendationPresentation: Identifiable {
+    let id = UUID()
+    let title: String
+    let url: URL
+    let decision: ServeDecisionResponseDTO?
+
+    var dialogTitle: String {
+        "Choose How to Open"
+    }
+
+    var showsProtectedSession: Bool {
+        guard let disposition = decision?.disposition else { return false }
+        switch disposition {
+        case .recommendProtected, .allowProtected:
+            return true
+        case .allowLocal, .allowCleanView, .deny:
+            return false
+        }
+    }
+
+    var protectedSessionTitle: String {
+        decision?.disposition == .recommendProtected
+            ? "Open Protected Session (Recommended)"
+            : "Open Protected Session"
+    }
+
+    var message: String? {
+        guard let decision else {
+            return "Amon couldn't fetch a recommendation, so this stays a local choice."
+        }
+
+        switch decision.disposition {
+        case .recommendProtected:
+            return "Amon recommends Protected Session for this site in this build. You still choose how to open it."
+        case .allowCleanView:
+            return "Protected Session isn't recommended for this site. Open it normally or use Clean View."
+        case .allowLocal, .deny:
+            return "Open on this device is recommended for this site. Protected Session stays off unless Amon explicitly recommends it."
+        case .allowProtected:
+            return "Protected Session is available for this site if you want it, but Amon isn't forcing mediation."
         }
     }
 }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amon Ops</title>
+    <meta
+      name="description"
+      content="Internal metadata-only operations dashboard for Amon Protected Session."
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script defer src="assets/app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell app-shell--locked" id="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+          </div>
+          <div>
+            <p class="eyebrow">Internal</p>
+            <h1>Amon Ops</h1>
+          </div>
+        </div>
+
+        <p class="sidebar__lede">
+          Metadata-only operator surface for Protected Session control-plane, stream, and worker health.
+        </p>
+
+        <nav class="nav" aria-label="Dashboard sections">
+          <a class="nav__link" href="#overview">Overview</a>
+          <a class="nav__link" href="#sessions">Active Sessions</a>
+          <a class="nav__link" href="#workers">Workers</a>
+          <a class="nav__link" href="#stream">Stream Health</a>
+          <a class="nav__link" href="#policy">Policy &amp; Quotas</a>
+          <a class="nav__link" href="#events">Events Feed</a>
+        </nav>
+
+        <div class="sidebar__footnote">
+          <p>Never exposes page text, frames, links, forms, or cookies.</p>
+        </div>
+      </aside>
+
+      <main class="main-shell">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="route-eyebrow">Overview</p>
+            <h2 id="route-title">Operations summary</h2>
+          </div>
+
+          <div class="topbar__actions">
+            <div class="status-pill" id="connection-pill">Disconnected</div>
+            <button class="button button--ghost" type="button" data-action="toggle-auto-refresh">
+              Auto refresh: <span id="auto-refresh-label">On</span>
+            </button>
+            <button class="button button--ghost" type="button" data-action="refresh">
+              Refresh
+            </button>
+            <button class="button button--ghost" type="button" data-action="sign-out">
+              Sign out
+            </button>
+          </div>
+        </header>
+
+        <section class="meta-banner">
+          <div>
+            <p class="meta-banner__label">Trust boundary</p>
+            <p class="meta-banner__copy">
+              This dashboard is intentionally metadata-only. It is for fleet health, policy, quota,
+              and session-state visibility only.
+            </p>
+          </div>
+          <div class="meta-banner__details">
+            <div>
+              <span>API base</span>
+              <strong id="api-base-label">Not configured</strong>
+            </div>
+            <div>
+              <span>Last sync</span>
+              <strong id="last-sync-label">Never</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="alert-strip hidden" id="alert-strip"></section>
+
+        <section class="view-root" id="view-root" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <div class="auth-gate" id="auth-gate">
+      <div class="auth-card">
+        <p class="eyebrow">Operator Access</p>
+        <h2>Connect to the internal metadata APIs</h2>
+        <p class="auth-card__copy">
+          This first pass is intended for local and trusted internal environments. The dashboard
+          requires the internal admin token and does not unlock any content inspection capabilities.
+        </p>
+
+        <form id="auth-form" class="auth-form">
+          <label>
+            <span>API base URL</span>
+            <input
+              id="api-base-input"
+              name="apiBase"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              placeholder="http://127.0.0.1:8000"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Internal admin token</span>
+            <input
+              id="admin-token-input"
+              name="token"
+              type="password"
+              autocomplete="current-password"
+              placeholder="amon-internal-dev"
+              required
+            />
+          </label>
+
+          <button class="button button--primary" type="submit">Connect</button>
+        </form>
+
+        <p class="auth-card__hint">
+          For production, place this UI behind a real operator identity layer and a trusted proxy.
+          Do not ship long-lived admin tokens as public browser config.
+        </p>
+
+        <p class="auth-card__error hidden" id="auth-error"></p>
+      </div>
+    </div>
+  </body>
+</html>

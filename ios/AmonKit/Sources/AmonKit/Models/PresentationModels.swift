@@ -105,6 +105,52 @@ enum AmonErrorPresenter {
                 if code == "retrieve_unreachable" || code == "retrieve_client_error" || code == "retrieve_upstream_error" {
                     return detail ?? "Amon couldn't prepare a clean view for that page right now."
                 }
+                if code == "protected_session_host_not_allowed" {
+                    return detail ?? "Protected Session is limited to a small allowlist in this build."
+                }
+                if code == "protected_session_expired" {
+                    return detail ?? "That protected session expired and was cleared remotely."
+                }
+                if code == "protected_session_terminating" {
+                    return detail ?? "That protected session is ending and won't accept new actions."
+                }
+                if code == "protected_session_closed" {
+                    return detail ?? "That protected session was closed and its remote state was destroyed."
+                }
+                if code == "protected_session_failed" {
+                    return detail ?? "Amon couldn't keep that protected session running, and its remote state was destroyed."
+                }
+                if code == "protected_session_missing" {
+                    return detail ?? "That protected session is no longer available."
+                }
+                if code == "protected_session_starting" {
+                    return detail ?? "That protected session is still starting."
+                }
+                if code == "protected_session_navigation_blocked" {
+                    return detail ?? "That remote session is limited to its original host in this build."
+                }
+                if code == "protected_session_blocked_address" {
+                    return detail ?? "That destination is blocked in Protected Session."
+                }
+                if code == "protected_session_invalid_url" || code == "protected_session_invalid_port" {
+                    return detail ?? "That destination isn't allowed in Protected Session."
+                }
+                if code == "protected_session_non_html" {
+                    return detail ?? "That response was not an HTML page the protected session could render."
+                }
+                if code == "protected_session_response_too_large" {
+                    return detail ?? "That page was too large for this Protected Session build."
+                }
+                if code == "protected_session_parse_failed" {
+                    return detail ?? "Amon couldn't interpret that remote page."
+                }
+                if code == "protected_session_resolution_failed"
+                    || code == "protected_session_timeout"
+                    || code == "protected_session_unreachable"
+                    || code == "protected_session_upstream_error"
+                    || code == "protected_session_unavailable" {
+                    return detail ?? "Amon couldn't keep that protected session running right now."
+                }
                 if statusCode == 503 {
                     return detail ?? "Amon can't reach that service right now. Check that the backend is running."
                 }

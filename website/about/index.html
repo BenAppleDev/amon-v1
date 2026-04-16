@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About | Amon</title>
+    <meta
+      name="description"
+      content="Why Amon exists and the product vision behind it."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&amp;family=Manrope:wght@400;500;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="shell">
+        <a class="brand" href="/">
+          <span class="brand-mark">A</span>
+          <span>Amon</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-label="Toggle navigation" data-nav-toggle>
+          Menu
+        </button>
+        <nav class="site-nav" aria-label="Primary" data-site-nav>
+          <a href="/">Home</a>
+          <a href="/product/">Product</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/about/" aria-current="page">About</a>
+          <a href="/contact/">Contact</a>
+        </nav>
+        <div class="actions">
+          <a class="button-secondary" href="/faq/">FAQ</a>
+          <a class="button" href="/contact/">Request access</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="shell reveal">
+          <span class="eyebrow">About / Vision</span>
+          <h1>Built around a simple discomfort.</h1>
+          <p class="lede">
+            Working with the public web often means switching between noisy pages, permanent browser history, fragmented notes, and unclear privacy tradeoffs. Amon exists to make that workflow calmer and more deliberate.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell story-grid">
+          <article class="feature-note reveal">
+            <span class="feature-label">Vision</span>
+            <h3>The web is useful. The default posture around it usually is not.</h3>
+            <p>
+              Amon is oriented around public-web work that should feel cleaner, more understandable, and more intentional. That means separating browsing from saving, separating direct-site tasks from quiet reading, and separating public messaging from internal product surfaces.
+            </p>
+          </article>
+          <article class="feature-note reveal">
+            <span class="feature-label">Why this site</span>
+            <h3>A public front door that matches the real architecture.</h3>
+            <p>
+              The public site should explain the product and trust posture, invite the right people in, and remain visibly separate from internal ops, internal product tooling, backend control planes, and app-specific implementation details.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell">
+          <div class="quote-panel reveal">
+            <blockquote>
+              The public website should say what Amon is, not leak how internal surfaces are wired.
+            </blockquote>
+            <p>
+              That is why this implementation lives in its own dedicated site folder and uses only static public content.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <div class="footer-copy">Amon. A public front door, kept separate on purpose. <span data-year></span></div>
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/product/">Product</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/contact/">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/site.js" defer></script>
+  </body>
+</html>

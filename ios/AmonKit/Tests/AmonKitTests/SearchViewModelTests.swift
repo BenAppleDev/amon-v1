@@ -333,6 +333,35 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
     var compareRequests: [(String, [Item])] = []
     var researchRequests: [(String, String?, [Item])] = []
     var retrievalResponses: [String: StructuredRetrievalDTO] = [:]
+    var serveDecisionResponse = ServeDecisionResponseDTO(
+        disposition: .allowLocal,
+        reason_code: "uncertain_local_only",
+        confidence: 0.35,
+        policy_version: "test-policy",
+        site_class: nil,
+        budget_tier: "standard"
+    )
+    var serveDecisionRequests: [(String, ServeDecisionIntentDTO)] = []
+    var protectedSessionState = ProtectedSessionStateDTO(
+        session_id: "protected_1",
+        status: "active",
+        allowed_host: "example.com",
+        started_at: Date(),
+        expires_at: Date().addingTimeInterval(600),
+        last_activity_at: Date(),
+        can_go_back: false,
+        can_go_forward: false,
+        content_revision: 1,
+        runtime_kind: "visual_stream_session",
+        stream_transport: "websocket",
+        worker_id: "worker_local_visual_stream_1",
+        worker_type: "visual_stream_session",
+        worker_state: "live",
+        worker_health: "healthy",
+        current_frame: nil,
+        current_page: nil,
+        detail_message: nil
+    )
     var clearSessionCalls = 0
 
     func devLogin(appleSubject: String) async throws -> AuthResponseDTO {
@@ -366,6 +395,34 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
             bullet_points: [],
             retrieved_at: Date()
         )
+    }
+
+    func serveDecision(url: String, intent: ServeDecisionIntentDTO) async throws -> ServeDecisionResponseDTO {
+        serveDecisionRequests.append((url, intent))
+        return serveDecisionResponse
+    }
+
+    func createProtectedSession(url: String) async throws -> ProtectedSessionStateDTO {
+        protectedSessionState
+    }
+
+    func makeProtectedSessionStreamRequest(sessionID: String) throws -> URLRequest {
+        URLRequest(url: URL(string: "wss://example.com/v1/protected-sessions/\(sessionID)/stream")!)
+    }
+
+    func getProtectedSessionState(sessionID: String) async throws -> ProtectedSessionStateDTO {
+        protectedSessionState
+    }
+
+    func sendProtectedSessionAction(
+        sessionID: String,
+        action: ProtectedSessionActionRequestDTO
+    ) async throws -> ProtectedSessionStateDTO {
+        protectedSessionState
+    }
+
+    func endProtectedSession(sessionID: String) async throws -> ProtectedSessionEndResponseDTO {
+        ProtectedSessionEndResponseDTO(session_id: sessionID, status: "ended")
     }
 
     func compare(title: String, items: [Item]) async throws -> CompareResponseDTO {

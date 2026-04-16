@@ -1,6 +1,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/APIModels.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/AmonAPIClient.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/AmonAPIClienting.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/ProtectedSessionStreamClient.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/JSONValue.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift
@@ -16,6 +17,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/ProtectedSessionViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/SearchViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceDetailViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift
@@ -23,6 +25,8 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ComparePreviewView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/PrivacySettingsView.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ProtectedSessionPageView.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ProtectedSessionSnapshotView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ReaderPageView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ResearchPreviewView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/SearchView.swift

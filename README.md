@@ -5,6 +5,7 @@ This repository is a local-development starter for Amon v1.
 ## Included
 
 - `backend/` — FastAPI backend with transient search, retrieve, compare, research endpoints
+- `website/` — static public-facing website for `getamon.com`
 - `shared/schema/` — SQL schema files for server and local encrypted storage
 - `shared/openapi/` — generated OpenAPI specification for the backend
 - `shared/http/` — ready-to-run HTTP request examples for the local dev flow

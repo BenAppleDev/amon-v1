@@ -9,10 +9,13 @@ from app.db import Base, engine
 from app.routers.auth import router as auth_router
 from app.routers.compare import router as compare_router
 from app.routers.health import router as health_router
+from app.routers.internal_protected_sessions import router as internal_protected_sessions_router
 from app.routers.me import router as me_router
+from app.routers.protected_sessions import router as protected_sessions_router
 from app.routers.research import router as research_router
 from app.routers.retrieve import router as retrieve_router
 from app.routers.search import router as search_router
+from app.services.protected_session_control_plane import get_protected_session_control_plane
 
 settings = get_settings()
 
@@ -20,7 +23,11 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    yield
+    control_plane = get_protected_session_control_plane()
+    try:
+        yield
+    finally:
+        await control_plane.shutdown()
 
 
 app = FastAPI(
@@ -44,5 +51,7 @@ app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(search_router)
 app.include_router(retrieve_router)
+app.include_router(protected_sessions_router)
+app.include_router(internal_protected_sessions_router)
 app.include_router(compare_router)
 app.include_router(research_router)

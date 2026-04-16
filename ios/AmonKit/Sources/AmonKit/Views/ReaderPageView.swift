@@ -5,21 +5,24 @@ public struct PrivacyAwarePageView: View {
     private let url: URL
     private let apiClient: any AmonAPIClienting
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
+    private let requestedMode: DefaultBrowsingMode?
 
     public init(
         title: String,
         url: URL,
         apiClient: any AmonAPIClienting,
-        privacySettingsStore: PrivacySettingsStore
+        privacySettingsStore: PrivacySettingsStore,
+        requestedMode: DefaultBrowsingMode? = nil
     ) {
         self.title = title
         self.url = url
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
+        self.requestedMode = requestedMode
     }
 
     public var body: some View {
-        switch privacySettingsStore.settings.browsing.defaultBrowsingMode {
+        switch requestedMode ?? privacySettingsStore.settings.browsing.defaultBrowsingMode {
         case .standard:
             WebViewContainer(
                 url: url,
@@ -35,6 +38,13 @@ public struct PrivacyAwarePageView: View {
                 url: url,
                 apiClient: apiClient,
                 sessionPersistence: privacySettingsStore.settings.browsing.sessionPersistence
+            )
+
+        case .protectedSession:
+            ProtectedSessionPageView(
+                title: title,
+                url: url,
+                apiClient: apiClient
             )
         }
     }
