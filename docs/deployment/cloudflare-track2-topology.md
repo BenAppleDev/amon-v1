@@ -108,6 +108,10 @@ The shared-secret upstream bootstrap is intentionally transitional. The repo now
 - `asserted_identity_headers`
   - future edge-ready contract shape
   - trusts a configured operator-identity header from the upstream boundary
+  - now supports a concrete `cloudflare_access` asserted provider with defaults for:
+    - `Cf-Access-Authenticated-User-Email`
+    - `Cf-Access-Jwt-Assertion`
+  - requires both the asserted operator identity header and the JWT assertion header so misconfigured edge forwarding fails closed
 
 For an actual host smoke check, use `/Users/ben/amon-v1/tools/deployment/track2_smoke.py`.
 
@@ -175,6 +179,8 @@ The backend now validates this deployment shape at startup and fails fast when c
 - `OPS_TRUSTED_UPSTREAM_SECRET_HEADER=X-Amon-Ops-Proxy-Secret`
 - `OPS_TRUSTED_UPSTREAM_OPERATOR_ID_HEADER=X-Amon-Operator-Id`
 - `OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER=X-Amon-Operator-Identity`
+- `OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER=generic` or `cloudflare_access`
+- `OPS_TRUSTED_UPSTREAM_CLOUDFLARE_ACCESS_JWT_HEADER=Cf-Access-Jwt-Assertion`
 
 ## What is still manual outside the repo
 
@@ -184,6 +190,9 @@ The backend now validates this deployment shape at startup and fails fast when c
 - map `api.getamon.com` to the backend origin
 - map `ops.getamon.com` to the backend origin
 - later, put `ops.getamon.com` behind Cloudflare Access or another operator identity layer
+  - if using the Cloudflare-oriented asserted path, forward:
+    - `Cf-Access-Authenticated-User-Email`
+    - `Cf-Access-Jwt-Assertion`
 - optionally add redirect/rewrite rules if you want `ops.getamon.com/` to feel cleaner than `/ops/`
 
 ### Vercel

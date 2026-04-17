@@ -171,6 +171,26 @@ def test_explicit_asserted_identity_mode_is_supported():
     assert asserted.resolved_ops_trusted_upstream_mode() == 'asserted_identity_headers'
 
 
+def test_cloudflare_access_asserted_identity_defaults_are_concrete():
+    asserted = Settings(
+        APP_ENV='staging',
+        API_EXTERNAL_ORIGIN='https://api-staging.getamon.com',
+        OPS_SURFACE_ORIGIN='https://ops-staging.getamon.com/ops/',
+        PUBLIC_SITE_ORIGINS='https://staging-www.getamon.com',
+        OPS_FRONTEND_ORIGINS='https://ops-staging.getamon.com',
+        TRUST_PROXY_HEADERS='true',
+        TRUSTED_PROXY_IPS='10.0.0.1',
+        TRUSTED_HOST_PATTERNS='api-staging.getamon.com,ops-staging.getamon.com',
+        OPS_TRUSTED_UPSTREAM_IDENTITY_MODE='asserted_identity_headers',
+        OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER='cloudflare_access',
+    )
+
+    assert asserted.resolved_ops_trusted_upstream_mode() == 'asserted_identity_headers'
+    assert asserted.resolved_ops_trusted_upstream_asserted_provider() == 'cloudflare_access'
+    assert asserted.resolved_ops_trusted_upstream_asserted_operator_id_header() == 'Cf-Access-Authenticated-User-Email'
+    assert asserted.resolved_ops_trusted_upstream_cloudflare_access_jwt_header() == 'Cf-Access-Jwt-Assertion'
+
+
 def test_production_like_settings_fail_fast_when_proxy_bootstrap_is_missing():
     with pytest.raises(ValueError) as exc_info:
         Settings(
@@ -298,6 +318,7 @@ def test_trusted_upstream_identity_headers_are_generic_and_staging_safe(monkeypa
     assert status.json()['authenticated'] is False
     assert status.json()['trusted_upstream_enabled'] is True
     assert status.json()['trusted_upstream_mode'] == 'shared_secret_headers'
+    assert status.json()['trusted_upstream_provider'] is None
 
     assert bootstrap.status_code == 200
     bootstrap_json = bootstrap.json()
@@ -305,6 +326,7 @@ def test_trusted_upstream_identity_headers_are_generic_and_staging_safe(monkeypa
     assert bootstrap_json['auth_method'] == 'trusted_upstream_shared_secret'
     assert bootstrap_json['trusted_upstream_enabled'] is True
     assert bootstrap_json['trusted_upstream_mode'] == 'shared_secret_headers'
+    assert bootstrap_json['trusted_upstream_provider'] is None
     assert 'Secure' in bootstrap.headers['set-cookie']
     assert 'Path=/ops' in bootstrap.headers['set-cookie']
     assert overview.status_code == 200
@@ -380,11 +402,101 @@ def test_asserted_identity_headers_can_bootstrap_ops_session(monkeypatch, db_ses
     assert status.status_code == 200
     assert status.json()['authenticated'] is False
     assert status.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert status.json()['trusted_upstream_provider'] == 'generic'
     assert bootstrap.status_code == 200
     assert bootstrap.json()['authenticated'] is True
     assert bootstrap.json()['auth_method'] == 'trusted_upstream_asserted_identity'
     assert bootstrap.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert bootstrap.json()['trusted_upstream_provider'] == 'generic'
     assert overview.status_code == 200
+
+
+def test_cloudflare_access_asserted_identity_can_bootstrap_ops_session(monkeypatch, db_session_factory):
+    with _test_client_for_env(
+        monkeypatch,
+        db_session_factory,
+        APP_ENV='staging',
+        API_EXTERNAL_ORIGIN='https://api-staging.getamon.com',
+        OPS_SURFACE_ORIGIN='https://ops-staging.getamon.com/ops/',
+        OPS_FRONTEND_ORIGINS='https://ops-staging.getamon.com',
+        PUBLIC_SITE_ORIGINS='https://staging-www.getamon.com',
+        TRUST_PROXY_HEADERS='true',
+        TRUSTED_PROXY_IPS='10.0.0.1',
+        TRUSTED_HOST_PATTERNS='api-staging.getamon.com,ops-staging.getamon.com,testserver',
+        OPS_TRUSTED_UPSTREAM_IDENTITY_MODE='asserted_identity_headers',
+        OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER='cloudflare_access',
+        OPS_ALLOWED_OPERATOR_IDS='ops@example.com',
+        OPS_ALLOW_DEV_TOKEN_LOGIN='false',
+        OPS_ENVIRONMENT_KEY='staging',
+        OPS_ENVIRONMENT_LABEL='Staging',
+    ) as client:
+        status = client.get('/ops/auth/status', headers={'Host': 'ops-staging.getamon.com'})
+        bootstrap = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cf-Access-Authenticated-User-Email': 'ops@example.com',
+                'Cf-Access-Jwt-Assertion': 'header.payload.signature',
+            },
+        )
+        overview = client.get(
+            '/ops/api/protected-sessions/overview',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cf-Access-Authenticated-User-Email': 'ops@example.com',
+                'Cf-Access-Jwt-Assertion': 'header.payload.signature',
+            },
+        )
+
+    assert status.status_code == 200
+    assert status.json()['authenticated'] is False
+    assert status.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert status.json()['trusted_upstream_provider'] == 'cloudflare_access'
+    assert bootstrap.status_code == 200
+    assert bootstrap.json()['authenticated'] is True
+    assert bootstrap.json()['auth_method'] == 'trusted_upstream_asserted_identity_cloudflare_access'
+    assert bootstrap.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert bootstrap.json()['trusted_upstream_provider'] == 'cloudflare_access'
+    assert overview.status_code == 200
+
+
+def test_cloudflare_access_asserted_identity_rejects_missing_or_bad_jwt(monkeypatch, db_session_factory):
+    with _test_client_for_env(
+        monkeypatch,
+        db_session_factory,
+        APP_ENV='staging',
+        API_EXTERNAL_ORIGIN='https://api-staging.getamon.com',
+        OPS_SURFACE_ORIGIN='https://ops-staging.getamon.com/ops/',
+        OPS_FRONTEND_ORIGINS='https://ops-staging.getamon.com',
+        PUBLIC_SITE_ORIGINS='https://staging-www.getamon.com',
+        TRUST_PROXY_HEADERS='true',
+        TRUSTED_PROXY_IPS='10.0.0.1',
+        TRUSTED_HOST_PATTERNS='api-staging.getamon.com,ops-staging.getamon.com,testserver',
+        OPS_TRUSTED_UPSTREAM_IDENTITY_MODE='asserted_identity_headers',
+        OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER='cloudflare_access',
+        OPS_ALLOWED_OPERATOR_IDS='ops@example.com',
+        OPS_ALLOW_DEV_TOKEN_LOGIN='false',
+    ) as client:
+        missing_jwt = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cf-Access-Authenticated-User-Email': 'ops@example.com',
+            },
+        )
+        invalid_jwt = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cf-Access-Authenticated-User-Email': 'ops@example.com',
+                'Cf-Access-Jwt-Assertion': 'not-a-jwt',
+            },
+        )
+
+    assert missing_jwt.status_code == 401
+    assert missing_jwt.json()['detail']['code'] == 'missing_cloudflare_access_jwt_assertion_header'
+    assert invalid_jwt.status_code == 401
+    assert invalid_jwt.json()['detail']['code'] == 'invalid_cloudflare_access_jwt_assertion_format'
 
 
 def test_ops_dev_login_uses_cookie_backed_session_for_metadata_routes(client, monkeypatch, db_session_factory):
@@ -482,6 +594,7 @@ def test_ops_proxy_bootstrap_and_history_are_metadata_only(client, monkeypatch, 
         assert status_response.json()['auth_method'] == 'trusted_upstream_shared_secret'
         assert status_response.json()['trusted_upstream_enabled'] is True
         assert status_response.json()['trusted_upstream_mode'] == 'shared_secret_headers'
+        assert status_response.json()['trusted_upstream_provider'] is None
         assert status_response.json()['environment']['label'] == 'Staging'
 
         assert events.status_code == 200

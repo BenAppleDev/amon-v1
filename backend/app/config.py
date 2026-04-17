@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 VALID_APP_ENVS = {'local', 'development', 'test', 'staging', 'production'}
 VALID_TRUSTED_UPSTREAM_MODES = {'disabled', 'shared_secret_headers', 'asserted_identity_headers'}
+VALID_TRUSTED_UPSTREAM_ASSERTED_PROVIDERS = {'generic', 'cloudflare_access'}
 LOCAL_LOOPBACK_HOSTS = {'127.0.0.1', '::1', 'localhost'}
 
 
@@ -112,8 +113,14 @@ class Settings(BaseSettings):
     ops_trusted_upstream_operator_id_header: str = Field(
         default='X-Amon-Operator-Id', alias='OPS_TRUSTED_UPSTREAM_OPERATOR_ID_HEADER'
     )
-    ops_trusted_upstream_asserted_operator_id_header: str = Field(
-        default='X-Amon-Operator-Identity', alias='OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER'
+    ops_trusted_upstream_asserted_provider: str = Field(
+        default='generic', alias='OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER'
+    )
+    ops_trusted_upstream_asserted_operator_id_header: str | None = Field(
+        default=None, alias='OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER'
+    )
+    ops_trusted_upstream_cloudflare_access_jwt_header: str | None = Field(
+        default=None, alias='OPS_TRUSTED_UPSTREAM_CLOUDFLARE_ACCESS_JWT_HEADER'
     )
     ops_allowed_operator_ids: Annotated[List[str], NoDecode] = Field(default_factory=list, alias='OPS_ALLOWED_OPERATOR_IDS')
     ops_history_snapshot_interval_seconds: int = Field(default=30, alias='OPS_HISTORY_SNAPSHOT_INTERVAL_SECONDS')
@@ -245,16 +252,19 @@ class Settings(BaseSettings):
         'ops_trusted_upstream_secret_header',
         'ops_trusted_upstream_operator_id_header',
         'ops_trusted_upstream_asserted_operator_id_header',
+        'ops_trusted_upstream_cloudflare_access_jwt_header',
         mode='before',
     )
     @classmethod
-    def normalize_header_names(cls, value: str) -> str:
+    def normalize_header_names(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
         normalized = value.strip()
         if not normalized or '-' not in normalized:
             raise ValueError('Trusted upstream header names must be non-empty HTTP header names.')
         return normalized
 
-    @field_validator('ops_trusted_upstream_identity_mode', mode='before')
+    @field_validator('ops_trusted_upstream_identity_mode', 'ops_trusted_upstream_asserted_provider', mode='before')
     @classmethod
     def normalize_trusted_upstream_mode(cls, value: str | None) -> str | None:
         if value is None:
@@ -274,6 +284,11 @@ class Settings(BaseSettings):
             errors.append(
                 'OPS_TRUSTED_UPSTREAM_IDENTITY_MODE must be one of: '
                 f"{', '.join(sorted(VALID_TRUSTED_UPSTREAM_MODES))}."
+            )
+        if self.ops_trusted_upstream_asserted_provider not in VALID_TRUSTED_UPSTREAM_ASSERTED_PROVIDERS:
+            errors.append(
+                'OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER must be one of: '
+                f"{', '.join(sorted(VALID_TRUSTED_UPSTREAM_ASSERTED_PROVIDERS))}."
             )
 
         api_origin = urlparse(self.api_external_origin)
@@ -381,11 +396,20 @@ class Settings(BaseSettings):
                 )
             if (
                 trusted_upstream_mode == 'asserted_identity_headers'
-                and not self.ops_trusted_upstream_asserted_operator_id_header
+                and not self.resolved_ops_trusted_upstream_asserted_operator_id_header()
             ):
                 errors.append(
                     'OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER is required when '
                     'OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=asserted_identity_headers.'
+                )
+            if (
+                trusted_upstream_mode == 'asserted_identity_headers'
+                and self.resolved_ops_trusted_upstream_asserted_provider() == 'cloudflare_access'
+                and not self.resolved_ops_trusted_upstream_cloudflare_access_jwt_header()
+            ):
+                errors.append(
+                    'OPS_TRUSTED_UPSTREAM_CLOUDFLARE_ACCESS_JWT_HEADER is required when '
+                    'OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER=cloudflare_access.'
                 )
 
         if self.ops_allow_dev_token_login and self.app_env != 'development' and not self.internal_admin_token:
@@ -441,6 +465,19 @@ class Settings(BaseSettings):
         if self.ops_trusted_proxy_secret and self.app_env in {'staging', 'production'}:
             return 'shared_secret_headers'
         return 'disabled'
+
+    def resolved_ops_trusted_upstream_asserted_provider(self) -> str:
+        return self.ops_trusted_upstream_asserted_provider
+
+    def resolved_ops_trusted_upstream_asserted_operator_id_header(self) -> str:
+        if self.ops_trusted_upstream_asserted_operator_id_header:
+            return self.ops_trusted_upstream_asserted_operator_id_header
+        if self.resolved_ops_trusted_upstream_asserted_provider() == 'cloudflare_access':
+            return 'Cf-Access-Authenticated-User-Email'
+        return 'X-Amon-Operator-Identity'
+
+    def resolved_ops_trusted_upstream_cloudflare_access_jwt_header(self) -> str:
+        return self.ops_trusted_upstream_cloudflare_access_jwt_header or 'Cf-Access-Jwt-Assertion'
 
 
 @lru_cache(maxsize=1)

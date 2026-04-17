@@ -51,6 +51,22 @@ def parse_args() -> argparse.Namespace:
         default='X-Amon-Operator-Identity',
         help='Header name used for asserted upstream operator identity mode.',
     )
+    parser.add_argument(
+        '--trusted-upstream-provider',
+        choices=('generic', 'cloudflare-access'),
+        default='generic',
+        help='Provider contract used when --trusted-upstream-mode=asserted-identity.',
+    )
+    parser.add_argument(
+        '--cloudflare-access-jwt-header',
+        default='Cf-Access-Jwt-Assertion',
+        help='Header name used for the Cloudflare Access JWT assertion.',
+    )
+    parser.add_argument(
+        '--cloudflare-access-jwt-assertion',
+        default='header.payload.signature',
+        help='JWT-shaped assertion used for Cloudflare Access smoke checks.',
+    )
     parser.add_argument('--forwarded-host', help='Optional X-Forwarded-Host override for local or direct-origin checks.')
     parser.add_argument('--forwarded-proto', help='Optional X-Forwarded-Proto override for local or direct-origin checks.')
     parser.add_argument('--timeout-seconds', type=float, default=10.0)
@@ -146,6 +162,16 @@ def verify_ops_auth(client: httpx.Client, args: argparse.Namespace, ops_origin: 
         f"trusted upstream mode reports {expected_mode}",
         f"unexpected trusted upstream mode: {status_json.get('trusted_upstream_mode')!r}",
     )
+    expected_provider = None
+    if args.trusted_upstream_mode == 'asserted-identity':
+        expected_provider = 'cloudflare_access' if args.trusted_upstream_provider == 'cloudflare-access' else 'generic'
+        expect(
+            results,
+            status_json.get('trusted_upstream_provider') == expected_provider,
+            'trusted upstream provider status',
+            f"trusted upstream provider reports {expected_provider}",
+            f"unexpected trusted upstream provider: {status_json.get('trusted_upstream_provider')!r}",
+        )
 
     if args.trusted_upstream_mode == 'disabled':
         record(
@@ -175,10 +201,17 @@ def verify_ops_auth(client: httpx.Client, args: argparse.Namespace, ops_origin: 
         }
         expected_auth_method = 'trusted_upstream_shared_secret'
     else:
-        upstream_headers = {
-            args.asserted_operator_header: args.operator_id,
-        }
-        expected_auth_method = 'trusted_upstream_asserted_identity'
+        if args.trusted_upstream_provider == 'cloudflare-access':
+            upstream_headers = {
+                args.asserted_operator_header: args.operator_id,
+                args.cloudflare_access_jwt_header: args.cloudflare_access_jwt_assertion,
+            }
+            expected_auth_method = 'trusted_upstream_asserted_identity_cloudflare_access'
+        else:
+            upstream_headers = {
+                args.asserted_operator_header: args.operator_id,
+            }
+            expected_auth_method = 'trusted_upstream_asserted_identity'
 
     bootstrap = client.get(make_url(ops_origin, '/ops/auth/status'), headers=upstream_headers)
     bootstrap_json = bootstrap.json() if bootstrap.headers.get('content-type', '').startswith('application/json') else {}
@@ -206,6 +239,14 @@ def verify_ops_auth(client: httpx.Client, args: argparse.Namespace, ops_origin: 
         f'{expected_mode} bootstrap mode is reported',
         f"unexpected trusted upstream mode: {bootstrap_json.get('trusted_upstream_mode')!r}",
     )
+    if expected_provider is not None:
+        expect(
+            results,
+            bootstrap_json.get('trusted_upstream_provider') == expected_provider,
+            'trusted upstream provider',
+            f'{expected_provider} asserted-identity provider is reported',
+            f"unexpected trusted upstream provider: {bootstrap_json.get('trusted_upstream_provider')!r}",
+        )
     expect(
         results,
         any('Path=/ops' in header for header in set_cookie_headers),
@@ -237,9 +278,15 @@ def verify_ops_auth(client: httpx.Client, args: argparse.Namespace, ops_origin: 
             args.trusted_upstream_operator_header: args.operator_id,
         }
     else:
-        wrong_headers = {
-            args.asserted_operator_header: '   ',
-        }
+        if args.trusted_upstream_provider == 'cloudflare-access':
+            wrong_headers = {
+                args.asserted_operator_header: args.operator_id,
+                args.cloudflare_access_jwt_header: 'not-a-jwt',
+            }
+        else:
+            wrong_headers = {
+                args.asserted_operator_header: '   ',
+            }
     negative = httpx.Client(
         headers=request_headers(args),
         timeout=args.timeout_seconds,

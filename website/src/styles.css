@@ -1077,6 +1077,136 @@ h3 {
   width: min(38%, 242px);
 }
 
+.workflow-graphic-descent {
+  min-height: 0;
+  padding: 34px 24px 56px;
+  display: grid;
+  gap: 14px;
+}
+
+.workflow-descent-axis {
+  position: absolute;
+  left: 43px;
+  top: 77px;
+  bottom: 76px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(198, 255, 97, 0.66), rgba(255, 255, 255, 0.22) 52%, rgba(255, 94, 79, 0.52));
+  transform-origin: top center;
+  transform: scaleY(0);
+}
+
+.workflow-descent-stage {
+  --descent-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.022), rgba(255, 255, 255, 0.008));
+  position: relative;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  min-height: 92px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 220ms ease;
+}
+
+.workflow-descent-stage::before {
+  content: "";
+  position: absolute;
+  left: 82px;
+  right: 0;
+  top: 7px;
+  bottom: 7px;
+  border-radius: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--descent-fill);
+}
+
+.workflow-descent-stage[data-step="search"] {
+  --descent-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.008));
+}
+
+.workflow-descent-stage[data-step="clean"] {
+  --descent-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
+}
+
+.workflow-descent-stage[data-step="protected"] {
+  --descent-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 94, 79, 0.018));
+}
+
+.workflow-descent-stage[data-step="workspace"] {
+  --descent-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 94, 79, 0.04));
+}
+
+.workflow-descent-node {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background: #090909;
+  opacity: 0;
+  transform: scale(0.84);
+}
+
+.workflow-descent-stage[data-step="search"] .workflow-descent-node {
+  border-color: rgba(198, 255, 97, 0.9);
+}
+
+.workflow-descent-stage[data-step="clean"] .workflow-descent-node {
+  border-color: rgba(244, 239, 232, 0.84);
+}
+
+.workflow-descent-stage[data-step="protected"] .workflow-descent-node,
+.workflow-descent-stage[data-step="workspace"] .workflow-descent-node {
+  border-color: rgba(255, 94, 79, 0.86);
+}
+
+.workflow-descent-node.is-final {
+  box-shadow: 0 0 0 4px rgba(255, 94, 79, 0.04);
+}
+
+.workflow-descent-node-aura {
+  position: absolute;
+  inset: -9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 94, 79, 0.18);
+  opacity: 0;
+}
+
+.workflow-descent-copy {
+  position: relative;
+  z-index: 1;
+  padding: 20px 22px 18px 18px;
+  max-width: 30rem;
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.workflow-descent-copy span {
+  display: inline-block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workflow-descent-copy strong {
+  display: block;
+  margin-top: 7px;
+  color: var(--ink);
+  font-size: 1.06rem;
+  line-height: 1.18;
+}
+
+.workflow-descent-copy p {
+  margin: 9px 0 0;
+  max-width: 29ch;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .reveal.is-visible .workflow-line[data-segment="search"] {
   animation: draw-stroke 720ms cubic-bezier(0.22, 1, 0.36, 1) 140ms forwards;
 }
@@ -1129,6 +1259,30 @@ h3 {
 
 .reveal.is-visible .workflow-plane-workspace {
   animation: plane-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 1060ms forwards;
+}
+
+.reveal.is-visible .workflow-graphic-descent .workflow-descent-axis {
+  animation: rail-grow 760ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+}
+
+.reveal.is-visible .workflow-graphic-descent .workflow-descent-stage {
+  animation: step-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(260ms + (var(--stage-index) * 90ms));
+}
+
+.reveal.is-visible .workflow-graphic-descent .workflow-descent-node {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(470ms + (var(--stage-index) * 90ms));
+}
+
+.reveal.is-visible .workflow-graphic-descent .workflow-descent-node.is-final {
+  animation: node-settle 500ms cubic-bezier(0.2, 0.9, 0.22, 1) 760ms forwards;
+}
+
+.reveal.is-visible .workflow-graphic-descent .workflow-descent-node-aura {
+  animation:
+    aura-enter 440ms ease 920ms forwards,
+    aura-pulse 4.8s ease-in-out 1480ms infinite;
 }
 
 .workflow-graphic[data-active-step] .workflow-line,
@@ -1192,6 +1346,39 @@ h3 {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.055);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.workflow-graphic-descent[data-active-step] .workflow-descent-stage {
+  opacity: 0.34;
+}
+
+.workflow-graphic-descent[data-active-step="search"] .workflow-descent-stage[data-step="search"],
+.workflow-graphic-descent[data-active-step="clean"] .workflow-descent-stage[data-step="clean"],
+.workflow-graphic-descent[data-active-step="protected"] .workflow-descent-stage[data-step="protected"],
+.workflow-graphic-descent[data-active-step="workspace"] .workflow-descent-stage[data-step="workspace"] {
+  opacity: 1;
+}
+
+.workflow-graphic-descent[data-active-step] .workflow-descent-stage::before {
+  opacity: 0.42;
+}
+
+.workflow-graphic-descent[data-active-step="search"] .workflow-descent-stage[data-step="search"]::before,
+.workflow-graphic-descent[data-active-step="clean"] .workflow-descent-stage[data-step="clean"]::before,
+.workflow-graphic-descent[data-active-step="protected"] .workflow-descent-stage[data-step="protected"]::before,
+.workflow-graphic-descent[data-active-step="workspace"] .workflow-descent-stage[data-step="workspace"]::before {
+  opacity: 1;
+}
+
+.workflow-graphic-descent[data-active-step] .workflow-descent-copy {
+  transform: translateX(0);
+}
+
+.workflow-graphic-descent[data-active-step="search"] .workflow-descent-stage[data-step="search"] .workflow-descent-copy,
+.workflow-graphic-descent[data-active-step="clean"] .workflow-descent-stage[data-step="clean"] .workflow-descent-copy,
+.workflow-graphic-descent[data-active-step="protected"] .workflow-descent-stage[data-step="protected"] .workflow-descent-copy,
+.workflow-graphic-descent[data-active-step="workspace"] .workflow-descent-stage[data-step="workspace"] .workflow-descent-copy {
+  transform: translateX(2px);
 }
 
 .workflow-caption {
@@ -1263,8 +1450,8 @@ h3 {
   height: 16px;
   border-radius: 999px;
   border: 2px solid #050505;
-  box-shadow: 0 0 0 4px #060606;
-  background: rgba(255, 255, 255, 0.36);
+  box-shadow: 0 0 0 5px #060606;
+  background: #f4efe8;
   opacity: 0;
   transform: scale(0.82);
 }
@@ -1766,6 +1953,30 @@ h3 {
     margin-top: 16px;
   }
 
+  .workflow-graphic-descent {
+    padding: 28px 18px 48px;
+    gap: 12px;
+  }
+
+  .workflow-descent-axis {
+    left: 31px;
+    top: 70px;
+    bottom: 66px;
+  }
+
+  .workflow-descent-stage {
+    grid-template-columns: 60px minmax(0, 1fr);
+    min-height: 96px;
+  }
+
+  .workflow-descent-stage::before {
+    left: 58px;
+  }
+
+  .workflow-descent-copy {
+    padding: 18px 18px 16px 16px;
+  }
+
   .mode-rail {
     padding-left: 40px;
   }
@@ -1804,6 +2015,10 @@ h3 {
   .mode-rail-step-connected::before,
   .mode-rail-marker,
   .mode-rail-step:last-child .mode-rail-marker::after,
+  .workflow-descent-axis,
+  .workflow-descent-stage,
+  .workflow-descent-node,
+  .workflow-descent-node-aura,
   .workflow-line,
   .workflow-node,
   .workflow-node-aura,

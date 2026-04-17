@@ -52,6 +52,11 @@ def resolve_trusted_upstream_identity(
     if mode == 'shared_secret_headers':
         return _resolve_shared_secret_header_identity(request=request, settings=settings)
     if mode == 'asserted_identity_headers':
+        provider = settings.resolved_ops_trusted_upstream_asserted_provider()
+        if provider == 'cloudflare_access':
+            from app.security_ops_identity_cloudflare import resolve_cloudflare_access_identity
+
+            return resolve_cloudflare_access_identity(request=request, settings=settings)
         return _resolve_asserted_identity_headers(request=request, settings=settings)
 
     return TrustedUpstreamIdentityResult(
@@ -127,7 +132,7 @@ def _resolve_asserted_identity_headers(
     request: Request,
     settings: Settings,
 ) -> TrustedUpstreamIdentityResult:
-    operator_header = settings.ops_trusted_upstream_asserted_operator_id_header
+    operator_header = settings.resolved_ops_trusted_upstream_asserted_operator_id_header()
     provided_operator = request.headers.get(operator_header)
 
     if provided_operator is None:

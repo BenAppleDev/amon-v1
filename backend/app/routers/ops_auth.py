@@ -14,6 +14,7 @@ from app.security_ops import (
     ops_environment_view,
     ops_trusted_upstream_enabled,
     ops_trusted_upstream_mode,
+    ops_trusted_upstream_provider,
     require_ops_operator,
     validate_dev_ops_token,
 )
@@ -31,6 +32,7 @@ def _status_payload(operator: OpsOperatorContext | None) -> OpsAuthStatusRespons
         dev_token_login_enabled=ops_dev_token_login_enabled(),
         trusted_upstream_enabled=ops_trusted_upstream_enabled(),
         trusted_upstream_mode=ops_trusted_upstream_mode(),
+        trusted_upstream_provider=ops_trusted_upstream_provider(),
     )
 
 

@@ -42,29 +42,34 @@ export const modeSteps = [
     id: "search",
     number: "01",
     name: "Search / Browse",
-    line: "Start where you normally start.",
-    detail: "Search the public web without treating every step as something to keep."
+    line: "Start the way you normally would.",
+    caption: "The familiar layer: search, open, and read as you normally would.",
+    detail: "Search, open pages, and read the public web the same basic way you would in Google or Safari."
   },
   {
     id: "clean",
     number: "02",
     name: "Clean View",
-    line: "Read without the page noise.",
-    detail: "Pull a worthwhile source into a calmer reading surface."
+    line: "Get the information without the site visit.",
+    caption: "Extract what you need without handing the destination site your visit.",
+    detail: "Pull the information you need into a calmer reading surface without directly handing the destination site your visit."
   },
   {
     id: "protected",
     number: "03",
     name: "Protected Session",
-    line: "Go deeper with more care.",
-    detail: "Use a more controlled mode for selected public-web tasks."
+    line: "Use the real site through Amon.",
+    caption: "When you need the actual site, Amon routes that browsing through a controlled remote host.",
+    detail:
+      "When you need the real website, Amon can route that browsing through a controlled remote host instead of exposing your own device and identity directly."
   },
   {
     id: "workspace",
     number: "04",
     name: "Workspace",
-    line: "Keep what matters.",
-    detail: "Save sources and thinking into a local workspace."
+    line: "Return to work that stays with you.",
+    caption: "Save what matters locally, encrypted on your device.",
+    detail: "Return to your work later. What you save stays locally encrypted on your device, not in a server-side history profile."
   }
 ];
 
@@ -75,8 +80,8 @@ export const privacyPillars = [
     tone: "default"
   },
   {
-    label: "Deeper mode",
-    title: "Use deeper access only when the task needs it.",
+    label: "Deep remote",
+    title: "Use remote access only when the task needs it.",
     tone: "accent"
   },
   {
@@ -97,7 +102,7 @@ export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a private workflow for meaningful questions on the public web."
+      "Amon is a place to search, browse, compare options, and think through meaningful decisions online without turning that inquiry into a profile. It is built for normal people making real choices, not just privacy specialists."
   },
   {
     question: "Is it a browser?",
@@ -107,21 +112,21 @@ export const faqItems = [
   {
     question: "Is it a VPN?",
     answer:
-      "No. Amon is not a VPN product. It is a place to search, browse, compare, and think more deliberately."
+      "Amon uses VPN-like routing and remote infrastructure as part of how it protects your browsing, but it is not just a consumer VPN. It adds more privacy architecture on top so your searches and browsing stay yours end to end."
   },
   {
     question: "Does Amon store my history?",
     answer:
-      "The product direction is to minimize durable service-side query and page content, while keeping saved work local by default."
+      "We do not store your browsing history. What you choose to save belongs in your local workspace, not in a server-side history profile."
   },
   {
     question: "What is Protected Session?",
     answer:
-      "A deeper, more controlled mode for selected public-web tasks that need more structure and care."
+      "Protected Session lets you control a remote host through Amon when you need the actual website. That host does the browsing for you, which helps avoid leaving your own device and browser footprint directly on the destination site."
   },
   {
     question: "What is in scope today?",
     answer:
-      "Amon is not claiming universal support across every website and every live-site flow. Scope stays explicit."
+      "Amon is focused on the public web right now. Some tasks are in scope today and some are not, because the product is being built deliberately rather than as a universal replacement for every browser and every account-based workflow."
   }
 ];

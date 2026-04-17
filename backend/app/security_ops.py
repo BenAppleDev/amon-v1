@@ -41,6 +41,13 @@ def ops_trusted_upstream_mode() -> str:
     return settings.resolved_ops_trusted_upstream_mode()
 
 
+def ops_trusted_upstream_provider() -> str | None:
+    settings = get_settings()
+    if settings.resolved_ops_trusted_upstream_mode() != 'asserted_identity_headers':
+        return None
+    return settings.resolved_ops_trusted_upstream_asserted_provider()
+
+
 def ops_dev_token_login_enabled() -> bool:
     settings = get_settings()
     return bool(expected_internal_admin_token(settings)) and bool(

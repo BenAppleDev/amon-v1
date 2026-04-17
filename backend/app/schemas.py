@@ -365,6 +365,7 @@ class OpsAuthStatusResponse(BaseModel):
     dev_token_login_enabled: bool = False
     trusted_upstream_enabled: bool = False
     trusted_upstream_mode: Literal['disabled', 'shared_secret_headers', 'asserted_identity_headers'] = 'disabled'
+    trusted_upstream_provider: Literal['generic', 'cloudflare_access'] | None = None
 
 
 class OpsDevLoginRequest(BaseModel):

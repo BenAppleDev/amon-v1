@@ -56,6 +56,23 @@ python ../tools/deployment/track2_smoke.py \
   --asserted-operator-header X-Amon-Operator-Identity
 ```
 
+### Example: Cloudflare Access-style asserted-identity check
+
+```bash
+cd /Users/ben/amon-v1/backend
+source .venv/bin/activate
+python ../tools/deployment/track2_smoke.py \
+  --api-origin https://api.getamon.com \
+  --ops-origin https://ops.getamon.com \
+  --ops-route-mode path-prefix \
+  --trusted-upstream-mode asserted-identity \
+  --trusted-upstream-provider cloudflare-access \
+  --operator-id ops@example.com \
+  --asserted-operator-header Cf-Access-Authenticated-User-Email \
+  --cloudflare-access-jwt-header Cf-Access-Jwt-Assertion \
+  --cloudflare-access-jwt-assertion header.payload.signature
+```
+
 ### What it checks
 
 - `GET /health`
@@ -68,6 +85,7 @@ python ../tools/deployment/track2_smoke.py \
 - mode-specific upstream contract checks for:
   - transitional shared-secret headers
   - future asserted-identity headers
+  - Cloudflare Access-style asserted identity with both operator identity and JWT assertion headers
 - secure/path-scoped ops cookie behavior
 - metadata-only access to `GET /ops/api/protected-sessions/overview`
 - negative bootstrap with a bad upstream secret
@@ -110,6 +128,9 @@ Use this before a real internet-facing deployment.
    - `TRUST_PROXY_HEADERS=true`
    - `TRUSTED_PROXY_IPS=...`
    - `OPS_TRUSTED_PROXY_SECRET=...`
+   - if using asserted identity:
+     - `OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=asserted_identity_headers`
+     - `OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER=generic` or `cloudflare_access`
    - `OPS_ALLOW_DEV_TOKEN_LOGIN=false`
    - `OPS_SESSION_COOKIE_SECURE=true`
 2. Ensure `PUBLIC_SITE_ORIGINS`, `OPS_FRONTEND_ORIGINS`, and any `CORS_ALLOW_ORIGINS` entries are HTTPS only.
@@ -133,6 +154,9 @@ Use this before pushing real traffic.
    - `TRUST_PROXY_HEADERS=true`
    - `TRUSTED_PROXY_IPS=...`
    - `OPS_TRUSTED_PROXY_SECRET=...`
+   - if using asserted identity:
+     - `OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=asserted_identity_headers`
+     - `OPS_TRUSTED_UPSTREAM_ASSERTED_PROVIDER=generic` or `cloudflare_access`
    - `OPS_ALLOW_DEV_TOKEN_LOGIN=false`
    - `OPS_SESSION_COOKIE_SECURE=true`
 2. Ensure no loopback origins remain in:
