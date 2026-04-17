@@ -48,6 +48,16 @@ def ops_trusted_upstream_provider() -> str | None:
     return settings.resolved_ops_trusted_upstream_asserted_provider()
 
 
+def trusted_upstream_metadata_for_auth_method(auth_method: str | None) -> tuple[str | None, str | None]:
+    if auth_method == 'trusted_upstream_shared_secret':
+        return 'shared_secret_headers', None
+    if auth_method == 'trusted_upstream_asserted_identity':
+        return 'asserted_identity_headers', 'generic'
+    if auth_method == 'trusted_upstream_asserted_identity_cloudflare_access':
+        return 'asserted_identity_headers', 'cloudflare_access'
+    return None, None
+
+
 def ops_dev_token_login_enabled() -> bool:
     settings = get_settings()
     return bool(expected_internal_admin_token(settings)) and bool(

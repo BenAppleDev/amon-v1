@@ -49,6 +49,10 @@ def _html_response(request: httpx.Request, html: str) -> httpx.Response:
     )
 
 
+def _cookie_header(response) -> str:
+    return response.headers['set-cookie'].split(';', 1)[0]
+
+
 def _simple_transport() -> httpx.MockTransport:
     async def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == '/start':
@@ -304,6 +308,13 @@ def test_trusted_upstream_identity_headers_are_generic_and_staging_safe(monkeypa
                 'X-Edge-Operator': 'ops@example.com',
             },
         )
+        cookie_status = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cookie': _cookie_header(bootstrap),
+            },
+        )
         overview = client.get(
             '/ops/api/protected-sessions/overview',
             headers={
@@ -327,6 +338,11 @@ def test_trusted_upstream_identity_headers_are_generic_and_staging_safe(monkeypa
     assert bootstrap_json['trusted_upstream_enabled'] is True
     assert bootstrap_json['trusted_upstream_mode'] == 'shared_secret_headers'
     assert bootstrap_json['trusted_upstream_provider'] is None
+    assert cookie_status.status_code == 200
+    assert cookie_status.json()['authenticated'] is True
+    assert cookie_status.json()['auth_method'] == 'trusted_upstream_shared_secret'
+    assert cookie_status.json()['trusted_upstream_mode'] == 'shared_secret_headers'
+    assert cookie_status.json()['trusted_upstream_provider'] is None
     assert 'Secure' in bootstrap.headers['set-cookie']
     assert 'Path=/ops' in bootstrap.headers['set-cookie']
     assert overview.status_code == 200
@@ -391,6 +407,13 @@ def test_asserted_identity_headers_can_bootstrap_ops_session(monkeypatch, db_ses
                 'X-Edge-Operator-Identity': 'ops@example.com',
             },
         )
+        cookie_status = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cookie': _cookie_header(bootstrap),
+            },
+        )
         overview = client.get(
             '/ops/api/protected-sessions/overview',
             headers={
@@ -408,6 +431,11 @@ def test_asserted_identity_headers_can_bootstrap_ops_session(monkeypatch, db_ses
     assert bootstrap.json()['auth_method'] == 'trusted_upstream_asserted_identity'
     assert bootstrap.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
     assert bootstrap.json()['trusted_upstream_provider'] == 'generic'
+    assert cookie_status.status_code == 200
+    assert cookie_status.json()['authenticated'] is True
+    assert cookie_status.json()['auth_method'] == 'trusted_upstream_asserted_identity'
+    assert cookie_status.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert cookie_status.json()['trusted_upstream_provider'] == 'generic'
     assert overview.status_code == 200
 
 
@@ -439,6 +467,13 @@ def test_cloudflare_access_asserted_identity_can_bootstrap_ops_session(monkeypat
                 'Cf-Access-Jwt-Assertion': 'header.payload.signature',
             },
         )
+        cookie_status = client.get(
+            '/ops/auth/status',
+            headers={
+                'Host': 'ops-staging.getamon.com',
+                'Cookie': _cookie_header(bootstrap),
+            },
+        )
         overview = client.get(
             '/ops/api/protected-sessions/overview',
             headers={
@@ -457,6 +492,11 @@ def test_cloudflare_access_asserted_identity_can_bootstrap_ops_session(monkeypat
     assert bootstrap.json()['auth_method'] == 'trusted_upstream_asserted_identity_cloudflare_access'
     assert bootstrap.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
     assert bootstrap.json()['trusted_upstream_provider'] == 'cloudflare_access'
+    assert cookie_status.status_code == 200
+    assert cookie_status.json()['authenticated'] is True
+    assert cookie_status.json()['auth_method'] == 'trusted_upstream_asserted_identity_cloudflare_access'
+    assert cookie_status.json()['trusted_upstream_mode'] == 'asserted_identity_headers'
+    assert cookie_status.json()['trusted_upstream_provider'] == 'cloudflare_access'
     assert overview.status_code == 200
 
 

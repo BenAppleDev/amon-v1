@@ -87,8 +87,12 @@ Current code now supports:
   - current transitional shared-secret mode defaults:
     - `X-Amon-Ops-Proxy-Secret`
     - `X-Amon-Operator-Id`
-  - future asserted-identity mode defaults:
-    - `X-Amon-Operator-Identity`
+  - asserted-identity mode defaults:
+    - generic:
+      - `X-Amon-Operator-Identity`
+    - Cloudflare Access-style:
+      - `Cf-Access-Authenticated-User-Email`
+      - `Cf-Access-Jwt-Assertion`
   - the backend then creates a short-lived HttpOnly ops session cookie
 - local/dev token exchange
   - still available for local development when enabled

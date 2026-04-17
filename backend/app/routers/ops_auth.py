@@ -16,6 +16,7 @@ from app.security_ops import (
     ops_trusted_upstream_mode,
     ops_trusted_upstream_provider,
     require_ops_operator,
+    trusted_upstream_metadata_for_auth_method,
     validate_dev_ops_token,
 )
 
@@ -23,6 +24,9 @@ router = APIRouter(prefix='/ops/auth', tags=['ops_auth'])
 
 
 def _status_payload(operator: OpsOperatorContext | None) -> OpsAuthStatusResponse:
+    session_trusted_upstream_mode, session_trusted_upstream_provider = trusted_upstream_metadata_for_auth_method(
+        operator.auth_method if operator is not None else None
+    )
     return OpsAuthStatusResponse(
         authenticated=operator is not None,
         environment=ops_environment_view(),
@@ -31,8 +35,12 @@ def _status_payload(operator: OpsOperatorContext | None) -> OpsAuthStatusRespons
         session_expires_at=operator.session.expires_at if operator is not None else None,
         dev_token_login_enabled=ops_dev_token_login_enabled(),
         trusted_upstream_enabled=ops_trusted_upstream_enabled(),
-        trusted_upstream_mode=ops_trusted_upstream_mode(),
-        trusted_upstream_provider=ops_trusted_upstream_provider(),
+        trusted_upstream_mode=session_trusted_upstream_mode or ops_trusted_upstream_mode(),
+        trusted_upstream_provider=(
+            session_trusted_upstream_provider
+            if session_trusted_upstream_mode is not None
+            else ops_trusted_upstream_provider()
+        ),
     )
 
 
