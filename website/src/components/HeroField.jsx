@@ -10,21 +10,25 @@ export function HeroField() {
         </defs>
         <ellipse cx="336" cy="248" rx="220" ry="168" fill="url(#heroSpotlight)" />
         <path
-          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H526"
+          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H520"
+          className="hero-field-track"
           fill="none"
           stroke="rgba(255,255,255,0.08)"
           strokeLinecap="round"
           strokeWidth="4.5"
         />
         <path
-          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H526"
+          d="M96 124C166 124 198 146 236 186C278 230 322 258 404 258H520"
+          className="hero-field-path hero-field-path-primary"
           fill="none"
           stroke="rgba(198,255,97,0.72)"
           strokeLinecap="round"
           strokeWidth="2.5"
+          pathLength="1"
         />
         <path
           d="M236 186C278 230 288 328 364 378C412 406 458 412 530 412"
+          className="hero-field-track"
           fill="none"
           stroke="rgba(255,255,255,0.08)"
           strokeLinecap="round"
@@ -32,15 +36,58 @@ export function HeroField() {
         />
         <path
           d="M236 186C278 230 288 328 364 378C412 406 458 412 530 412"
+          className="hero-field-path hero-field-path-secondary"
           fill="none"
           stroke="rgba(255,94,79,0.6)"
           strokeLinecap="round"
           strokeWidth="2.5"
+          pathLength="1"
         />
-        <circle cx="96" cy="124" r="7" fill="#060606" stroke="rgba(198,255,97,0.92)" strokeWidth="2.5" />
-        <circle cx="236" cy="186" r="7" fill="#060606" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" />
-        <circle cx="404" cy="258" r="7" fill="#060606" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" />
-        <circle cx="530" cy="412" r="7" fill="#060606" stroke="rgba(255,94,79,0.92)" strokeWidth="2.5" />
+        <circle
+          cx="96"
+          cy="124"
+          r="7"
+          className="hero-field-node hero-field-node-search"
+          fill="#060606"
+          stroke="rgba(198,255,97,0.92)"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="236"
+          cy="186"
+          r="7"
+          className="hero-field-node hero-field-node-compare"
+          fill="#060606"
+          stroke="rgba(255,255,255,0.8)"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="520"
+          cy="258"
+          r="7"
+          className="hero-field-node hero-field-node-revisit"
+          fill="#060606"
+          stroke="rgba(255,255,255,0.8)"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="530"
+          cy="412"
+          r="7"
+          className="hero-field-node hero-field-node-decide"
+          fill="#060606"
+          stroke="rgba(255,94,79,0.92)"
+          strokeWidth="2.5"
+        />
+        <circle
+          cx="530"
+          cy="412"
+          r="15"
+          className="hero-field-node-aura hero-field-node-aura-final"
+          fill="none"
+          stroke="rgba(255,94,79,0.2)"
+          strokeWidth="1.2"
+        />
       </svg>
 
       <div className="hero-field-label hero-field-label-search">search</div>

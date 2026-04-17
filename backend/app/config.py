@@ -8,6 +8,7 @@ from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 VALID_APP_ENVS = {'local', 'development', 'test', 'staging', 'production'}
+VALID_TRUSTED_UPSTREAM_MODES = {'disabled', 'shared_secret_headers', 'asserted_identity_headers'}
 LOCAL_LOOPBACK_HOSTS = {'127.0.0.1', '::1', 'localhost'}
 
 
@@ -102,6 +103,18 @@ class Settings(BaseSettings):
     ops_session_cookie_same_site: str = Field(default='lax', alias='OPS_SESSION_COOKIE_SAME_SITE')
     ops_allow_dev_token_login: bool = Field(default=False, alias='OPS_ALLOW_DEV_TOKEN_LOGIN')
     ops_trusted_proxy_secret: str | None = Field(default=None, alias='OPS_TRUSTED_PROXY_SECRET')
+    ops_trusted_upstream_identity_mode: str | None = Field(
+        default=None, alias='OPS_TRUSTED_UPSTREAM_IDENTITY_MODE'
+    )
+    ops_trusted_upstream_secret_header: str = Field(
+        default='X-Amon-Ops-Proxy-Secret', alias='OPS_TRUSTED_UPSTREAM_SECRET_HEADER'
+    )
+    ops_trusted_upstream_operator_id_header: str = Field(
+        default='X-Amon-Operator-Id', alias='OPS_TRUSTED_UPSTREAM_OPERATOR_ID_HEADER'
+    )
+    ops_trusted_upstream_asserted_operator_id_header: str = Field(
+        default='X-Amon-Operator-Identity', alias='OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER'
+    )
     ops_allowed_operator_ids: Annotated[List[str], NoDecode] = Field(default_factory=list, alias='OPS_ALLOWED_OPERATOR_IDS')
     ops_history_snapshot_interval_seconds: int = Field(default=30, alias='OPS_HISTORY_SNAPSHOT_INTERVAL_SECONDS')
     protected_session_max_links: int = Field(default=12, alias='PROTECTED_SESSION_MAX_LINKS')
@@ -228,6 +241,27 @@ class Settings(BaseSettings):
             raise ValueError('OPS_SESSION_COOKIE_SAME_SITE must be one of: lax, strict, none')
         return normalized
 
+    @field_validator(
+        'ops_trusted_upstream_secret_header',
+        'ops_trusted_upstream_operator_id_header',
+        'ops_trusted_upstream_asserted_operator_id_header',
+        mode='before',
+    )
+    @classmethod
+    def normalize_header_names(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized or '-' not in normalized:
+            raise ValueError('Trusted upstream header names must be non-empty HTTP header names.')
+        return normalized
+
+    @field_validator('ops_trusted_upstream_identity_mode', mode='before')
+    @classmethod
+    def normalize_trusted_upstream_mode(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().lower()
+        return normalized or None
+
     @model_validator(mode='after')
     def validate_deployment_shape(self) -> 'Settings':
         errors: list[str] = []
@@ -235,6 +269,11 @@ class Settings(BaseSettings):
         if self.app_env not in VALID_APP_ENVS:
             errors.append(
                 f"APP_ENV must be one of {', '.join(sorted(VALID_APP_ENVS))}; got '{self.app_env}'."
+            )
+        if self.ops_trusted_upstream_identity_mode not in VALID_TRUSTED_UPSTREAM_MODES | {None}:
+            errors.append(
+                'OPS_TRUSTED_UPSTREAM_IDENTITY_MODE must be one of: '
+                f"{', '.join(sorted(VALID_TRUSTED_UPSTREAM_MODES))}."
             )
 
         api_origin = urlparse(self.api_external_origin)
@@ -292,6 +331,7 @@ class Settings(BaseSettings):
 
         is_non_local = self.app_env in {'staging', 'production'}
         ops_origin = _normalize_origin(self.ops_surface_origin)
+        trusted_upstream_mode = self.resolved_ops_trusted_upstream_mode()
         if not self.is_local_like_env() and ops_origin not in self.ops_frontend_origins:
             errors.append(
                 'OPS_FRONTEND_ORIGINS must include the visible ops surface origin '
@@ -305,7 +345,7 @@ class Settings(BaseSettings):
                 errors.append('OPS_SURFACE_ORIGIN must use https outside local development.')
             if not self.trust_proxy_headers:
                 errors.append('TRUST_PROXY_HEADERS must be true for staging/production deployments behind Cloudflare.')
-            if not self.ops_trusted_proxy_secret:
+            if trusted_upstream_mode == 'shared_secret_headers' and not self.ops_trusted_proxy_secret:
                 errors.append(
                     'OPS_TRUSTED_PROXY_SECRET is required outside local development so ops sessions can be bootstrapped '
                     'without exposing a long-lived admin token to browsers.'
@@ -329,6 +369,24 @@ class Settings(BaseSettings):
                         errors.append(
                             f'{label} must not contain loopback/local origins outside local development: {origin!r}.'
                         )
+
+        if trusted_upstream_mode != 'disabled':
+            if is_non_local and not self.trust_proxy_headers:
+                errors.append(
+                    'Trusted upstream operator bootstrap requires TRUST_PROXY_HEADERS=true outside local development.'
+                )
+            if trusted_upstream_mode == 'shared_secret_headers' and not self.ops_trusted_proxy_secret:
+                errors.append(
+                    'OPS_TRUSTED_PROXY_SECRET is required when OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=shared_secret_headers.'
+                )
+            if (
+                trusted_upstream_mode == 'asserted_identity_headers'
+                and not self.ops_trusted_upstream_asserted_operator_id_header
+            ):
+                errors.append(
+                    'OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER is required when '
+                    'OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=asserted_identity_headers.'
+                )
 
         if self.ops_allow_dev_token_login and self.app_env != 'development' and not self.internal_admin_token:
             errors.append(
@@ -376,6 +434,13 @@ class Settings(BaseSettings):
 
     def resolved_ops_session_cookie_path(self) -> str:
         return self.ops_backend_path_prefix
+
+    def resolved_ops_trusted_upstream_mode(self) -> str:
+        if self.ops_trusted_upstream_identity_mode is not None:
+            return self.ops_trusted_upstream_identity_mode
+        if self.ops_trusted_proxy_secret and self.app_env in {'staging', 'production'}:
+            return 'shared_secret_headers'
+        return 'disabled'
 
 
 @lru_cache(maxsize=1)

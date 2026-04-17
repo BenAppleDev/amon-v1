@@ -12,9 +12,7 @@ from app.models import OpsOperatorSession
 from app.schemas import OpsEnvironmentView
 from app.security import create_session_token, utcnow
 from app.security_internal import expected_internal_admin_token
-
-OPS_PROXY_SECRET_HEADER = 'X-Amon-Ops-Proxy-Secret'
-OPS_OPERATOR_ID_HEADER = 'X-Amon-Operator-Id'
+from app.security_ops_identity import resolve_trusted_upstream_identity
 
 
 @dataclass
@@ -31,6 +29,16 @@ def ops_environment_view() -> OpsEnvironmentView:
         label=settings.ops_environment_label,
         app_env=settings.app_env,
     )
+
+
+def ops_trusted_upstream_enabled() -> bool:
+    settings = get_settings()
+    return settings.resolved_ops_trusted_upstream_mode() != 'disabled'
+
+
+def ops_trusted_upstream_mode() -> str:
+    settings = get_settings()
+    return settings.resolved_ops_trusted_upstream_mode()
 
 
 def ops_dev_token_login_enabled() -> bool:
@@ -95,21 +103,6 @@ def clear_ops_session(response: Response, session: OpsOperatorSession | None = N
     )
 
 
-def _resolve_proxy_operator(
-    *,
-    request: Request,
-) -> tuple[str, str] | None:
-    settings = get_settings()
-    expected_secret = settings.ops_trusted_proxy_secret
-    if not expected_secret:
-        return None
-    provided_secret = request.headers.get(OPS_PROXY_SECRET_HEADER)
-    operator_id = request.headers.get(OPS_OPERATOR_ID_HEADER)
-    if provided_secret != expected_secret or not operator_id:
-        return None
-    return _validate_operator_id(operator_id), 'trusted_proxy'
-
-
 def resolve_ops_operator_from_cookie(
     *,
     db: Session,
@@ -143,13 +136,29 @@ def maybe_bootstrap_ops_operator(
     if from_cookie is not None:
         return from_cookie
 
-    proxied = _resolve_proxy_operator(request=request)
-    if proxied is None:
+    upstream_result = resolve_trusted_upstream_identity(request=request, settings=settings)
+    if upstream_result.rejected:
+        raise HTTPException(
+            status_code=upstream_result.failure_status_code or status.HTTP_401_UNAUTHORIZED,
+            detail={
+                'code': upstream_result.failure_code or 'trusted_upstream_identity_rejected',
+                'message': upstream_result.failure_message or 'Trusted upstream identity assertion was rejected.',
+            },
+        )
+    if upstream_result.identity is None:
         return None
 
-    operator_id, auth_method = proxied
-    session = create_ops_session(db=db, response=response, operator_id=operator_id, auth_method=auth_method)
-    return OpsOperatorContext(operator_id=operator_id, auth_method=auth_method, session=session)
+    session = create_ops_session(
+        db=db,
+        response=response,
+        operator_id=_validate_operator_id(upstream_result.identity.operator_id),
+        auth_method=upstream_result.identity.auth_method,
+    )
+    return OpsOperatorContext(
+        operator_id=session.operator_id,
+        auth_method=upstream_result.identity.auth_method,
+        session=session,
+    )
 
 
 async def get_optional_ops_operator(

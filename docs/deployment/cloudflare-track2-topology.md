@@ -46,6 +46,9 @@ For deployment checklists by environment, see [deployment-runbooks.md](/Users/be
 
 - The iOS app already expects `https://api.getamon.com`.
 - The backend should be reachable behind Cloudflare Tunnel on that host.
+- The backend now exposes both:
+  - `/health`
+  - `/healthz`
 - Browser CORS should allow:
   - public website origins
   - ops origins
@@ -80,9 +83,12 @@ Current code now supports:
 
 - trusted proxy bootstrap
   - the browser hits `/ops/auth/status`
-  - a trusted edge or proxy may inject:
+  - a trusted edge or proxy may inject the currently configured upstream identity headers
+  - current transitional shared-secret mode defaults:
     - `X-Amon-Ops-Proxy-Secret`
     - `X-Amon-Operator-Id`
+  - future asserted-identity mode defaults:
+    - `X-Amon-Operator-Identity`
   - the backend then creates a short-lived HttpOnly ops session cookie
 - local/dev token exchange
   - still available for local development when enabled
@@ -93,6 +99,17 @@ The ops session cookie is:
 - HttpOnly
 - path-scoped to `/ops`
 - configurable for secure/domain/same-site behavior
+
+The shared-secret upstream bootstrap is intentionally transitional. The repo now isolates upstream identity resolution in one code path so a future Cloudflare Access or other edge-asserted identity integration can replace the bootstrap mechanism without changing the rest of the ops session flow. The new supported modes are:
+
+- `shared_secret_headers`
+  - transitional bootstrap
+  - explicit rejection on bad or malformed assertions
+- `asserted_identity_headers`
+  - future edge-ready contract shape
+  - trusts a configured operator-identity header from the upstream boundary
+
+For an actual host smoke check, use `/Users/ben/amon-v1/tools/deployment/track2_smoke.py`.
 
 ## Trusted proxy and forwarded headers
 
@@ -154,6 +171,10 @@ The backend now validates this deployment shape at startup and fails fast when c
 - `OPS_SESSION_COOKIE_SECURE=true`
 - `OPS_ALLOW_DEV_TOKEN_LOGIN=false`
 - `OPS_TRUSTED_PROXY_SECRET=...`
+- `OPS_TRUSTED_UPSTREAM_IDENTITY_MODE=shared_secret_headers` or `asserted_identity_headers`
+- `OPS_TRUSTED_UPSTREAM_SECRET_HEADER=X-Amon-Ops-Proxy-Secret`
+- `OPS_TRUSTED_UPSTREAM_OPERATOR_ID_HEADER=X-Amon-Operator-Id`
+- `OPS_TRUSTED_UPSTREAM_ASSERTED_OPERATOR_ID_HEADER=X-Amon-Operator-Identity`
 
 ## What is still manual outside the repo
 

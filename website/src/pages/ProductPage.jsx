@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHero } from "../components/PageHero";
 import { Reveal } from "../components/Reveal";
@@ -6,6 +7,8 @@ import { WorkflowGraphic } from "../components/WorkflowGraphic";
 import { modeSteps } from "../content/site";
 
 export function ProductPage() {
+  const [activeMode, setActiveMode] = useState(null);
+
   return (
     <>
       <Seo
@@ -28,12 +31,22 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame feature-split">
           <Reveal>
-            <WorkflowGraphic compact />
+            <WorkflowGraphic compact activeStep={activeMode} />
           </Reveal>
 
           <div className="stack">
             {modeSteps.map((mode, index) => (
-              <Reveal key={mode.id} className="mode-detail" delay={index * 70}>
+              <Reveal
+                key={mode.id}
+                className={`mode-detail${activeMode === mode.id ? " is-active" : ""}`}
+                delay={index * 70}
+                tabIndex={0}
+                data-step={mode.id}
+                onMouseEnter={() => setActiveMode(mode.id)}
+                onMouseLeave={() => setActiveMode(null)}
+                onFocus={() => setActiveMode(mode.id)}
+                onBlur={() => setActiveMode(null)}
+              >
                 <div className="mode-detail-label">
                   <span>{mode.number}</span>
                   <strong>{mode.name}</strong>

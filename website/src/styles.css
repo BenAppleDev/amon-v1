@@ -310,6 +310,7 @@ h3 {
   background-size: auto, 96px 96px, 96px 96px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 90%);
   pointer-events: none;
+  animation: hero-atmosphere 20s ease-in-out infinite alternate;
 }
 
 .hero-grid,
@@ -386,6 +387,33 @@ h3 {
   height: 100%;
 }
 
+.hero-field-track,
+.hero-field-path,
+.hero-field-node,
+.hero-field-node-aura {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.hero-field-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.hero-field-node,
+.hero-field-node-aura,
+.hero-field-label {
+  opacity: 0;
+}
+
+.hero-field-node {
+  transform: scale(0.82);
+}
+
+.hero-field-node-aura {
+  transform: scale(0.94);
+}
+
 .hero-field-label {
   position: absolute;
   padding: 7px 12px;
@@ -396,6 +424,7 @@ h3 {
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  transform: translateY(8px);
 }
 
 .hero-field-label-search {
@@ -428,6 +457,52 @@ h3 {
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.reveal.is-visible .hero-field-path-primary {
+  animation: draw-stroke 720ms cubic-bezier(0.22, 1, 0.36, 1) 140ms forwards;
+}
+
+.reveal.is-visible .hero-field-path-secondary {
+  animation: draw-stroke 680ms cubic-bezier(0.22, 1, 0.36, 1) 320ms forwards;
+}
+
+.reveal.is-visible .hero-field-node-search {
+  animation: node-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 560ms forwards;
+}
+
+.reveal.is-visible .hero-field-node-compare {
+  animation: node-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 660ms forwards;
+}
+
+.reveal.is-visible .hero-field-node-revisit {
+  animation: node-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 760ms forwards;
+}
+
+.reveal.is-visible .hero-field-node-decide {
+  animation: node-settle 500ms cubic-bezier(0.2, 0.9, 0.22, 1) 900ms forwards;
+}
+
+.reveal.is-visible .hero-field-node-aura-final {
+  animation:
+    aura-enter 460ms ease 1080ms forwards,
+    aura-pulse 4.8s ease-in-out 1680ms infinite;
+}
+
+.reveal.is-visible .hero-field-label-search {
+  animation: chip-enter 360ms ease 640ms forwards;
+}
+
+.reveal.is-visible .hero-field-label-compare {
+  animation: chip-enter 360ms ease 740ms forwards;
+}
+
+.reveal.is-visible .hero-field-label-return {
+  animation: chip-enter 360ms ease 840ms forwards;
+}
+
+.reveal.is-visible .hero-field-label-decide {
+  animation: chip-enter 380ms ease 1000ms forwards;
 }
 
 .page-section {
@@ -590,18 +665,25 @@ h3 {
   padding-left: 44px;
 }
 
-.mode-rail-line {
-  position: absolute;
-  left: 9px;
-  top: 13px;
-  bottom: 13px;
-  width: 2px;
-  background: linear-gradient(180deg, rgba(198, 255, 97, 0.58), rgba(255, 94, 79, 0.48));
-}
-
 .mode-rail-step {
   position: relative;
   padding: 0 0 0 18px;
+  outline: none;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.mode-rail-step-connected::before {
+  content: "";
+  position: absolute;
+  left: -35px;
+  top: 14px;
+  bottom: -38px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(198, 255, 97, 0.58), rgba(255, 255, 255, 0.2) 54%, rgba(255, 94, 79, 0.46));
+  opacity: 0.62;
+  transform-origin: top center;
+  transform: scaleY(0);
 }
 
 .mode-rail-step + .mode-rail-step {
@@ -612,11 +694,14 @@ h3 {
   position: absolute;
   left: -44px;
   top: 5px;
+  z-index: 1;
   width: 18px;
   height: 18px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: var(--bg);
+  opacity: 0;
+  transform: scale(0.84);
 }
 
 .mode-rail-step:first-child .mode-rail-marker {
@@ -627,6 +712,15 @@ h3 {
 .mode-rail-step:last-child .mode-rail-marker {
   border-color: rgba(255, 94, 79, 0.4);
   background: rgba(255, 94, 79, 0.12);
+}
+
+.mode-rail-step:last-child .mode-rail-marker::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 94, 79, 0.18);
+  opacity: 0;
 }
 
 .mode-rail-marker span {
@@ -643,6 +737,10 @@ h3 {
   font-size: clamp(1.7rem, 2vw, 2.1rem);
 }
 
+.mode-rail-copy {
+  transition: opacity 220ms ease;
+}
+
 .mode-rail-copy p {
   margin: 9px 0 0;
   max-width: 24ch;
@@ -654,6 +752,58 @@ h3 {
   height: 1px;
   margin-top: 18px;
   background: rgba(255, 255, 255, 0.08);
+  transition: opacity 220ms ease, background-color 220ms ease;
+}
+
+.reveal.is-visible .mode-rail-step {
+  animation: step-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(220ms + (var(--step-index) * 90ms));
+}
+
+.reveal.is-visible .mode-rail-step-connected::before {
+  animation: rail-grow 540ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(180ms + (var(--step-index) * 130ms));
+}
+
+.reveal.is-visible .mode-rail-marker {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(420ms + (var(--step-index) * 100ms));
+}
+
+.reveal.is-visible .mode-rail-step:last-child .mode-rail-marker {
+  animation: node-settle 480ms cubic-bezier(0.2, 0.9, 0.22, 1) 720ms forwards;
+}
+
+.reveal.is-visible .mode-rail-step:last-child .mode-rail-marker::after {
+  animation:
+    aura-enter 420ms ease 860ms forwards,
+    aura-pulse 4.6s ease-in-out 1420ms infinite;
+}
+
+.mode-rail[data-active-step] .mode-rail-copy,
+.mode-rail[data-active-step] .mode-rail-marker,
+.mode-rail[data-active-step] .mode-rail-step-connected::before,
+.mode-rail[data-active-step] .mode-rail-divider {
+  opacity: 0.3;
+}
+
+.mode-rail[data-active-step] .mode-rail-step.is-active .mode-rail-copy,
+.mode-rail[data-active-step] .mode-rail-step.is-active .mode-rail-marker,
+.mode-rail[data-active-step="search"] .mode-rail-step[data-step="search"]::before,
+.mode-rail[data-active-step="clean"] .mode-rail-step[data-step="search"]::before,
+.mode-rail[data-active-step="clean"] .mode-rail-step[data-step="clean"]::before,
+.mode-rail[data-active-step="protected"] .mode-rail-step[data-step="clean"]::before,
+.mode-rail[data-active-step="protected"] .mode-rail-step[data-step="protected"]::before,
+.mode-rail[data-active-step="workspace"] .mode-rail-step[data-step="protected"]::before {
+  opacity: 1;
+}
+
+.mode-rail[data-active-step] .mode-rail-step.is-active .mode-rail-copy h3 {
+  color: var(--ink);
+}
+
+.mode-rail-step:focus-visible .mode-rail-copy h3 {
+  color: var(--ink);
 }
 
 .space-stage {
@@ -763,6 +913,22 @@ h3 {
   font-weight: 700;
 }
 
+.mode-detail {
+  outline: none;
+  transition:
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease,
+    opacity 220ms ease;
+}
+
+.mode-detail.is-active,
+.mode-detail:focus-visible {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
 .workflow-graphic {
   position: relative;
   min-height: 516px;
@@ -794,6 +960,37 @@ h3 {
   height: 100%;
 }
 
+.workflow-track,
+.workflow-line,
+.workflow-node,
+.workflow-node-aura,
+.workflow-body-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.workflow-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.workflow-node,
+.workflow-node-aura,
+.workflow-body-mark,
+.workflow-plane {
+  opacity: 0;
+}
+
+.workflow-node,
+.workflow-node-aura {
+  transform: scale(0.84);
+}
+
+.workflow-body-mark,
+.workflow-plane {
+  transform: translateY(10px);
+}
+
 .workflow-plane {
   position: absolute;
   padding: 15px 17px;
@@ -801,6 +998,11 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(10px);
+  transition:
+    opacity 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease;
 }
 
 .workflow-plane span {
@@ -850,6 +1052,148 @@ h3 {
   width: min(42%, 280px);
 }
 
+.workflow-graphic.is-compact .workflow-plane-search {
+  left: 24px;
+  top: 30px;
+  width: min(34%, 214px);
+}
+
+.workflow-graphic.is-compact .workflow-plane-clean {
+  left: 112px;
+  top: 284px;
+  width: min(32%, 208px);
+}
+
+.workflow-graphic.is-compact .workflow-plane-protected {
+  right: 24px;
+  top: 30px;
+  width: min(34%, 220px);
+}
+
+.workflow-graphic.is-compact .workflow-plane-workspace {
+  right: 32px;
+  left: auto;
+  bottom: 30px;
+  width: min(38%, 242px);
+}
+
+.reveal.is-visible .workflow-line[data-segment="search"] {
+  animation: draw-stroke 720ms cubic-bezier(0.22, 1, 0.36, 1) 140ms forwards;
+}
+
+.reveal.is-visible .workflow-line[data-segment="clean"] {
+  animation: draw-stroke 680ms cubic-bezier(0.22, 1, 0.36, 1) 320ms forwards;
+}
+
+.reveal.is-visible .workflow-line[data-segment="protected"] {
+  animation: draw-stroke 700ms cubic-bezier(0.22, 1, 0.36, 1) 500ms forwards;
+}
+
+.reveal.is-visible .workflow-body-mark {
+  animation: body-enter 480ms ease 320ms forwards;
+}
+
+.reveal.is-visible .workflow-node[data-step="search"] {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) 520ms forwards;
+}
+
+.reveal.is-visible .workflow-node[data-step="clean"] {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) 670ms forwards;
+}
+
+.reveal.is-visible .workflow-node[data-step="protected"] {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) 820ms forwards;
+}
+
+.reveal.is-visible .workflow-node-final {
+  animation: node-settle 520ms cubic-bezier(0.2, 0.9, 0.22, 1) 980ms forwards;
+}
+
+.reveal.is-visible .workflow-node-aura-final {
+  animation:
+    aura-enter 460ms ease 1140ms forwards,
+    aura-pulse 4.8s ease-in-out 1760ms infinite;
+}
+
+.reveal.is-visible .workflow-plane-search {
+  animation: plane-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 660ms forwards;
+}
+
+.reveal.is-visible .workflow-plane-clean {
+  animation: plane-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 800ms forwards;
+}
+
+.reveal.is-visible .workflow-plane-protected {
+  animation: plane-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 920ms forwards;
+}
+
+.reveal.is-visible .workflow-plane-workspace {
+  animation: plane-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) 1060ms forwards;
+}
+
+.workflow-graphic[data-active-step] .workflow-line,
+.workflow-graphic[data-active-step] .workflow-node,
+.workflow-graphic[data-active-step] .workflow-node-aura,
+.workflow-graphic[data-active-step] .workflow-plane,
+.workflow-graphic[data-active-step] .workflow-body-mark {
+  opacity: 0.26;
+}
+
+.workflow-graphic[data-active-step] .workflow-track {
+  opacity: 0.5;
+}
+
+.workflow-graphic[data-active-step] .workflow-plane[data-step],
+.workflow-graphic[data-active-step] .workflow-node[data-step],
+.workflow-graphic[data-active-step] .workflow-line[data-segment],
+.workflow-graphic[data-active-step] .workflow-node-aura-final,
+.workflow-graphic[data-active-step] .workflow-body-mark {
+  transition:
+    opacity 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.workflow-graphic[data-active-step="search"] .workflow-plane[data-step="search"],
+.workflow-graphic[data-active-step="search"] .workflow-node[data-step="search"],
+.workflow-graphic[data-active-step="search"] .workflow-line[data-segment="search"],
+.workflow-graphic[data-active-step="clean"] .workflow-plane[data-step="clean"],
+.workflow-graphic[data-active-step="clean"] .workflow-node[data-step="clean"],
+.workflow-graphic[data-active-step="clean"] .workflow-line[data-segment="search"],
+.workflow-graphic[data-active-step="clean"] .workflow-line[data-segment="clean"],
+.workflow-graphic[data-active-step="protected"] .workflow-plane[data-step="protected"],
+.workflow-graphic[data-active-step="protected"] .workflow-node[data-step="protected"],
+.workflow-graphic[data-active-step="protected"] .workflow-line[data-segment="clean"],
+.workflow-graphic[data-active-step="protected"] .workflow-line[data-segment="protected"],
+.workflow-graphic[data-active-step="workspace"] .workflow-plane[data-step="workspace"],
+.workflow-graphic[data-active-step="workspace"] .workflow-node[data-step="workspace"],
+.workflow-graphic[data-active-step="workspace"] .workflow-node-aura-final,
+.workflow-graphic[data-active-step="workspace"] .workflow-line[data-segment="protected"] {
+  opacity: 1;
+}
+
+.workflow-graphic[data-active-step="clean"] .workflow-body-mark,
+.workflow-graphic[data-active-step="protected"] .workflow-body-mark {
+  opacity: 0.72;
+}
+
+.workflow-graphic[data-active-step] .workflow-plane[data-step] {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+
+.workflow-graphic[data-active-step="search"] .workflow-plane[data-step="search"],
+.workflow-graphic[data-active-step="clean"] .workflow-plane[data-step="clean"],
+.workflow-graphic[data-active-step="protected"] .workflow-plane[data-step="protected"],
+.workflow-graphic[data-active-step="workspace"] .workflow-plane[data-step="workspace"] {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
 .workflow-caption {
   position: absolute;
   left: 28px;
@@ -858,10 +1202,6 @@ h3 {
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.workflow-graphic.is-compact {
-  min-height: 480px;
 }
 
 .trust-grid {
@@ -883,26 +1223,35 @@ h3 {
 }
 
 .boundary-graphic {
+  --boundary-gap: 16px;
+  --boundary-axis: 28px;
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  padding: 22px 0 0;
+  gap: var(--boundary-gap);
+  padding: var(--boundary-axis) 0 0;
 }
 
 .boundary-track {
   position: absolute;
-  left: 16%;
-  right: 16%;
-  top: 28px;
+  left: calc((100% - (2 * var(--boundary-gap))) / 6);
+  right: calc((100% - (2 * var(--boundary-gap))) / 6);
+  top: calc(var(--boundary-axis) - 1px);
+  z-index: 0;
   height: 2px;
-  background: linear-gradient(90deg, rgba(198, 255, 97, 0.36), rgba(255, 94, 79, 0.34));
+  background: linear-gradient(90deg, rgba(198, 255, 97, 0.44), rgba(255, 255, 255, 0.22) 50%, rgba(255, 94, 79, 0.42));
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0.8;
 }
 
 .boundary-node {
   position: relative;
+  z-index: 1;
   min-height: 168px;
-  padding: 40px 20px 20px;
+  padding: 44px 20px 20px;
+  opacity: 0;
+  transform: translateY(8px);
 }
 
 .boundary-node::before {
@@ -914,7 +1263,10 @@ h3 {
   height: 16px;
   border-radius: 999px;
   border: 2px solid #050505;
+  box-shadow: 0 0 0 4px #060606;
   background: rgba(255, 255, 255, 0.36);
+  opacity: 0;
+  transform: scale(0.82);
 }
 
 .boundary-node::after {
@@ -923,8 +1275,11 @@ h3 {
   top: 8px;
   left: calc(50% - 0.5px);
   width: 1px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  transform-origin: top center;
+  transform: scaleY(0);
 }
 
 .boundary-node-accent::before {
@@ -935,33 +1290,67 @@ h3 {
   background: var(--red);
 }
 
+.reveal.is-visible .boundary-track {
+  animation: track-reveal 760ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+}
+
+.reveal.is-visible .boundary-node {
+  animation: boundary-node-enter 420ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(380ms + (var(--node-index) * 120ms));
+}
+
+.reveal.is-visible .boundary-node::before {
+  animation: node-enter 400ms cubic-bezier(0.2, 0.9, 0.22, 1) forwards;
+  animation-delay: calc(520ms + (var(--node-index) * 120ms));
+}
+
+.reveal.is-visible .boundary-node::after {
+  animation: rail-grow 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(600ms + (var(--node-index) * 120ms));
+}
+
 .contact-stage {
   min-height: 52vh;
 }
 
-.contact-invite {
+.contact-shell {
   width: min(100%, 760px);
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.contact-shell .eyebrow {
+  justify-content: center;
+}
+
+.contact-invite {
+  width: 100%;
   text-align: center;
   background:
     radial-gradient(circle at top center, rgba(198, 255, 97, 0.05), transparent 26%),
     rgba(255, 255, 255, 0.03);
 }
 
-.contact-invite .eyebrow {
-  justify-content: center;
-}
-
 .contact-address {
   display: inline-block;
-  margin-top: 24px;
   text-decoration: none;
   font-size: clamp(2.8rem, 5vw, 4.6rem);
 }
 
 .contact-note {
+  margin-top: 18px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+}
+
+.comparison-grid-equal {
+  align-items: stretch;
+}
+
+.comparison-grid-equal > .comparison-panel {
+  height: 100%;
 }
 
 .faq-list {
@@ -1082,6 +1471,166 @@ h3 {
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@keyframes hero-atmosphere {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.96;
+  }
+
+  to {
+    transform: translate3d(6px, -8px, 0) scale(1.012);
+    opacity: 1;
+  }
+}
+
+@keyframes draw-stroke {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes node-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes node-settle {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes aura-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+}
+
+@keyframes aura-pulse {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.28;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes chip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rail-grow {
+  from {
+    opacity: 0.3;
+    transform: scaleY(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes body-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes plane-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes track-reveal {
+  from {
+    opacity: 0.3;
+    transform: scaleX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes boundary-node-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1120px) {
@@ -1244,5 +1793,41 @@ h3 {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+
+  .hero-home::before,
+  .hero-field-path,
+  .hero-field-node,
+  .hero-field-node-aura,
+  .hero-field-label,
+  .mode-rail-step,
+  .mode-rail-step-connected::before,
+  .mode-rail-marker,
+  .mode-rail-step:last-child .mode-rail-marker::after,
+  .workflow-line,
+  .workflow-node,
+  .workflow-node-aura,
+  .workflow-body-mark,
+  .workflow-plane,
+  .boundary-track,
+  .boundary-node,
+  .boundary-node::before,
+  .boundary-node::after {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .mode-rail[data-active-step] .mode-rail-copy,
+  .mode-rail[data-active-step] .mode-rail-marker,
+  .mode-rail[data-active-step] .mode-rail-step-connected::before,
+  .mode-rail[data-active-step] .mode-rail-divider,
+  .workflow-graphic[data-active-step] .workflow-line,
+  .workflow-graphic[data-active-step] .workflow-node,
+  .workflow-graphic[data-active-step] .workflow-node-aura,
+  .workflow-graphic[data-active-step] .workflow-plane,
+  .workflow-graphic[data-active-step] .workflow-body-mark {
+    opacity: 1 !important;
   }
 }

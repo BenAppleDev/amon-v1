@@ -27,7 +27,7 @@ export function AboutPage() {
       </section>
 
       <section className="page-section">
-        <div className="frame comparison-grid">
+        <div className="frame comparison-grid comparison-grid-equal">
           <Reveal className="comparison-panel">
             <h3>What changed</h3>
             <p>Questions no longer just find answers. They get recorded, interpreted, and connected to everything else a person does online.</p>

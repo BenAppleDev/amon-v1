@@ -20,6 +20,63 @@ The backend now fails fast on deployment-shape mistakes such as:
 
 If the service exits during startup, fix the env mismatch rather than weakening the validator.
 
+## Deployment Smoke Script
+
+The repo now includes a lightweight smoke helper:
+
+`/Users/ben/amon-v1/tools/deployment/track2_smoke.py`
+
+Run it from the backend virtualenv so `httpx` is available.
+
+### Example: staging-like check
+
+```bash
+cd /Users/ben/amon-v1/backend
+source .venv/bin/activate
+python ../tools/deployment/track2_smoke.py \
+  --api-origin https://api.getamon.com \
+  --ops-origin https://ops.getamon.com \
+  --ops-route-mode path-prefix \
+  --trusted-upstream-mode shared-secret \
+  --operator-id ops@example.com \
+  --trusted-upstream-secret "$OPS_TRUSTED_PROXY_SECRET"
+```
+
+### Example: future asserted-identity check
+
+```bash
+cd /Users/ben/amon-v1/backend
+source .venv/bin/activate
+python ../tools/deployment/track2_smoke.py \
+  --api-origin https://api.getamon.com \
+  --ops-origin https://ops.getamon.com \
+  --ops-route-mode path-prefix \
+  --trusted-upstream-mode asserted-identity \
+  --operator-id ops@example.com \
+  --asserted-operator-header X-Amon-Operator-Identity
+```
+
+### What it checks
+
+- `GET /health`
+- `GET /healthz`
+- ops path behavior:
+  - `/ops -> /ops/` for path-prefix deployments
+  - or root-host expectation if you use an edge rewrite
+- unauthenticated `GET /ops/auth/status`
+- trusted-upstream bootstrap on `GET /ops/auth/status`
+- mode-specific upstream contract checks for:
+  - transitional shared-secret headers
+  - future asserted-identity headers
+- secure/path-scoped ops cookie behavior
+- metadata-only access to `GET /ops/api/protected-sessions/overview`
+- negative bootstrap with a bad upstream secret
+
+If you need to hit a direct origin while simulating edge headers during staging validation, the script also accepts:
+
+- `--forwarded-host`
+- `--forwarded-proto`
+
 ## Local / Dev Checklist
 
 Use this when running everything on your machine.
@@ -39,6 +96,7 @@ Use this when running everything on your machine.
 5. Start the backend and confirm:
    - `http://127.0.0.1:8000/docs`
    - `http://127.0.0.1:8000/ops/`
+   - `python ../tools/deployment/track2_smoke.py --api-origin http://127.0.0.1:8000 --ops-origin http://127.0.0.1:8000 --ops-route-mode path-prefix`
 
 ## Staging-Like Checklist
 
@@ -61,6 +119,7 @@ Use this before a real internet-facing deployment.
    - product API requests resolve through the intended proxy/front door
    - ops auth is proxy-bootstrapped, not dev-token based
    - cookies are set as secure and path-scoped to `/ops`
+   - the smoke script passes against the staging hostnames
 
 ## Production-Like Checklist
 
@@ -83,6 +142,7 @@ Use this before pushing real traffic.
 3. Keep `www.getamon.com` on Vercel and separate from the backend/ops deployment.
 4. Keep `ops.getamon.com` behind a stronger identity boundary before exposing it to operators.
 5. Verify the repo starts cleanly with no configuration validation error.
+6. Run the smoke script against the public staging/prod hosts before you treat the deployment as credible.
 
 ## Current Ops Path Contract
 

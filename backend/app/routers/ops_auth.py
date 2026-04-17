@@ -12,6 +12,8 @@ from app.security_ops import (
     get_optional_ops_operator,
     ops_dev_token_login_enabled,
     ops_environment_view,
+    ops_trusted_upstream_enabled,
+    ops_trusted_upstream_mode,
     require_ops_operator,
     validate_dev_ops_token,
 )
@@ -27,6 +29,8 @@ def _status_payload(operator: OpsOperatorContext | None) -> OpsAuthStatusRespons
         auth_method=operator.auth_method if operator is not None else None,
         session_expires_at=operator.session.expires_at if operator is not None else None,
         dev_token_login_enabled=ops_dev_token_login_enabled(),
+        trusted_upstream_enabled=ops_trusted_upstream_enabled(),
+        trusted_upstream_mode=ops_trusted_upstream_mode(),
     )
 
 

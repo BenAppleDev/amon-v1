@@ -363,6 +363,8 @@ class OpsAuthStatusResponse(BaseModel):
     auth_method: str | None = None
     session_expires_at: datetime | None = None
     dev_token_login_enabled: bool = False
+    trusted_upstream_enabled: bool = False
+    trusted_upstream_mode: Literal['disabled', 'shared_secret_headers', 'asserted_identity_headers'] = 'disabled'
 
 
 class OpsDevLoginRequest(BaseModel):
