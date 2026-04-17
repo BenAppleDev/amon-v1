@@ -1,0 +1,15 @@
+{
+  "error": "winner did not pass the hard gate",
+  "final_status": "failed",
+  "hard_gate_passed": false,
+  "orchestrator_returncode": 0,
+  "promoted": false,
+  "run_id": "T104-20260417-094902",
+  "scoreboard_path": "logs/runs/T104-20260417-094902/generations/g1/scoreboard.json",
+  "status_before": "ready",
+  "task_id": "T104",
+  "task_path": "tasks/T104_ios_workspace_open_flow_unification.task.md",
+  "total_score": 23.0,
+  "winner_branch": "cand/T104-20260417-094902-g1-minimal",
+  "winner_commit_sha": null
+}

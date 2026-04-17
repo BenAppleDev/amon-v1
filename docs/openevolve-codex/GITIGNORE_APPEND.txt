@@ -1,0 +1,16 @@
+/.worktrees/*
+!/.worktrees/.gitkeep
+
+/logs/runs/*
+!/logs/runs/.gitkeep
+
+/.codex/state/*
+!/.codex/state/.gitkeep
+
+/.codex/cache/*
+!/.codex/cache/.gitkeep
+
+# generated / local-only artifacts
+/logs/**/*.jsonl
+/logs/**/*.stderr.log
+/logs/**/*.stdout.log

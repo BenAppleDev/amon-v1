@@ -1,0 +1,74 @@
+{
+  "architecture": {
+    "allowed_paths": [
+      "backend/",
+      "tools/",
+      "docs/",
+      "docs/",
+      "README.md",
+      "VISION.md",
+      "ROADMAP.md",
+      "ARCHITECTURE.md",
+      "QUALITY_GATES.md"
+    ],
+    "ok": true,
+    "violations": []
+  },
+  "artifacts": {
+    "changed_files": [],
+    "docs_notes": [],
+    "failed_checks": [
+      "required-1",
+      "optional-1"
+    ],
+    "stderr": "## required-1\nWARNING: The directory '/Users/ben/Library/Caches/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.\n  error: subprocess-exited-with-error\n  \n  \u00d7 Getting requirements to build editable did not run successfully.\n  \u2502 exit code: 1\n  \u2570\u2500> [14 lines of output]\n      error: Multiple top-level packages discovered in a flat-layout: ['app', 'migrations'].\n      \n      To avoid accidental inclusion of unwanted files or directories,\n      setuptools will not proceed with this build.\n      \n      If you are trying to create a single distribution with multiple packages\n      on purpose, you should not rely on automatic discovery.\n      Instead, consider the following options:\n      \n      1. set up custom discovery (`find` directive with `include` or `exclude`)\n      2. use a `src-layout`\n      3. explicitly set `py_modules` or `packages` with a list of names\n      \n      To find more information, look for \"package discovery\" on setuptools docs.\n      [end of output]\n  \n  note: This error originates from a subprocess, and is likely not a problem with pip.\n\n[notice] A new release of pip is available: 24.3.1 -> 26.0.1\n[notice] To update, run: python -m pip install --upgrade pip\nerror: subprocess-exited-with-error\n\n\u00d7 Getting requirements to build editable did not run successfully.\n\u2502 exit code: 1\n\u2570\u2500> See above for output.\n\nnote: This error originates from a subprocess, and is likely not a problem with pip.\n\n\n## optional-1\nWARNING: The directory '/Users/ben/Library/Caches/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.\n  error: subprocess-exited-with-error\n  \n  \u00d7 Getting requirements to build editable did not run successfully.\n  \u2502 exit code: 1\n  \u2570\u2500> [14 lines of output]\n      error: Multiple top-level packages discovered in a flat-layout: ['app', 'migrations'].\n      \n      To avoid accidental inclusion of unwanted files or directories,\n      setuptools will not proceed with this build.\n      \n      If you are trying to create a single distribution with multiple packages\n      on purpose, you should not rely on automatic discovery.\n      Instead, consider the following options:\n      \n      1. set up custom discovery (`find` directive with `include` or `exclude`)\n      2. use a `src-layout`\n      3. explicitly set `py_modules` or `packages` with a list of names\n      \n      To find more information, look for \"package discovery\" on setuptools docs.\n      [end of output]\n  \n  note: This error originates from a subprocess, and is likely not a problem with pip.\n\n[notice] A new release of pip is available: 24.3.1 -> 26.0.1\n[notice] To update, run: python -m pip install --upgrade pip\nerror: subprocess-exited-with-error\n\n\u00d7 Getting requirements to build editable did not run successfully.\n\u2502 exit code: 1\n\u2570\u2500> See above for output.\n\nnote: This error originates from a subprocess, and is likely not a problem with pip.\n"
+  },
+  "base_ref": "main",
+  "candidate_id": "T202-validation",
+  "checks": {
+    "optional": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nPY=/Users/ben/amon-v1/backend/.venv/bin/python\nif [ ! -x \"$PY\" ]; then\n  python3 -m venv /Users/ben/amon-v1/backend/.venv\nfi\nif ! \"$PY\" -c \"import fastapi, pytest\" >/dev/null 2>&1; then\n  \"$PY\" -m pip install -q -e /Users/ben/amon-v1/backend[dev]\nfi\ncd /Users/ben/amon-v1/.worktrees/T202-20260417-094900-g1-minimal/backend\nPYTHONPATH=/Users/ben/amon-v1/.worktrees/T202-20260417-094900-g1-minimal/backend \"$PY\" -m pytest -q tests'",
+        "duration_seconds": 1.77,
+        "name": "optional-1",
+        "required": false,
+        "returncode": 1,
+        "status": "fail",
+        "stderr_path": "logs/validation/T202-eval/checks/optional-1.stderr.log",
+        "stdout_path": "logs/validation/T202-eval/checks/optional-1.stdout.log"
+      }
+    ],
+    "required": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nPY=/Users/ben/amon-v1/backend/.venv/bin/python\nif [ ! -x \"$PY\" ]; then\n  python3 -m venv /Users/ben/amon-v1/backend/.venv\nfi\nif ! \"$PY\" -c \"import fastapi, pytest\" >/dev/null 2>&1; then\n  \"$PY\" -m pip install -q -e /Users/ben/amon-v1/backend[dev]\nfi\ncd /Users/ben/amon-v1/.worktrees/T202-20260417-094900-g1-minimal/backend\nPYTHONPATH=/Users/ben/amon-v1/.worktrees/T202-20260417-094900-g1-minimal/backend \"$PY\" -m pytest tests'",
+        "duration_seconds": 1.98,
+        "name": "required-1",
+        "required": true,
+        "returncode": 1,
+        "status": "fail",
+        "stderr_path": "logs/validation/T202-eval/checks/required-1.stderr.log",
+        "stdout_path": "logs/validation/T202-eval/checks/required-1.stdout.log"
+      }
+    ]
+  },
+  "diff": {
+    "deletions": 0,
+    "file_count": 0,
+    "files_changed": [],
+    "insertions": 0,
+    "total_line_changes": 0
+  },
+  "hard_gate_passed": false,
+  "lane": "backend",
+  "metrics": {
+    "architecture": 1.0,
+    "correctness": 0.0,
+    "docs_sync": 1.0,
+    "minimality": 1.0,
+    "performance": 0.5,
+    "quality_gates": 0.0,
+    "total_score": 20.0
+  },
+  "task_id": "T202",
+  "task_title": "Runbook-grade staging validation support for api and ops surfaces"
+}

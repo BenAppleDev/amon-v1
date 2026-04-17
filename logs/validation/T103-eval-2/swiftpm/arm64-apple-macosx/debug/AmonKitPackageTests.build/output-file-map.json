@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/primary.swiftdeps"
+  },
+  "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/runner.d",
+    "object": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/logs/validation/T103-eval-2/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/runner.dia"
+  }
+}

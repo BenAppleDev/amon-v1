@@ -1,0 +1,106 @@
+repo_root = "/Users/ben/amon-v1"
+codex_command = "codex"
+
+candidate_count = 3
+generations = 2
+base_prompt_file = ".codex/prompts/base_task.md"
+
+auto_commit = true
+auto_promote = false
+cleanup_failed_worktrees = false
+
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+web_search = "live"
+
+default_base_ref = "main"
+worktrees_dir = ".worktrees"
+logs_dir = "logs/runs"
+
+global_allowed_paths = [
+  "docs/",
+  "README.md",
+  "VISION.md",
+  "ROADMAP.md",
+  "ARCHITECTURE.md",
+  "QUALITY_GATES.md",
+]
+
+generated_artifact_paths = [
+  "ios/AmonKit/.build/",
+  "website/node_modules/",
+  "website/dist/",
+  "__pycache__/",
+  ".pytest_cache/",
+]
+
+default_timeout_seconds = 2400
+git_author_name = "Codex Evolve"
+git_author_email = "codex-evolve@local"
+
+[scoring]
+correctness = 35
+quality_gates = 20
+architecture = 15
+docs_sync = 10
+minimality = 10
+performance = 10
+
+[lane_required_commands]
+backend = [
+  """bash -lc 'set -euo pipefail
+PY={repo_root_q}/backend/.venv/bin/python
+if [ ! -x "$PY" ]; then
+  python3 -m venv {repo_root_q}/backend/.venv
+fi
+if ! "$PY" -c "import fastapi, pytest" >/dev/null 2>&1; then
+  "$PY" -m pip install -q fastapi httpx sqlalchemy pydantic pydantic-settings beautifulsoup4 uvicorn python-dotenv python-multipart PyJWT pytest pytest-asyncio anyio
+fi
+cd {worktree_q}/backend
+PYTHONPATH={worktree_q}/backend "$PY" -m pytest tests'""",
+]
+website = [
+  "npm --prefix website run build",
+]
+ios = [
+  """bash -lc 'set -euo pipefail
+mkdir -p {run_dir_q}/home {run_dir_q}/module-cache {run_dir_q}/swiftpm
+HOME={run_dir_q}/home \
+SWIFTPM_MODULECACHE_OVERRIDE={run_dir_q}/module-cache \
+CLANG_MODULE_CACHE_PATH={run_dir_q}/module-cache \
+swift test --disable-sandbox --package-path {worktree_q}/ios/AmonKit --scratch-path {run_dir_q}/swiftpm'""",
+]
+ops = []
+
+[lane_optional_commands]
+backend = [
+  """bash -lc 'set -euo pipefail
+PY={repo_root_q}/backend/.venv/bin/python
+if [ ! -x "$PY" ]; then
+  python3 -m venv {repo_root_q}/backend/.venv
+fi
+if ! "$PY" -c "import fastapi, pytest" >/dev/null 2>&1; then
+  "$PY" -m pip install -q fastapi httpx sqlalchemy pydantic pydantic-settings beautifulsoup4 uvicorn python-dotenv python-multipart PyJWT pytest pytest-asyncio anyio
+fi
+cd {worktree_q}/backend
+PYTHONPATH={worktree_q}/backend "$PY" -m pytest -q tests'""",
+]
+website = [
+  "npm --prefix website run lint",
+]
+ios = []
+ops = [
+  "python tools/deployment/track2_smoke.py --help",
+]
+
+[[candidate_strategies]]
+name = "minimal"
+prompt_file = ".codex/prompts/strategy-minimal.md"
+
+[[candidate_strategies]]
+name = "balanced"
+prompt_file = ".codex/prompts/strategy-balanced.md"
+
+[[candidate_strategies]]
+name = "refactor"
+prompt_file = ".codex/prompts/strategy-refactor.md"

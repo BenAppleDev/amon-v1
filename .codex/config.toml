@@ -1,0 +1,27 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+model_verbosity = "medium"
+personality = "pragmatic"
+
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+web_search = "live"
+
+project_root_markers = [".git"]
+project_doc_fallback_filenames = ["README.md"]
+
+sandbox_workspace_write.network_access = true
+sandbox_workspace_write.writable_roots = [
+  "/Users/ben/amon-v1",
+  "/Users/ben/amon-v1/.worktrees",
+  "/Users/ben/amon-v1/logs",
+  "/Users/ben/amon-v1/.codex",
+  "/Users/ben/amon-v1/automation",
+  "/Users/ben/amon-v1/evals",
+  "/Users/ben/amon-v1/tasks",
+]
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 7200
