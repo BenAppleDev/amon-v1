@@ -30,6 +30,20 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionStreamClient.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionStreamClient.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenModels.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenOrchestrator.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.swift.o",

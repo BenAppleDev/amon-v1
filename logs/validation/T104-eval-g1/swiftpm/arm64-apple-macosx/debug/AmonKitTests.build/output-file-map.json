@@ -1,0 +1,26 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/primary.swiftdeps"
+  },
+  "/Users/ben/amon-v1/.worktrees/T104-20260417-143347-g1-minimal/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.d",
+    "object": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.dia"
+  },
+  "/Users/ben/amon-v1/.worktrees/T104-20260417-143347-g1-minimal/ios/AmonKit/Tests/AmonKitTests/SearchViewModelTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests.d",
+    "object": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests.dia"
+  },
+  "/Users/ben/amon-v1/.worktrees/T104-20260417-143347-g1-minimal/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.d",
+    "object": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/logs/validation/T104-eval-g1/swiftpm/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.dia"
+  }
+}

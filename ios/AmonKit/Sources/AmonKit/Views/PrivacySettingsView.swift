@@ -217,7 +217,7 @@ public struct PrivacySettingsView: View {
                     )
                 )
 
-                Text("Saved work remains on this device, and sensitive workspace fields stay protected in the local store.")
+                Text("Saved work stays on this device. Titles, URLs, excerpts, notes, and generated artifact bodies are protected in the local store, but the database is not yet fully opaque in this build.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -233,6 +233,7 @@ public struct PrivacySettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Amon does not yet provide a privacy relay or route for normal site browsing.")
                 Text("Backend retrieval already uses one-off fetches, but there is no separate user-facing control for backend-side site sessions yet.")
+                Text("Workspace uses field-level protection for sensitive saved content, not a fully encrypted opaque database yet.")
                 Text("Workspace locking and export/import confirmation UI are not exposed in this build yet.")
             }
             .font(.footnote)

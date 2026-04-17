@@ -3,9 +3,14 @@ import Foundation
 
 public final class LocalFieldCipher: @unchecked Sendable {
     private let keychain: KeychainHelper
+    private let fixedKeyData: Data?
 
-    public init(keychain: KeychainHelper = .shared) {
+    public init(
+        keychain: KeychainHelper = .shared,
+        fixedKeyData: Data? = nil
+    ) {
         self.keychain = keychain
+        self.fixedKeyData = fixedKeyData
     }
 
     public func encrypt(_ value: String?) throws -> String? {
@@ -28,6 +33,9 @@ public final class LocalFieldCipher: @unchecked Sendable {
     }
 
     private func loadOrCreateKey() throws -> SymmetricKey {
+        if let fixedKeyData {
+            return SymmetricKey(data: fixedKeyData)
+        }
         if let existing = try keychain.readLocalEncryptionKey() {
             return SymmetricKey(data: existing)
         }

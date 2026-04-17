@@ -60,13 +60,15 @@ public struct ReaderPageView: View {
         title: String,
         url: URL,
         apiClient: any AmonAPIClienting,
-        sessionPersistence: BrowsingSessionPersistence
+        sessionPersistence: BrowsingSessionPersistence,
+        initialPage: StructuredRetrievalDTO? = nil
     ) {
         _viewModel = StateObject(
             wrappedValue: ReaderPageViewModel(
                 title: title,
                 url: url,
-                apiClient: apiClient
+                apiClient: apiClient,
+                initialPage: initialPage
             )
         )
         self.url = url
@@ -77,11 +79,7 @@ public struct ReaderPageView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 AmonTrustStripView(
-                    items: [
-                        "Reader fetch",
-                        "Fresh backend request",
-                        "No direct site load unless you open it"
-                    ]
+                    items: viewModel.trustStripItems
                 )
 
                 if let banner = viewModel.banner {
@@ -132,7 +130,7 @@ public struct ReaderPageView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    Text("Sites do not interact directly with your device until you choose Open Site.")
+                    Text(viewModel.pageIntroMessage)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -190,6 +188,11 @@ private struct PresentedWebsite: Identifiable, Hashable {
 
 @MainActor
 private final class ReaderPageViewModel: ObservableObject {
+    enum ContentSource {
+        case backendFetch
+        case savedLocalCopy
+    }
+
     @Published private(set) var page: StructuredRetrievalDTO?
     @Published private(set) var isLoading = false
     @Published var banner: AmonBanner?
@@ -197,16 +200,51 @@ private final class ReaderPageViewModel: ObservableObject {
     private let title: String
     private let url: URL
     private let apiClient: any AmonAPIClienting
+    private let contentSource: ContentSource
     private var didLoad = false
 
-    init(title: String, url: URL, apiClient: any AmonAPIClienting) {
+    init(
+        title: String,
+        url: URL,
+        apiClient: any AmonAPIClienting,
+        initialPage: StructuredRetrievalDTO? = nil
+    ) {
         self.title = title
         self.url = url
         self.apiClient = apiClient
+        self.page = initialPage
+        self.contentSource = initialPage == nil ? .backendFetch : .savedLocalCopy
+        self.didLoad = initialPage != nil
     }
 
     var navigationTitle: String {
         page?.title ?? title
+    }
+
+    var trustStripItems: [String] {
+        switch contentSource {
+        case .backendFetch:
+            return [
+                "Reader fetch",
+                "Fresh backend request",
+                "No direct site load unless you open it",
+            ]
+        case .savedLocalCopy:
+            return [
+                "Saved locally",
+                "No backend fetch",
+                "Open Site is optional",
+            ]
+        }
+    }
+
+    var pageIntroMessage: String {
+        switch contentSource {
+        case .backendFetch:
+            return "Sites do not interact directly with your device until you choose Open Site."
+        case .savedLocalCopy:
+            return "This saved copy lives on this device. Open Site only if you want the live page."
+        }
     }
 
     func loadIfNeeded() async {

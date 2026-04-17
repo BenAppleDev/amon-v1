@@ -10,13 +10,13 @@ export function PrivacyPage() {
     <>
       <Seo
         title="Privacy"
-        description="What Amon minimizes, what stays with the user, and what it does not claim."
+        description="How Amon limits centralized visibility, what it does not store, what stays local, and what it does not claim."
       />
 
       <PageHero
         eyebrow="Privacy"
-        title="What Amon minimizes."
-        lede="A sober view of what the service is meant to minimize, what stays with the user, and what Amon does not claim."
+        title="How Amon limits visibility."
+        lede="Amon is designed so no single system sees everything you search, open, and keep. What happens depends on mode, and what you save stays with you locally."
       />
 
       <section className="page-section">
@@ -29,17 +29,18 @@ export function PrivacyPage() {
             <Reveal className="trust-block">
               <h3>What Amon minimizes</h3>
               <ul className="bullet-list">
-                <li>Durable query text.</li>
-                <li>Durable result sets.</li>
-                <li>Durable page content on its servers.</li>
+                <li>Centralized visibility across the full inquiry.</li>
+                <li>Server-side retention of query text, result sets, and page content.</li>
+                <li>A single durable record of everything you searched, opened, and compared.</li>
               </ul>
             </Reveal>
 
             <Reveal className="trust-block" delay={80}>
-              <h3>What stays with you</h3>
+              <h3>What depends on mode</h3>
               <ul className="bullet-list">
-                <li>Saved work belongs in a local workspace by default.</li>
-                <li>Meaningful inquiry should not automatically become a server-side archive.</li>
+                <li>Search and browsing start through Amon rather than the default stack tied to your device.</li>
+                <li>Some pages can be handled as clean retrieval instead of a conventional site visit.</li>
+                <li>Some live interactions can be mediated through a controlled remote session.</li>
               </ul>
             </Reveal>
 
@@ -58,13 +59,13 @@ export function PrivacyPage() {
       <section className="page-section">
         <div className="frame comparison-grid">
           <Reveal className="comparison-panel">
-            <h3>Protected Session</h3>
-            <p>A deeper, more controlled mode for selected public-web tasks that need more structure and care.</p>
+            <h3>We do not store browsing history.</h3>
+            <p>Your searches and page history do not become a server-side history log inside Amon.</p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>Scope</h3>
-            <p>Amon should stay explicit about scope. It is not promising universal support or total anonymity.</p>
+            <h3>What you keep stays local.</h3>
+            <p>Saved work lives in a local encrypted workspace on your device instead of becoming part of a centralized server-side profile.</p>
           </Reveal>
         </div>
       </section>
@@ -74,7 +75,7 @@ export function PrivacyPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">FAQ</span>
-              <h2>Still comparing the category?</h2>
+              <h2>Want the plain-language version?</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/faq">

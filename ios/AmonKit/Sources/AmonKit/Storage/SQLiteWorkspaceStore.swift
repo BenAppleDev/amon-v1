@@ -105,6 +105,8 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
     }
 
     public func saveItem(_ item: Item) throws {
+        // Encrypt user/content-bearing fields for saved local artifacts.
+        // Structural linkage, timestamps, and workflow state still remain queryable in plaintext in this build.
         let sql = """
         INSERT OR REPLACE INTO items (
             id, workspace_id, source_kind, result_type, title, canonical_url, domain, snippet, page_title, cleaned_excerpt,
@@ -114,13 +116,13 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
         """
         try execute(sql, bindings: [
             .text(item.id), .text(item.workspaceID), .text(item.sourceKind.rawValue), .text(item.resultType.rawValue),
-            .text(try fieldCipher.encrypt(item.title)), .text(try fieldCipher.encrypt(item.canonicalURL)), .text(item.domain),
+            .text(try fieldCipher.encrypt(item.title)), .text(try fieldCipher.encrypt(item.canonicalURL)), .text(try fieldCipher.encrypt(item.domain)),
             .text(try fieldCipher.encrypt(item.snippet)), .text(try fieldCipher.encrypt(item.pageTitle)), .text(try fieldCipher.encrypt(item.cleanedExcerpt)),
-            .text(try encode(item.bulletPoints)), .text(item.providerName), .text(item.providerResultID),
+            .text(try encode(item.bulletPoints)), .text(try fieldCipher.encrypt(item.providerName)), .text(try fieldCipher.encrypt(item.providerResultID)),
             .text(item.fetchedAt.map { AmonCoders.storageDateFormatter.string(from: $0) }),
             .text(AmonCoders.storageDateFormatter.string(from: item.savedAt)),
             .text(AmonCoders.storageDateFormatter.string(from: item.updatedAt)),
-            .text(try encode(item.typedMetadata)), .text(try encode(item.sourceMetadata)), .text(item.contentHash), .int(item.isDeleted ? 1 : 0)
+            .text(try encode(item.typedMetadata)), .text(try encode(item.sourceMetadata)), .text(try fieldCipher.encrypt(item.contentHash)), .int(item.isDeleted ? 1 : 0)
         ])
     }
 
@@ -136,19 +138,19 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
                 resultType: ResultType(rawValue: Self.text(stmt, column: 3) ?? ResultType.webPage.rawValue) ?? .webPage,
                 title: try self.fieldCipher.decrypt(Self.text(stmt, column: 4)) ?? "Untitled",
                 canonicalURL: try self.fieldCipher.decrypt(Self.text(stmt, column: 5)) ?? "",
-                domain: Self.text(stmt, column: 6) ?? "",
+                domain: try self.fieldCipher.decrypt(Self.text(stmt, column: 6)) ?? "",
                 snippet: try self.fieldCipher.decrypt(Self.text(stmt, column: 7)),
                 pageTitle: try self.fieldCipher.decrypt(Self.text(stmt, column: 8)),
                 cleanedExcerpt: try self.fieldCipher.decrypt(Self.text(stmt, column: 9)),
                 bulletPoints: try self.decodeArray(Self.text(stmt, column: 10)) ?? [],
-                providerName: Self.text(stmt, column: 11),
-                providerResultID: Self.text(stmt, column: 12),
+                providerName: try self.fieldCipher.decrypt(Self.text(stmt, column: 11)),
+                providerResultID: try self.fieldCipher.decrypt(Self.text(stmt, column: 12)),
                 fetchedAt: Self.date(stmt, column: 13),
                 savedAt: Self.date(stmt, column: 14) ?? Date(),
                 updatedAt: Self.date(stmt, column: 15) ?? Date(),
                 typedMetadata: try self.decodeObject(Self.text(stmt, column: 16)) ?? [:],
                 sourceMetadata: try self.decodeObject(Self.text(stmt, column: 17)) ?? [:],
-                contentHash: Self.text(stmt, column: 18),
+                contentHash: try self.fieldCipher.decrypt(Self.text(stmt, column: 18)),
                 isDeleted: Self.int(stmt, column: 19) == 1
             )
         }
@@ -204,7 +206,14 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
         for row in artifact.rows {
             try execute(
                 "INSERT OR REPLACE INTO compare_rows (id, compare_artifact_id, field_key, field_label, row_type, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
-                bindings: [.text(row.id), .text(artifact.id), .text(row.fieldKey), .text(try fieldCipher.encrypt(row.fieldLabel)), .text(row.rowType.rawValue), .int(row.sortOrder)]
+                bindings: [
+                    .text(row.id),
+                    .text(artifact.id),
+                    .text(try fieldCipher.encrypt(row.fieldKey)),
+                    .text(try fieldCipher.encrypt(row.fieldLabel)),
+                    .text(row.rowType.rawValue),
+                    .int(row.sortOrder)
+                ]
             )
             for cell in row.cells {
                 try execute(
@@ -313,7 +322,7 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
     public func saveExportRecord(_ record: ExportRecord) throws {
         let sql = "INSERT OR REPLACE INTO export_records (id, workspace_id, export_type, file_name, file_checksum, created_at, completed_at, format_version, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         try execute(sql, bindings: [
-            .text(record.id), .text(record.workspaceID), .text(record.exportType.rawValue), .text(record.fileName), .text(record.fileChecksum),
+            .text(record.id), .text(record.workspaceID), .text(record.exportType.rawValue), .text(try fieldCipher.encrypt(record.fileName)), .text(try fieldCipher.encrypt(record.fileChecksum)),
             .text(AmonCoders.storageDateFormatter.string(from: record.createdAt)),
             .text(record.completedAt.map { AmonCoders.storageDateFormatter.string(from: $0) }),
             .int(record.formatVersion), .text(record.status.rawValue)
@@ -365,7 +374,7 @@ public final class SQLiteWorkspaceStore: WorkspaceStore {
         ) { stmt in
             (
                 Self.text(stmt, column: 0) ?? UUID().uuidString,
-                Self.text(stmt, column: 1) ?? "field",
+                try self.fieldCipher.decrypt(Self.text(stmt, column: 1)) ?? "field",
                 try self.fieldCipher.decrypt(Self.text(stmt, column: 2)) ?? "Field",
                 CompareRowType(rawValue: Self.text(stmt, column: 3) ?? CompareRowType.text.rawValue) ?? .text,
                 Self.int(stmt, column: 4)

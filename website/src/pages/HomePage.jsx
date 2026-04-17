@@ -5,30 +5,30 @@ import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
 import {
   everydayDecisions,
+  homeMechanics,
   homeBelief,
   modeSteps,
-  shiftNowLines,
-  shiftThenLines,
   spaceLines
 } from "../content/site";
 
 export function HomePage() {
   return (
     <>
-      <Seo description="Amon is a place to think through things online — without someone looking over your shoulder." />
+      <Seo description="Amon is a place to search, browse, and think through meaningful decisions online without giving one system a full view of the whole inquiry." />
 
       <section className="hero hero-home">
         <div className="frame hero-grid">
           <Reveal className="hero-copy">
             <span className="eyebrow">Private by default. Deeper when needed.</span>
             <h1>A place to think through things online.</h1>
-            <p className="hero-lede">Without someone looking over your shoulder.</p>
+            <p className="hero-lede">Amon changes how requests are handled so no single system sees everything you search, open, and keep.</p>
+            <p className="hero-support">For normal decisions: moving, jobs, purchases, personal research, and figuring out what comes next.</p>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Request access
               </Link>
               <Link className="button button-secondary" to="/product">
-                Read how it works
+                Read how requests work
               </Link>
             </div>
           </Reveal>
@@ -39,37 +39,34 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="page-section shift-section">
-        <div className="frame shift-grid">
-          <Reveal className="shift-column">
-            <span className="shift-label">Once</span>
-            {shiftThenLines.map((line) => (
-              <p key={line} className="shift-line">
-                {line}
-              </p>
-            ))}
+      <section className="page-section mechanics-section">
+        <div className="frame response-grid">
+          <Reveal className="section-heading">
+            <span className="eyebrow">What changes</span>
+            <h2>The request path changes.</h2>
+            <p>Search, page retrieval, live browsing, and saved work do not all have to go through the same visible stack.</p>
           </Reveal>
 
-          <Reveal className="shift-column shift-column-now" delay={120}>
-            <span className="shift-label">Now</span>
-            {shiftNowLines.map((line) => (
-              <p key={line} className="shift-line">
-                {line}
-              </p>
+          <div className="mechanics-list">
+            {homeMechanics.map((item, index) => (
+              <Reveal key={item.number} className="mechanic-item" delay={index * 70}>
+                <span className="mechanic-index">{item.number}</span>
+                <div className="mechanic-copy">
+                  <h3>{item.title}</h3>
+                  <p>{item.detail}</p>
+                </div>
+              </Reveal>
             ))}
-            <p className="shift-note">
-              Online inquiry no longer just finds answers. It builds a profile.
-            </p>
-          </Reveal>
+          </div>
         </div>
       </section>
 
       <section className="page-section everyday-section">
         <div className="frame everyday-grid">
           <Reveal className="section-heading">
-            <span className="eyebrow">Ordinary life</span>
-            <h2>These are not edge cases.</h2>
-            <p>Moving. Jobs. Purchases. Personal questions. Next steps.</p>
+            <span className="eyebrow">Ordinary decisions</span>
+            <h2>This is for normal life, not edge cases.</h2>
+            <p>Moving, job decisions, large purchases, personal research, and figuring out what comes next all create signals about who someone is and what they may do next.</p>
           </Reveal>
 
           <div className="everyday-list">
@@ -85,10 +82,10 @@ export function HomePage() {
       <section className="page-section belief-section">
         <div className="frame belief-stage">
           <Reveal className="belief-copy">
-            <span className="eyebrow">Why Amon exists</span>
+            <span className="eyebrow">The belief</span>
             <p className="belief-quote">{homeBelief}</p>
             <p className="belief-support">
-              Not just for privacy experts. For ordinary people making real decisions.
+              Amon separates asking a question from the systems that would otherwise remember, connect, and monetize that question.
             </p>
           </Reveal>
         </div>
@@ -97,9 +94,9 @@ export function HomePage() {
       <section className="page-section response-section">
         <div className="frame response-grid">
           <Reveal className="section-heading">
-            <span className="eyebrow">How Amon responds</span>
-            <h2>It starts familiar. Then it deepens.</h2>
-            <p>Amon does not replace the internet. It changes how you move through it.</p>
+            <span className="eyebrow">One workflow</span>
+            <h2>Different tasks, different paths.</h2>
+            <p>Amon is not one private browser mode. It decides how a search, page, live-site interaction, or saved result should be handled.</p>
           </Reveal>
 
           <Reveal delay={100}>
@@ -120,7 +117,7 @@ export function HomePage() {
               ))}
             </div>
             <p className="space-note">
-              A meaningful question should not immediately become a permanent record.
+              The point is not perfect invisibility. It is to stop one system from seeing everything.
             </p>
           </Reveal>
         </div>
@@ -131,14 +128,14 @@ export function HomePage() {
           <Reveal className="cta-panel cta-panel-home">
             <div>
               <span className="eyebrow">Request access</span>
-              <h2>If that sounds right, get in touch.</h2>
+              <h2>If you want better boundaries for search and browsing, get in touch.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Join the waitlist
               </Link>
               <Link className="button button-secondary" to="/privacy">
-                Read the privacy posture
+                Read the privacy model
               </Link>
             </div>
           </Reveal>

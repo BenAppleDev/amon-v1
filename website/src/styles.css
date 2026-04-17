@@ -611,6 +611,35 @@ h3 {
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
 }
 
+.mechanics-list {
+  border-top: 1px solid var(--line);
+}
+
+.mechanic-item {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 18px;
+  padding: 22px 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mechanic-index {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mechanic-copy h3 {
+  font-size: clamp(1.55rem, 2vw, 1.95rem);
+}
+
+.mechanic-copy p {
+  margin: 8px 0 0;
+  max-width: 34ch;
+  color: var(--muted);
+}
+
 .everyday-list {
   border-top: 1px solid var(--line);
 }

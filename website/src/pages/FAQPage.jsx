@@ -14,7 +14,7 @@ export function FAQPage() {
       <PageHero
         eyebrow="FAQ"
         title="Questions people will ask."
-        lede="A few quick clarifications."
+        lede="Plain answers about what Amon is, what it does differently, and what it is not."
       />
 
       <section className="page-section">

@@ -1,0 +1,70 @@
+{
+  "architecture": {
+    "allowed_paths": [
+      "ios/",
+      "docs/",
+      "README.md",
+      "VISION.md",
+      "ROADMAP.md",
+      "ARCHITECTURE.md",
+      "QUALITY_GATES.md"
+    ],
+    "ok": true,
+    "violations": []
+  },
+  "artifacts": {
+    "changed_files": [
+      "ios/AmonKit/Sources/AmonKit/API/APIModels.swift",
+      "ios/AmonKit/Sources/AmonKit/API/AmonAPIClient.swift",
+      "ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift"
+    ],
+    "docs_notes": [
+      "Public-surface-like changes detected without docs updates."
+    ],
+    "failed_checks": [
+      "required-1"
+    ],
+    "stderr": "## required-1\nwarning: /Users/ben/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.\nwarning: /Users/ben/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.\nwarning: /Users/ben/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.\nwarning: 'amonkit': failed storing manifest for 'amonkit' in cache: attempt to write a readonly database\nBuilding for debugging...\n[0/7] /Users/ben/amon-v1/logs/validation/T103-g1-balanced/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.derived/runner.swift\n[1/7] Write sources\n[4/7] Write swift-version--58304C5D6DBC2206.txt\n[6/43] Compiling AmonKit PresentationModels.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[7/43] Compiling AmonKit PrivacySettings.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[8/43] Compiling AmonKit TransportSettings.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[9/45] Compiling AmonKit WorkspaceDetailViewModel.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[10/45] Compiling AmonKit WorkspaceListViewModel.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[11/45] Compiling AmonKit AmonTheme.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[12/45] Compiling AmonKit Coders.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[13/45] Compiling AmonKit APIModels.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[14/45] Compiling AmonKit AmonAPIClient.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[15/45] Compiling AmonKit AmonAPIClienting.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[16/45] Compiling AmonKit WorkspaceExporter.swift\n/Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 "
+  },
+  "base_ref": "main",
+  "candidate_id": "g1-balanced",
+  "checks": {
+    "optional": [],
+    "required": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nmkdir -p /Users/ben/amon-v1/logs/validation/T103-g1-balanced/home /Users/ben/amon-v1/logs/validation/T103-g1-balanced/module-cache /Users/ben/amon-v1/logs/validation/T103-g1-balanced/swiftpm\nHOME=/Users/ben/amon-v1/logs/validation/T103-g1-balanced/home SWIFTPM_MODULECACHE_OVERRIDE=/Users/ben/amon-v1/logs/validation/T103-g1-balanced/module-cache CLANG_MODULE_CACHE_PATH=/Users/ben/amon-v1/logs/validation/T103-g1-balanced/module-cache swift test --disable-sandbox --package-path /Users/ben/amon-v1/.worktrees/T103-20260417-145324-g1-balanced/ios/AmonKit --scratch-path /Users/ben/amon-v1/logs/validation/T103-g1-balanced/swiftpm'",
+        "duration_seconds": 35.05,
+        "name": "required-1",
+        "required": true,
+        "returncode": 1,
+        "status": "fail",
+        "stderr_path": "logs/validation/T103-g1-balanced/checks/required-1.stderr.log",
+        "stdout_path": "logs/validation/T103-g1-balanced/checks/required-1.stdout.log"
+      }
+    ]
+  },
+  "diff": {
+    "deletions": 80,
+    "file_count": 3,
+    "files_changed": [
+      "ios/AmonKit/Sources/AmonKit/API/APIModels.swift",
+      "ios/AmonKit/Sources/AmonKit/API/AmonAPIClient.swift",
+      "ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift"
+    ],
+    "insertions": 102,
+    "total_line_changes": 182
+  },
+  "hard_gate_passed": false,
+  "lane": "ios",
+  "metrics": {
+    "architecture": 1.0,
+    "correctness": 0.0,
+    "docs_sync": 0.5,
+    "minimality": 1.0,
+    "performance": 0.5,
+    "quality_gates": 0.3,
+    "total_score": 20.5
+  },
+  "task_id": "T103",
+  "task_title": "Decode backend error envelopes once in AmonAPIClient"
+}

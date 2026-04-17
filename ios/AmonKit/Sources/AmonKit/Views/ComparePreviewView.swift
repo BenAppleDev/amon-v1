@@ -9,6 +9,10 @@ public struct ComparePreviewView: View {
         self.itemLookup = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
     }
 
+    private var ownershipSummary: WorkspaceOwnedArtifactSummary {
+        artifact.ownedArtifactSummary(items: Array(itemLookup.values))
+    }
+
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -60,6 +64,15 @@ public struct ComparePreviewView: View {
             HStack(spacing: 8) {
                 AmonMetadataPill(text: "\(artifact.itemIDs.count) sources")
                 AmonMetadataPill(text: "\(artifact.rows.count) fields")
+                AmonMetadataPill(text: ownershipSummary.ownershipBadgeText)
+            }
+
+            AmonTrustStripView(items: ownershipSummary.trustStripItems)
+
+            if let transitionSummary = ownershipSummary.transitionSummary {
+                Text(transitionSummary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .amonCardStyle(padding: 20)

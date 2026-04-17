@@ -565,10 +565,17 @@ public final class SearchViewModel: ObservableObject {
 
     private func enrichItemsForDeeperMode(_ items: [Item]) async throws -> [Item] {
         var enrichedItems: [Item] = []
+        var reusedLocalCount = 0
         var retrievedCount = 0
         var failedCount = 0
 
         for item in items {
+            if item.hasOwnedReadableContent {
+                enrichedItems.append(item)
+                reusedLocalCount += 1
+                continue
+            }
+
             do {
                 let retrieved = try await apiClient.retrieve(url: item.canonicalURL)
                 let updated = retrieved.merged(into: item)
@@ -600,6 +607,12 @@ public final class SearchViewModel: ObservableObject {
                 tone: .info,
                 title: "Some sources stayed lightweight",
                 message: "Amon couldn't fetch every readable page, so deeper mode used saved metadata where needed."
+            )
+        } else if reusedLocalCount > 0 && retrievedCount == 0 {
+            banner = AmonBanner(
+                tone: .info,
+                title: "Using saved local copies",
+                message: "Amon reused readable copies already saved in this workspace instead of fetching fresh reader output."
             )
         }
 

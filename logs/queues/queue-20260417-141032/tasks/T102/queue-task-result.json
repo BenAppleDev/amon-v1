@@ -1,0 +1,15 @@
+{
+  "error": "winner did not pass the hard gate",
+  "final_status": "failed",
+  "hard_gate_passed": false,
+  "orchestrator_returncode": 0,
+  "promoted": false,
+  "run_id": "T102-20260417-160121",
+  "scoreboard_path": "logs/runs/T102-20260417-160121/generations/g2/scoreboard.json",
+  "status_before": "ready",
+  "task_id": "T102",
+  "task_path": "tasks/T102_ios_protected_session_typed_states.task.md",
+  "total_score": 20.16,
+  "winner_branch": "cand/T102-20260417-160121-g2-minimal",
+  "winner_commit_sha": "eabdff8e1df443f18aa5fdab6be38ea29d1b3f5e"
+}

@@ -1,0 +1,3 @@
+module AmonKitPackageTests {
+    header "/Users/ben/amon-v1/logs/validation/T102-ios-tests/swiftpm/arm64-apple-ios-simulator/debug/AmonKitPackageTests.build/include/AmonKitPackageTests-Swift.h"
+}

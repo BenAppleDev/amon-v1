@@ -1,0 +1,3 @@
+module AmonKitPackageTests {
+    header "/Users/ben/amon-v1/logs/validation/T103-g1-balanced/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.build/include/AmonKitPackageTests-Swift.h"
+}

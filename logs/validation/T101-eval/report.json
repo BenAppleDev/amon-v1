@@ -1,0 +1,68 @@
+{
+  "architecture": {
+    "allowed_paths": [
+      "ios/",
+      "docs/",
+      "README.md",
+      "VISION.md",
+      "ROADMAP.md",
+      "ARCHITECTURE.md",
+      "QUALITY_GATES.md"
+    ],
+    "ok": true,
+    "violations": []
+  },
+  "artifacts": {
+    "changed_files": [
+      "ios/AmonKit/Sources/AmonKit/Views/SearchView.swift",
+      "ios/AmonKit/Sources/AmonKit/Views/WorkspaceDetailView.swift"
+    ],
+    "docs_notes": [
+      "Public-surface-like changes detected without docs updates."
+    ],
+    "failed_checks": [
+      "required-1"
+    ],
+    "stderr": "## required-1\nwarning: /Users/ben/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.\nwarning: /Users/ben/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.\nwarning: /Users/ben/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.\nwarning: 'amonkit': failed storing manifest for 'amonkit' in cache: attempt to write a readonly database\nBuilding for debugging...\n[0/7] /Users/ben/amon-v1/logs/validation/T101-eval/swiftpm/arm64-apple-macosx/debug/AmonKitPackageTests.derived/runner.swift\n[1/7] Write sources\n[4/7] Write swift-version--58304C5D6DBC2206.txt\n[6/45] Compiling AmonKit WorkspaceDetailViewModel.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[7/45] Compiling AmonKit WorkspaceListViewModel.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[8/47] Compiling AmonKit ProtectedSessionStreamClient.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[9/47] Compiling AmonKit BrowseOpenModels.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[10/47] Compiling AmonKit BrowseOpenOrchestrator.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[11/47] Compiling AmonKit SQLiteWorkspaceStore.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[12/47] Compiling AmonKit Schema.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[13/47] Compiling AmonKit WorkspaceStore.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[14/47] Compiling AmonKit KeychainHelper.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[15/47] Compiling AmonKit LocalFieldCipher.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: no such module 'UIKit'\n 2 | \n 3 | public enum AmonHaptics {\n[16/47] Compiling AmonKit WorkspaceExporter.swift\n/Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift:1:8: error: no such module 'UIKit'\n 1 | import UIKit\n   |        `- error: "
+  },
+  "base_ref": "main",
+  "candidate_id": "T101-g1-balanced",
+  "checks": {
+    "optional": [],
+    "required": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nmkdir -p /Users/ben/amon-v1/logs/validation/T101-eval/home /Users/ben/amon-v1/logs/validation/T101-eval/module-cache /Users/ben/amon-v1/logs/validation/T101-eval/swiftpm\nHOME=/Users/ben/amon-v1/logs/validation/T101-eval/home SWIFTPM_MODULECACHE_OVERRIDE=/Users/ben/amon-v1/logs/validation/T101-eval/module-cache CLANG_MODULE_CACHE_PATH=/Users/ben/amon-v1/logs/validation/T101-eval/module-cache swift test --disable-sandbox --package-path /Users/ben/amon-v1/.worktrees/T101-20260417-171839-g1-balanced/ios/AmonKit --scratch-path /Users/ben/amon-v1/logs/validation/T101-eval/swiftpm'",
+        "duration_seconds": 35.6,
+        "name": "required-1",
+        "required": true,
+        "returncode": 1,
+        "status": "fail",
+        "stderr_path": "logs/validation/T101-eval/checks/required-1.stderr.log",
+        "stdout_path": "logs/validation/T101-eval/checks/required-1.stdout.log"
+      }
+    ]
+  },
+  "diff": {
+    "deletions": 129,
+    "file_count": 2,
+    "files_changed": [
+      "ios/AmonKit/Sources/AmonKit/Views/SearchView.swift",
+      "ios/AmonKit/Sources/AmonKit/Views/WorkspaceDetailView.swift"
+    ],
+    "insertions": 106,
+    "total_line_changes": 235
+  },
+  "hard_gate_passed": false,
+  "lane": "ios",
+  "metrics": {
+    "architecture": 1.0,
+    "correctness": 0.0,
+    "docs_sync": 0.5,
+    "minimality": 1.0,
+    "performance": 0.5,
+    "quality_gates": 0.3,
+    "total_score": 20.5
+  },
+  "task_id": "T101",
+  "task_title": "Add shared browse open orchestrator for Search and Workspace"
+}

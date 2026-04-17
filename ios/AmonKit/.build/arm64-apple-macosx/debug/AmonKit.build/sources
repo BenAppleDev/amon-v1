@@ -2,6 +2,8 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/AmonAPIClient.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/AmonAPIClienting.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/ProtectedSessionStreamClient.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenModels.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenOrchestrator.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/JSONValue.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift

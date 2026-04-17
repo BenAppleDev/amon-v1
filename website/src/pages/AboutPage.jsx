@@ -8,22 +8,22 @@ export function AboutPage() {
     <>
       <Seo
         title="About"
-        description="Why Amon exists and the belief behind its inquiry workflow."
+        description="Why Amon exists: the modern internet turns curiosity into behavioral data, and Amon offers a different environment for inquiry."
       />
 
       <PageHero
         eyebrow="About / Vision"
         title="Why Amon exists."
-        lede="The modern internet does not just answer questions. It records them, connects them, and turns them into signals about what someone may do next."
+        lede="The modern economy runs on data and inference. Search history, browsing patterns, purchase intent, location signals, and inferred preferences all feed systems built to categorize and predict people."
       />
 
       <section className="page-section belief-section">
         <div className="frame belief-stage belief-stage-page">
           <Reveal className="belief-copy">
             <span className="eyebrow">Why Amon exists</span>
-            <p className="belief-quote">People deserve a place to search, compare, and think without quietly feeding someone else&apos;s dataset.</p>
+            <p className="belief-quote">Curiosity has become economic input.</p>
             <p className="belief-support">
-              The economic model is familiar: demographic data, behavioral data, location data, purchase intent, search history, browsing patterns, inferred preferences. Amon is a response to that model.
+              When someone researches a move, compares jobs, evaluates a major purchase, or revisits a personal question, they are often not just using a service. They are producing data about intent, preference, and likely next action.
             </p>
           </Reveal>
         </div>
@@ -32,13 +32,13 @@ export function AboutPage() {
       <section className="page-section">
         <div className="frame comparison-grid comparison-grid-equal">
           <Reveal className="comparison-panel">
-            <h3>What that means in practice</h3>
-            <p>Ordinary searches, comparisons, and revisits do not just help someone make a decision. They also become data points about intent, preference, and likely next action.</p>
+            <h3>What that does to inquiry</h3>
+            <p>The default internet stack makes it easy for search, browsing, comparison, and revisits to collapse into one visible behavioral record. That is useful for systems that predict people. It is not always good for the person trying to think clearly.</p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>What Amon offers instead</h3>
-            <p>Amon gives people a place to search, browse, compare, and make decisions with clearer boundaries. Your curiosity should not automatically become part of someone else&apos;s dataset.</p>
+            <h3>What Amon is for</h3>
+            <p>Amon is a different environment for those moments: search, browse, compare, and decide in a system designed so no single system sees everything, and what you keep stays with you locally.</p>
           </Reveal>
         </div>
       </section>
@@ -48,7 +48,7 @@ export function AboutPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Next</span>
-              <h2>Read how Amon works.</h2>
+              <h2>See how the system works.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/product">

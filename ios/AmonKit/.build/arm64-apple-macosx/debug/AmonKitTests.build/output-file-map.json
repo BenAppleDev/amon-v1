@@ -2,6 +2,13 @@
   "": {
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/primary.swiftdeps"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o",

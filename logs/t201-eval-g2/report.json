@@ -1,0 +1,94 @@
+{
+  "architecture": {
+    "allowed_paths": [
+      "backend/",
+      "tools/",
+      "docs/",
+      "docs/",
+      "README.md",
+      "VISION.md",
+      "ROADMAP.md",
+      "ARCHITECTURE.md",
+      "QUALITY_GATES.md"
+    ],
+    "ok": true,
+    "violations": []
+  },
+  "artifacts": {
+    "changed_files": [
+      "backend/.env.example",
+      "backend/app/config.py",
+      "backend/app/security_ops.py",
+      "backend/app/security_ops_identity_cloudflare.py",
+      "backend/pyproject.toml",
+      "backend/tests/test_ops_surface.py",
+      "docs/deployment/cloudflare-track2-topology.md",
+      "docs/deployment/deployment-runbooks.md",
+      "tools/deployment/track2_smoke.py"
+    ],
+    "docs_notes": [],
+    "failed_checks": [
+      "required-1",
+      "optional-1"
+    ],
+    "stderr": "## required-1\n\n\n## optional-1\n"
+  },
+  "base_ref": "main",
+  "candidate_id": "T201-g2-refactor",
+  "checks": {
+    "optional": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nPY=/Users/ben/amon-v1/backend/.venv/bin/python\nif [ ! -x \"$PY\" ]; then\n  python3 -m venv /Users/ben/amon-v1/backend/.venv\nfi\nif ! \"$PY\" -c \"import fastapi, pytest\" >/dev/null 2>&1; then\n  \"$PY\" -m pip install -q fastapi httpx sqlalchemy pydantic pydantic-settings beautifulsoup4 uvicorn python-dotenv python-multipart PyJWT pytest pytest-asyncio anyio\nfi\ncd /Users/ben/amon-v1/.worktrees/T201-20260417-150927-g2-refactor/backend\nPYTHONPATH=/Users/ben/amon-v1/.worktrees/T201-20260417-150927-g2-refactor/backend \"$PY\" -m pytest -q tests'",
+        "duration_seconds": 0.72,
+        "name": "optional-1",
+        "required": false,
+        "returncode": 2,
+        "status": "fail",
+        "stderr_path": "logs/t201-eval-g2/checks/optional-1.stderr.log",
+        "stdout_path": "logs/t201-eval-g2/checks/optional-1.stdout.log"
+      }
+    ],
+    "required": [
+      {
+        "command": "bash -lc 'set -euo pipefail\nPY=/Users/ben/amon-v1/backend/.venv/bin/python\nif [ ! -x \"$PY\" ]; then\n  python3 -m venv /Users/ben/amon-v1/backend/.venv\nfi\nif ! \"$PY\" -c \"import fastapi, pytest\" >/dev/null 2>&1; then\n  \"$PY\" -m pip install -q fastapi httpx sqlalchemy pydantic pydantic-settings beautifulsoup4 uvicorn python-dotenv python-multipart PyJWT pytest pytest-asyncio anyio\nfi\ncd /Users/ben/amon-v1/.worktrees/T201-20260417-150927-g2-refactor/backend\nPYTHONPATH=/Users/ben/amon-v1/.worktrees/T201-20260417-150927-g2-refactor/backend \"$PY\" -m pytest tests'",
+        "duration_seconds": 0.83,
+        "name": "required-1",
+        "required": true,
+        "returncode": 2,
+        "status": "fail",
+        "stderr_path": "logs/t201-eval-g2/checks/required-1.stderr.log",
+        "stdout_path": "logs/t201-eval-g2/checks/required-1.stdout.log"
+      }
+    ]
+  },
+  "diff": {
+    "deletions": 11,
+    "file_count": 9,
+    "files_changed": [
+      "backend/.env.example",
+      "backend/app/config.py",
+      "backend/app/security_ops.py",
+      "backend/app/security_ops_identity_cloudflare.py",
+      "backend/pyproject.toml",
+      "backend/tests/test_ops_surface.py",
+      "docs/deployment/cloudflare-track2-topology.md",
+      "docs/deployment/deployment-runbooks.md",
+      "tools/deployment/track2_smoke.py"
+    ],
+    "insertions": 341,
+    "total_line_changes": 352
+  },
+  "hard_gate_passed": false,
+  "lane": "backend",
+  "metrics": {
+    "architecture": 1.0,
+    "correctness": 0.0,
+    "docs_sync": 1.0,
+    "minimality": 0.963,
+    "performance": 0.5,
+    "quality_gates": 0.0,
+    "total_score": 19.81
+  },
+  "task_id": "T201",
+  "task_title": "Add verified Cloudflare Access JWT validation to ops identity path"
+}

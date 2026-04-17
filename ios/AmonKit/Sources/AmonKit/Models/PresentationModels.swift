@@ -247,6 +247,97 @@ extension Item {
     var previewText: String? {
         cleanedExcerpt ?? snippet
     }
+
+    var ownershipBadgeText: String {
+        switch ownershipState {
+        case .savedSourceRecord:
+            return "Saved reference"
+        case .ownedReadableCopy:
+            return "Owned copy"
+        }
+    }
+
+    var ownershipSummary: String {
+        switch ownershipState {
+        case .savedSourceRecord:
+            return "Only a saved source reference is stored locally for this item."
+        case .ownedReadableCopy:
+            return "A readable local copy is saved on this device."
+        }
+    }
+
+    var ownershipTransitionText: String? {
+        switch ownershipState {
+        case .savedSourceRecord:
+            return "Save a readable copy to make this source a stronger local artifact."
+        case .ownedReadableCopy:
+            return nil
+        }
+    }
+
+    var localReaderSnapshot: StructuredRetrievalDTO? {
+        guard hasOwnedReadableContent else { return nil }
+        return StructuredRetrievalDTO(
+            url: canonicalURL,
+            canonical_url: canonicalURL,
+            title: displayTitle,
+            domain: domain,
+            excerpt: cleanedExcerpt,
+            bullet_points: bulletPoints,
+            retrieved_at: fetchedAt ?? updatedAt
+        )
+    }
+}
+
+extension WorkspaceOwnedArtifactSummary {
+    var ownershipBadgeText: String {
+        switch kind {
+        case .compare:
+            return "Owned compare"
+        case .research:
+            return "Owned research"
+        }
+    }
+
+    var ownershipSummary: String {
+        switch kind {
+        case .compare:
+            return "This comparison is saved locally as an owned artifact."
+        case .research:
+            return "This research output is saved locally as an owned artifact."
+        }
+    }
+
+    var sourceCoverageBadgeText: String {
+        if sourceCoverage.totalSources == 0 {
+            return "No linked sources"
+        }
+        if sourceCoverage.sourceOnlySources == 0 {
+            return "\(sourceCoverage.totalSources) saved cop\(sourceCoverage.totalSources == 1 ? "y" : "ies")"
+        }
+        if sourceCoverage.ownedReadableSources == 0 {
+            return "\(sourceCoverage.sourceOnlySources) source-only"
+        }
+        return "\(sourceCoverage.ownedReadableSources)/\(sourceCoverage.totalSources) saved copies"
+    }
+
+    var transitionSummary: String? {
+        guard sourceCoverage.needsSourcePromotion else { return nil }
+        let count = sourceCoverage.sourceOnlySources
+        return "\(count) linked source\(count == 1 ? "" : "s") can still be promoted into readable local copies."
+    }
+
+    var trustStripItems: [String] {
+        var items = ["Owned locally", "\(sourceCoverage.totalSources) source\(sourceCoverage.totalSources == 1 ? "" : "s")"]
+        if sourceCoverage.sourceOnlySources > 0 {
+            items.append("\(sourceCoverage.sourceOnlySources) source-only")
+        } else if sourceCoverage.totalSources > 0 {
+            items.append("All readable locally")
+        } else {
+            items.append("No backend fetch")
+        }
+        return items
+    }
 }
 
 private extension String {

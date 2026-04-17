@@ -271,6 +271,7 @@ final class SearchViewModelTests: XCTestCase {
             userDefaults: makeSessionDefaults(),
             preferredWorkspaceStorageKey: "preferredWorkspace"
         )
+        XCTAssertTrue(viewModel.createWorkspace(title: "Research Library"))
         viewModel.query = "privacy"
         await viewModel.search()
         viewModel.toggleSelection(for: "one")
@@ -288,6 +289,68 @@ final class SearchViewModelTests: XCTestCase {
         XCTAssertEqual(savedItems.count, 2)
         XCTAssertNil(savedItems[0].cleanedExcerpt)
         XCTAssertNil(savedItems[1].cleanedExcerpt)
+    }
+
+    func testCompareReusesSavedReadableCopiesBeforeFetchingFreshReaderContent() async throws {
+        let store = MockWorkspaceStore()
+        let workspace = try store.createWorkspace(title: "Research Library", description: nil)
+        try store.saveItem(
+            Item(
+                workspaceID: workspace.id,
+                sourceKind: .retrievedPage,
+                resultType: .article,
+                title: "One",
+                canonicalURL: "https://example.com/one",
+                domain: "example.com",
+                snippet: "Snippet one",
+                pageTitle: "Reader One",
+                cleanedExcerpt: "Saved readable excerpt one",
+                bulletPoints: ["Point one"],
+                fetchedAt: Date()
+            )
+        )
+
+        let api = MockAPIClient()
+        api.searchResults = [
+            makeResult(id: "one", title: "One", url: "https://example.com/one"),
+            makeResult(id: "two", title: "Two", url: "https://example.com/two"),
+        ]
+        api.retrievalResponses = [
+            "https://example.com/two": StructuredRetrievalDTO(
+                url: "https://example.com/two",
+                canonical_url: "https://example.com/two",
+                title: "Reader Two",
+                domain: "example.com",
+                excerpt: "Readable excerpt two",
+                bullet_points: ["Point two"],
+                retrieved_at: Date()
+            )
+        ]
+
+        let privacyStore = makePrivacyStore()
+        privacyStore.updateUseBackendReaderForDeeperModes(true)
+        privacyStore.updateSaveRetrievedContentLocally(false)
+
+        let viewModel = SearchViewModel(
+            apiClient: api,
+            store: store,
+            privacySettingsStore: privacyStore,
+            userDefaults: makeSessionDefaults(),
+            preferredWorkspaceStorageKey: "preferredWorkspace"
+        )
+        viewModel.selectWorkspace(workspace)
+        viewModel.query = "privacy"
+        await viewModel.search()
+        viewModel.toggleSelection(for: "one")
+        viewModel.toggleSelection(for: "two")
+
+        await viewModel.runCompare()
+
+        XCTAssertEqual(api.retrievalRequests, ["https://example.com/two"])
+        let compareItems = try XCTUnwrap(api.compareRequests.first?.1)
+        XCTAssertEqual(compareItems.count, 2)
+        XCTAssertEqual(compareItems[0].cleanedExcerpt, "Saved readable excerpt one")
+        XCTAssertEqual(compareItems[1].cleanedExcerpt, "Readable excerpt two")
     }
 
     private func makeResult(id: String, title: String, url: String) -> SearchResult {
@@ -332,6 +395,7 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
     var searchRequests: [(String, Int)] = []
     var compareRequests: [(String, [Item])] = []
     var researchRequests: [(String, String?, [Item])] = []
+    var retrievalRequests: [String] = []
     var retrievalResponses: [String: StructuredRetrievalDTO] = [:]
     var serveDecisionResponse = ServeDecisionResponseDTO(
         disposition: .allowLocal,
@@ -386,7 +450,8 @@ private final class MockAPIClient: @unchecked Sendable, AmonAPIClienting {
     }
 
     func retrieve(url: String) async throws -> StructuredRetrievalDTO {
-        retrievalResponses[url] ?? StructuredRetrievalDTO(
+        retrievalRequests.append(url)
+        return retrievalResponses[url] ?? StructuredRetrievalDTO(
             url: url,
             canonical_url: url,
             title: "Title",

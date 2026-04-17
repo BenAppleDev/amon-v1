@@ -1,7 +1,7 @@
 +++
 id = "T202"
 title = "Runbook-grade staging validation support for api and ops surfaces"
-status = "failed"
+status = "implemented"
 priority = 84
 lane = "backend"
 base_ref = "main"

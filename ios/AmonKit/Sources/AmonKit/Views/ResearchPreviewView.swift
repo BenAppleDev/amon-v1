@@ -9,6 +9,10 @@ public struct ResearchPreviewView: View {
         self.items = items
     }
 
+    private var ownershipSummary: WorkspaceOwnedArtifactSummary {
+        artifact.ownedArtifactSummary(items: items)
+    }
+
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -83,7 +87,15 @@ public struct ResearchPreviewView: View {
 
             HStack(spacing: 8) {
                 AmonMetadataPill(text: "\(artifact.itemIDs.count) sources")
-                AmonMetadataPill(text: "Saved locally")
+                AmonMetadataPill(text: ownershipSummary.ownershipBadgeText)
+            }
+
+            AmonTrustStripView(items: ownershipSummary.trustStripItems)
+
+            if let transitionSummary = ownershipSummary.transitionSummary {
+                Text(transitionSummary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .amonCardStyle(padding: 20)

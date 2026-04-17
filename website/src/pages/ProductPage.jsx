@@ -13,16 +13,16 @@ export function ProductPage() {
     <>
       <Seo
         title="Product"
-        description="How Amon moves from Search and Browse to Clean View, Protected Session, and Workspace."
+        description="How Amon routes inquiry through Search and Browse, Clean View, Protected Session, and Workspace."
       />
 
       <PageHero
         eyebrow="Product"
-        title="How Amon works."
-        lede="Amon starts where online inquiry usually starts. Then it deepens as the question becomes more important."
+        title="How Amon handles inquiry."
+        lede="Amon does not treat every search, page open, and saved note as the same kind of request. It routes inquiry through different paths depending on what you are doing."
         aside={
           <>
-            <span className="note-kicker">Sequence</span>
+            <span className="note-kicker">Request paths</span>
             <p>Search / Browse → Clean View → Protected Session → Workspace</p>
           </>
         }
@@ -62,18 +62,18 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame product-summary-grid">
           <Reveal className="comparison-panel">
-            <h3>Starts familiar</h3>
-            <p>Search, browse, and open pages as you normally would.</p>
+            <h3>Not one kind of click</h3>
+            <p>Opening something does not always have to mean the same type of request from your own device to the destination site.</p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
-            <h3>Gets deeper when needed</h3>
-            <p>Move into cleaner reading and more structured modes only when the question matters.</p>
+            <h3>Handled by task</h3>
+            <p>Amon can search, broker retrieval, mediate live browsing, or keep the result local depending on what the task actually needs.</p>
           </Reveal>
 
           <Reveal className="comparison-panel" delay={160}>
-            <h3>Keeps the work</h3>
-            <p>What matters can stay with you in a local workspace instead of a default cloud archive.</p>
+            <h3>No single system sees everything</h3>
+            <p>Search, page access, live interaction, and saved work do not all collapse into one centralized record.</p>
           </Reveal>
         </div>
       </section>
@@ -83,7 +83,7 @@ export function ProductPage() {
           <Reveal className="cta-panel">
             <div>
               <span className="eyebrow">Next</span>
-              <h2>Read the privacy posture.</h2>
+              <h2>Read the privacy model.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/privacy">
