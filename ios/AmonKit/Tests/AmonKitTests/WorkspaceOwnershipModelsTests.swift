@@ -49,6 +49,56 @@ final class WorkspaceOwnershipModelsTests: XCTestCase {
         )
     }
 
+    func testWorkspaceOwnershipSummaryReflectsMixedLocality() throws {
+        let readableItem = Item(
+            id: "item-readable",
+            workspaceID: "workspace-1",
+            sourceKind: .retrievedPage,
+            resultType: .article,
+            title: "Readable",
+            canonicalURL: "https://example.com/readable",
+            domain: "example.com",
+            pageTitle: "Readable page",
+            cleanedExcerpt: "Readable excerpt",
+            fetchedAt: Date()
+        )
+        let sourceOnlyItem = Item(
+            id: "item-source-only",
+            workspaceID: "workspace-1",
+            sourceKind: .searchResult,
+            resultType: .article,
+            title: "Source only",
+            canonicalURL: "https://example.com/source",
+            domain: "example.com"
+        )
+        let compare = CompareArtifact(
+            id: "compare-1",
+            workspaceID: "workspace-1",
+            title: "Compare",
+            summary: "Structured comparison",
+            itemIDs: [readableItem.id, sourceOnlyItem.id]
+        )
+
+        let summary = WorkspaceOwnershipSummary(
+            totalItems: 2,
+            ownedReadableItems: 1,
+            sourceOnlyItems: 1,
+            ownedLocalArtifacts: 1,
+            artifactsNeedingSourcePromotion: 1,
+            linkedSourceOnlyItems: 1
+        )
+
+        XCTAssertEqual(summary.localityState, .partiallyLocal)
+        XCTAssertTrue(summary.canStrengthenFurther)
+        XCTAssertEqual(summary.standaloneSourceOnlyItems, 0)
+        XCTAssertEqual(summary.localityBadgeText, "Partially local")
+        XCTAssertEqual(
+            summary.transitionSummaryText,
+            "1 linked source behind owned artifacts can still be strengthened."
+        )
+        XCTAssertTrue(compare.ownedArtifactSummary(items: [readableItem, sourceOnlyItem]).sourceCoverage.needsSourcePromotion)
+    }
+
     func testPromoteItemToOwnedReadableCopyStrengthensSavedSource() async throws {
         let directory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             .appendingPathComponent("amonkit-workspace-promotion-\(UUID().uuidString)", isDirectory: true)
@@ -241,6 +291,176 @@ final class WorkspaceOwnershipModelsTests: XCTestCase {
         let updatedItems = try store.fetchItems(workspaceID: workspace.id)
         XCTAssertTrue(try XCTUnwrap(updatedItems.first(where: { $0.id == itemOne.id })).hasOwnedReadableContent)
         XCTAssertFalse(try XCTUnwrap(updatedItems.first(where: { $0.id == itemTwo.id })).hasOwnedReadableContent)
+    }
+
+    func testStrengthenWorkspacePromotesAllEligibleSources() async throws {
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("amonkit-workspace-strengthen-\(UUID().uuidString)", isDirectory: true)
+        let databaseURL = directory.appendingPathComponent("workspace.sqlite")
+
+        defer {
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let store = try SQLiteWorkspaceStore(
+            databaseURL: databaseURL,
+            fieldCipher: LocalFieldCipher(fixedKeyData: Data(repeating: 9, count: 32))
+        )
+        let workspace = try store.createWorkspace(title: "Research Library", description: nil)
+        let readableItem = Item(
+            id: "item-readable",
+            workspaceID: workspace.id,
+            sourceKind: .retrievedPage,
+            resultType: .article,
+            title: "Readable",
+            canonicalURL: "https://example.com/readable",
+            domain: "example.com",
+            pageTitle: "Readable page",
+            cleanedExcerpt: "Readable excerpt",
+            fetchedAt: Date()
+        )
+        let linkedSourceOnlyItem = Item(
+            id: "item-linked",
+            workspaceID: workspace.id,
+            sourceKind: .searchResult,
+            resultType: .article,
+            title: "Linked source",
+            canonicalURL: "https://example.com/linked",
+            domain: "example.com"
+        )
+        let standaloneSourceOnlyItem = Item(
+            id: "item-standalone",
+            workspaceID: workspace.id,
+            sourceKind: .searchResult,
+            resultType: .article,
+            title: "Standalone source",
+            canonicalURL: "https://example.com/standalone",
+            domain: "example.com"
+        )
+        try store.saveItem(readableItem)
+        try store.saveItem(linkedSourceOnlyItem)
+        try store.saveItem(standaloneSourceOnlyItem)
+
+        let artifact = CompareArtifact(
+            id: "compare-1",
+            workspaceID: workspace.id,
+            title: "Compare",
+            summary: "Structured comparison",
+            itemIDs: [readableItem.id, linkedSourceOnlyItem.id]
+        )
+        try store.saveCompareArtifact(artifact)
+
+        let apiClient = WorkspaceOwnershipAPIClientStub()
+        apiClient.retrievalResponses[linkedSourceOnlyItem.canonicalURL] = StructuredRetrievalDTO(
+            url: linkedSourceOnlyItem.canonicalURL,
+            canonical_url: linkedSourceOnlyItem.canonicalURL,
+            title: "Linked source readable",
+            domain: linkedSourceOnlyItem.domain,
+            excerpt: "Linked source excerpt",
+            bullet_points: ["Point one"],
+            retrieved_at: Date()
+        )
+        apiClient.retrievalResponses[standaloneSourceOnlyItem.canonicalURL] = StructuredRetrievalDTO(
+            url: standaloneSourceOnlyItem.canonicalURL,
+            canonical_url: standaloneSourceOnlyItem.canonicalURL,
+            title: "Standalone source readable",
+            domain: standaloneSourceOnlyItem.domain,
+            excerpt: "Standalone source excerpt",
+            bullet_points: ["Point one"],
+            retrieved_at: Date()
+        )
+
+        let viewModel = WorkspaceDetailViewModel(store: store, workspaceID: workspace.id)
+
+        XCTAssertEqual(viewModel.ownershipSummary.sourceOnlyItems, 2)
+        XCTAssertEqual(viewModel.ownershipSummary.linkedSourceOnlyItems, 1)
+        XCTAssertEqual(viewModel.ownershipSummary.artifactsNeedingSourcePromotion, 1)
+
+        await viewModel.strengthenWorkspace(apiClient: apiClient)
+
+        let refreshedSummary = viewModel.ownershipSummary
+        XCTAssertEqual(refreshedSummary.localityState, .fullyLocal)
+        XCTAssertEqual(refreshedSummary.sourceOnlyItems, 0)
+        XCTAssertEqual(refreshedSummary.linkedSourceOnlyItems, 0)
+        XCTAssertEqual(refreshedSummary.artifactsNeedingSourcePromotion, 0)
+        XCTAssertFalse(refreshedSummary.canStrengthenFurther)
+        XCTAssertEqual(viewModel.banner?.title, "Workspace strengthened")
+        XCTAssertEqual(
+            apiClient.retrievalRequests.sorted(),
+            [linkedSourceOnlyItem.canonicalURL, standaloneSourceOnlyItem.canonicalURL].sorted()
+        )
+    }
+
+    func testStrengthenWorkspaceHandlesPartialFailure() async throws {
+        let directory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("amonkit-workspace-strengthen-partial-\(UUID().uuidString)", isDirectory: true)
+        let databaseURL = directory.appendingPathComponent("workspace.sqlite")
+
+        defer {
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let store = try SQLiteWorkspaceStore(
+            databaseURL: databaseURL,
+            fieldCipher: LocalFieldCipher(fixedKeyData: Data(repeating: 10, count: 32))
+        )
+        let workspace = try store.createWorkspace(title: "Research Library", description: nil)
+        let linkedSourceOnlyItem = Item(
+            id: "item-linked",
+            workspaceID: workspace.id,
+            sourceKind: .searchResult,
+            resultType: .article,
+            title: "Linked source",
+            canonicalURL: "https://example.com/linked",
+            domain: "example.com"
+        )
+        let standaloneSourceOnlyItem = Item(
+            id: "item-standalone",
+            workspaceID: workspace.id,
+            sourceKind: .searchResult,
+            resultType: .article,
+            title: "Standalone source",
+            canonicalURL: "https://example.com/standalone",
+            domain: "example.com"
+        )
+        try store.saveItem(linkedSourceOnlyItem)
+        try store.saveItem(standaloneSourceOnlyItem)
+
+        let artifact = ResearchArtifact(
+            id: "research-1",
+            workspaceID: workspace.id,
+            title: "Research",
+            summaryText: "Grounded notes",
+            itemIDs: [linkedSourceOnlyItem.id]
+        )
+        try store.saveResearchArtifact(artifact)
+
+        let apiClient = WorkspaceOwnershipAPIClientStub()
+        apiClient.retrievalResponses[linkedSourceOnlyItem.canonicalURL] = StructuredRetrievalDTO(
+            url: linkedSourceOnlyItem.canonicalURL,
+            canonical_url: linkedSourceOnlyItem.canonicalURL,
+            title: "Linked source readable",
+            domain: linkedSourceOnlyItem.domain,
+            excerpt: "Linked source excerpt",
+            bullet_points: ["Point one"],
+            retrieved_at: Date()
+        )
+        apiClient.retrievalErrors[standaloneSourceOnlyItem.canonicalURL] = NSError(domain: "WorkspaceOwnershipAPIClientStub", code: 42)
+
+        let viewModel = WorkspaceDetailViewModel(store: store, workspaceID: workspace.id)
+
+        await viewModel.strengthenWorkspace(apiClient: apiClient)
+
+        let refreshedSummary = viewModel.ownershipSummary
+        XCTAssertEqual(refreshedSummary.localityState, .partiallyLocal)
+        XCTAssertEqual(refreshedSummary.sourceOnlyItems, 1)
+        XCTAssertEqual(refreshedSummary.linkedSourceOnlyItems, 0)
+        XCTAssertEqual(refreshedSummary.artifactsNeedingSourcePromotion, 0)
+        XCTAssertEqual(viewModel.banner?.title, "Strengthened some of this workspace")
+
+        let updatedItems = try store.fetchItems(workspaceID: workspace.id)
+        XCTAssertTrue(try XCTUnwrap(updatedItems.first(where: { $0.id == linkedSourceOnlyItem.id })).hasOwnedReadableContent)
+        XCTAssertFalse(try XCTUnwrap(updatedItems.first(where: { $0.id == standaloneSourceOnlyItem.id })).hasOwnedReadableContent)
     }
 }
 

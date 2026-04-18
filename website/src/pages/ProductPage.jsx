@@ -19,10 +19,10 @@ export function ProductPage() {
       <PageHero
         eyebrow="Product"
         title="How Amon handles inquiry."
-        lede="Amon does not treat every search, page open, and saved note as the same kind of request. It routes inquiry through different paths depending on what you are doing."
+        lede="Amon does not treat every search, page open, and saved note as the same kind of request. It can keep a request in the familiar search layer, fetch information cleanly, mediate live browsing, and keep what matters in a local workspace."
         aside={
           <>
-            <span className="note-kicker">Request paths</span>
+            <span className="note-kicker">Privacy paths</span>
             <p>Search / Browse → Clean View → Protected Session → Workspace</p>
           </>
         }

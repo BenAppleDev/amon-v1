@@ -14,15 +14,15 @@ import {
 export function HomePage() {
   return (
     <>
-      <Seo description="Amon is a place to search, browse, and think through meaningful decisions online without giving one system a full view of the whole inquiry." />
+      <Seo description="Amon is a search and browsing app that routes requests through different privacy paths so no single system sees everything you search, open, and keep." />
 
       <section className="hero hero-home">
         <div className="frame hero-grid">
           <Reveal className="hero-copy">
             <span className="eyebrow">Private by default. Deeper when needed.</span>
-            <h1>A place to think through things online.</h1>
-            <p className="hero-lede">Amon changes how requests are handled so no single system sees everything you search, open, and keep.</p>
-            <p className="hero-support">For normal decisions: moving, jobs, purchases, personal research, and figuring out what comes next.</p>
+            <h1>Search, browse, and think through decisions, privately.</h1>
+            <p className="hero-lede">Amon is a search and browsing app that routes requests through different privacy paths, so no single system sees everything you search, open, and keep.</p>
+            <p className="hero-support">Built for normal decisions: moving, jobs, purchases, personal research, and figuring out what comes next.</p>
             <div className="button-row">
               <Link className="button" to="/contact">
                 Request access
@@ -42,9 +42,9 @@ export function HomePage() {
       <section className="page-section mechanics-section">
         <div className="frame response-grid">
           <Reveal className="section-heading">
-            <span className="eyebrow">What changes</span>
-            <h2>The request path changes.</h2>
-            <p>Search, page retrieval, live browsing, and saved work do not all have to go through the same visible stack.</p>
+            <span className="eyebrow">How Amon works</span>
+            <h2>Each kind of request can take a different path.</h2>
+            <p>Search, clean retrieval, mediated browsing, and saved work are handled differently on purpose.</p>
           </Reveal>
 
           <div className="mechanics-list">
@@ -95,8 +95,8 @@ export function HomePage() {
         <div className="frame response-grid">
           <Reveal className="section-heading">
             <span className="eyebrow">One workflow</span>
-            <h2>Different tasks, different paths.</h2>
-            <p>Amon is not one private browser mode. It decides how a search, page, live-site interaction, or saved result should be handled.</p>
+            <h2>One workflow, different paths.</h2>
+            <p>Amon looks like a normal search and browsing app, but it does not treat every request the same.</p>
           </Reveal>
 
           <Reveal delay={100}>

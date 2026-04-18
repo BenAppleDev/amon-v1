@@ -9,6 +9,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var promotingItemIDs: Set<String> = []
     @Published private(set) var strengtheningArtifactIDs: Set<String> = []
+    @Published private(set) var isStrengtheningWorkspace: Bool = false
     @Published var banner: AmonBanner?
 
     private let store: WorkspaceStore
@@ -63,23 +64,19 @@ final class WorkspaceDetailViewModel: ObservableObject {
             + researchArtifacts.filter { ownedArtifactSummary(for: $0).sourceCoverage.needsSourcePromotion }.count
     }
 
+    var ownershipSummary: WorkspaceOwnershipSummary {
+        WorkspaceOwnershipSummary(
+            totalItems: items.count,
+            ownedReadableItems: ownedReadableItemCount,
+            sourceOnlyItems: sourceOnlyItemCount,
+            ownedLocalArtifacts: ownedLocalArtifactCount,
+            artifactsNeedingSourcePromotion: artifactsNeedingSourcePromotionCount,
+            linkedSourceOnlyItems: strengthenableLinkedSourceItemIDs.count
+        )
+    }
+
     var ownershipStripItems: [String] {
-        var items = ["Saved on this device"]
-        if ownedReadableItemCount > 0 {
-            items.append("\(ownedReadableItemCount) saved cop\(ownedReadableItemCount == 1 ? "y" : "ies")")
-        }
-        if sourceOnlyItemCount > 0 {
-            items.append("\(sourceOnlyItemCount) source-only save\(sourceOnlyItemCount == 1 ? "" : "s")")
-        } else if !self.items.isEmpty {
-            items.append("Open source optional")
-        }
-        if ownedLocalArtifactCount > 0 {
-            items.append("\(ownedLocalArtifactCount) local artifact\(ownedLocalArtifactCount == 1 ? "" : "s")")
-        }
-        if artifactsNeedingSourcePromotionCount > 0 {
-            items.append("\(artifactsNeedingSourcePromotionCount) can be strengthened")
-        }
-        return items
+        ownershipSummary.trustStripItems
     }
 
     func isPromotingItem(_ itemID: String) -> Bool {
@@ -99,6 +96,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
     }
 
     func promoteItemToOwnedReadableCopy(_ item: Item, apiClient: any AmonAPIClienting) async {
+        guard !isStrengtheningWorkspace else { return }
         guard item.canPromoteToOwnedReadableCopy else { return }
         let result = await promoteItemsToOwnedReadableCopies([item], apiClient: apiClient)
 
@@ -118,6 +116,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
     }
 
     func strengthenLinkedSources(for artifact: CompareArtifact, apiClient: any AmonAPIClienting) async {
+        guard !isStrengtheningWorkspace else { return }
         await strengthenLinkedSources(
             artifactID: artifact.id,
             artifactTitle: artifact.title,
@@ -127,6 +126,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
     }
 
     func strengthenLinkedSources(for artifact: ResearchArtifact, apiClient: any AmonAPIClienting) async {
+        guard !isStrengtheningWorkspace else { return }
         await strengthenLinkedSources(
             artifactID: artifact.id,
             artifactTitle: artifact.title,
@@ -188,6 +188,58 @@ final class WorkspaceDetailViewModel: ObservableObject {
         )
     }
 
+    func strengthenWorkspace(apiClient: any AmonAPIClienting) async {
+        guard !isStrengtheningWorkspace else { return }
+
+        let summary = ownershipSummary
+        let linkedSourceItemIDs = strengthenableLinkedSourceItemIDs
+        guard summary.canStrengthenFurther else {
+            banner = AmonBanner(
+                tone: .info,
+                title: "Already fully local",
+                message: "This workspace already has readable local copies behind every saved source."
+            )
+            return
+        }
+
+        isStrengtheningWorkspace = true
+        defer { isStrengtheningWorkspace = false }
+
+        let result = await promoteItemsToOwnedReadableCopies(strengthenableItems, apiClient: apiClient)
+
+        if result.failedCount == 0 {
+            banner = AmonBanner(
+                tone: .success,
+                title: "Workspace strengthened",
+                message: workspaceStrengtheningMessage(
+                    result: result,
+                    failedCount: result.failedCount,
+                    linkedSourceItemIDs: linkedSourceItemIDs
+                )
+            )
+            return
+        }
+
+        if result.succeededCount > 0 {
+            banner = AmonBanner(
+                tone: .info,
+                title: "Strengthened some of this workspace",
+                message: workspaceStrengtheningMessage(
+                    result: result,
+                    failedCount: result.failedCount,
+                    linkedSourceItemIDs: linkedSourceItemIDs
+                )
+            )
+            return
+        }
+
+        banner = AmonBanner(
+            tone: .error,
+            title: "Couldn't strengthen this workspace",
+            message: result.lastFailureMessage ?? "Amon couldn't strengthen the saved references in this workspace right now."
+        )
+    }
+
     private func touchWorkspace(id: String) throws {
         guard var workspace = try store.fetchWorkspace(id: id) else { return }
         workspace.updatedAt = Date()
@@ -199,6 +251,44 @@ final class WorkspaceDetailViewModel: ObservableObject {
         return itemIDs.compactMap { itemsByID[$0] }
     }
 
+    private var strengthenableItems: [Item] {
+        items.filter(\.canPromoteToOwnedReadableCopy)
+    }
+
+    private var strengthenableLinkedSourceItemIDs: Set<String> {
+        let linkedIDs = Set(compareArtifacts.flatMap(\.itemIDs) + researchArtifacts.flatMap(\.itemIDs))
+        let itemsByID = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
+
+        return Set(
+            linkedIDs.compactMap { itemID in
+                guard let item = itemsByID[itemID], item.canPromoteToOwnedReadableCopy else { return nil }
+                return itemID
+            }
+        )
+    }
+
+    private func workspaceStrengtheningMessage(
+        result: WorkspaceStrengtheningResult,
+        failedCount: Int,
+        linkedSourceItemIDs: Set<String>
+    ) -> String {
+        let succeededCount = result.succeededCount
+        let linkedSucceededCount = result.succeededItemIDs.intersection(linkedSourceItemIDs).count
+
+        if failedCount == 0 {
+            if linkedSucceededCount > 0 {
+                return "Saved readable cop\(succeededCount == 1 ? "y" : "ies") for \(succeededCount) source\(succeededCount == 1 ? "" : "s"), including \(linkedSucceededCount) linked from owned artifacts."
+            }
+            return "Saved readable cop\(succeededCount == 1 ? "y" : "ies") for \(succeededCount) source\(succeededCount == 1 ? "" : "s") across this workspace."
+        }
+
+        if linkedSucceededCount > 0 {
+            return "Saved \(succeededCount) readable cop\(succeededCount == 1 ? "y" : "ies"), including \(linkedSucceededCount) linked from owned artifacts, but \(failedCount) source\(failedCount == 1 ? "" : "s") still need strengthening."
+        }
+
+        return "Saved \(succeededCount) readable cop\(succeededCount == 1 ? "y" : "ies"), but \(failedCount) source\(failedCount == 1 ? "" : "s") still need strengthening."
+    }
+
     private func promoteItemsToOwnedReadableCopies(
         _ items: [Item],
         apiClient: any AmonAPIClienting
@@ -208,12 +298,14 @@ final class WorkspaceDetailViewModel: ObservableObject {
                 requestedCount: 0,
                 succeededCount: 0,
                 failedCount: 0,
+                succeededItemIDs: [],
                 lastFailureMessage: nil
             )
         }
 
         var succeededCount = 0
         var failedCount = 0
+        var succeededItemIDs = Set<String>()
         var lastFailureMessage: String?
         var touchedWorkspaceIDs = Set<String>()
 
@@ -226,6 +318,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
                 try store.saveItem(updated)
                 touchedWorkspaceIDs.insert(item.workspaceID)
                 succeededCount += 1
+                succeededItemIDs.insert(item.id)
             } catch {
                 failedCount += 1
                 lastFailureMessage = AmonErrorPresenter.message(
@@ -247,6 +340,7 @@ final class WorkspaceDetailViewModel: ObservableObject {
             requestedCount: items.count,
             succeededCount: succeededCount,
             failedCount: failedCount,
+            succeededItemIDs: succeededItemIDs,
             lastFailureMessage: lastFailureMessage
         )
     }
@@ -256,5 +350,6 @@ private struct WorkspaceStrengtheningResult {
     let requestedCount: Int
     let succeededCount: Int
     let failedCount: Int
+    let succeededItemIDs: Set<String>
     let lastFailureMessage: String?
 }

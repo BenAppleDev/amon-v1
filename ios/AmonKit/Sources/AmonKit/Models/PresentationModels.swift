@@ -340,6 +340,68 @@ extension WorkspaceOwnedArtifactSummary {
     }
 }
 
+extension WorkspaceOwnershipSummary {
+    var localityBadgeText: String {
+        switch localityState {
+        case .fullyLocal:
+            return "Fully local"
+        case .partiallyLocal:
+            return "Partially local"
+        case .referenceDependent:
+            return "Saved references"
+        }
+    }
+
+    var ownershipSummaryText: String {
+        switch localityState {
+        case .fullyLocal:
+            return "Everything here is backed by readable local copies or owned local artifacts on this device."
+        case .partiallyLocal:
+            return "This workspace is mostly local, but some saved sources still depend on lightweight references."
+        case .referenceDependent:
+            return "This workspace still depends mainly on saved source references instead of readable local copies."
+        }
+    }
+
+    var transitionSummaryText: String? {
+        guard canStrengthenFurther else { return nil }
+
+        if linkedSourceOnlyItems > 0 && standaloneSourceOnlyItems > 0 {
+            return "\(sourceOnlyItems) saved references can still be strengthened, including \(linkedSourceOnlyItems) linked from owned artifacts."
+        }
+
+        if linkedSourceOnlyItems > 0 {
+            return "\(linkedSourceOnlyItems) linked source\(linkedSourceOnlyItems == 1 ? "" : "s") behind owned artifacts can still be strengthened."
+        }
+
+        return "\(sourceOnlyItems) saved source reference\(sourceOnlyItems == 1 ? "" : "s") can still be strengthened into readable local copies."
+    }
+
+    var trustStripItems: [String] {
+        var items = [localityBadgeText]
+
+        if ownedReadableItems > 0 {
+            items.append("\(ownedReadableItems) saved cop\(ownedReadableItems == 1 ? "y" : "ies")")
+        }
+
+        if sourceOnlyItems > 0 {
+            items.append("\(sourceOnlyItems) source-only save\(sourceOnlyItems == 1 ? "" : "s")")
+        } else if totalItems > 0 {
+            items.append("Readable copies saved")
+        }
+
+        if ownedLocalArtifacts > 0 {
+            items.append("\(ownedLocalArtifacts) local artifact\(ownedLocalArtifacts == 1 ? "" : "s")")
+        }
+
+        if artifactsNeedingSourcePromotion > 0 {
+            items.append("\(artifactsNeedingSourcePromotion) artifact\(artifactsNeedingSourcePromotion == 1 ? "" : "s") can be strengthened")
+        }
+
+        return items
+    }
+}
+
 private extension String {
     var nilIfEmpty: String? {
         isEmpty ? nil : self

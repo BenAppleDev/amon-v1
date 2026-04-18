@@ -3,17 +3,20 @@ import Foundation
 @MainActor
 public final class ProtectedSessionViewModel: ObservableObject {
     @Published public private(set) var state: ProtectedSessionStateDTO?
-    @Published public private(set) var isLoading = false
+    @Published public private(set) var sessionLifecycleState: ProtectedSessionLifecycleState = .connecting
+    @Published public private(set) var streamState: ProtectedSessionStreamState = .connecting
+    @Published public private(set) var actionState: ProtectedSessionActionState = .idle
     @Published public private(set) var isEndingSession = false
-    @Published public private(set) var streamConnectionState = "connecting"
     @Published var banner: AmonBanner?
     @Published private var fieldDrafts: [String: String] = [:]
 
     private let initialURL: URL
     private let apiClient: any AmonAPIClienting
+    private let streamClientFactory: any ProtectedSessionStreamClientBuilding
+    private let reconnectDelay: Duration
     private var didStart = false
     private var pollingTask: Task<Void, Never>?
-    private var streamClient: ProtectedSessionStreamClient?
+    private var streamClient: (any ProtectedSessionStreamConnecting)?
     private var reconnectTask: Task<Void, Never>?
     private var pendingStreamActionID: String?
     private var pendingActionBaseRevision: Int?
@@ -21,8 +24,24 @@ public final class ProtectedSessionViewModel: ObservableObject {
     private var reconnectAttempts = 0
 
     public init(url: URL, apiClient: any AmonAPIClienting) {
+        self.init(
+            url: url,
+            apiClient: apiClient,
+            streamClientFactory: DefaultProtectedSessionStreamClientFactory(),
+            reconnectDelay: .seconds(2)
+        )
+    }
+
+    init(
+        url: URL,
+        apiClient: any AmonAPIClienting,
+        streamClientFactory: any ProtectedSessionStreamClientBuilding,
+        reconnectDelay: Duration
+    ) {
         self.initialURL = url
         self.apiClient = apiClient
+        self.streamClientFactory = streamClientFactory
+        self.reconnectDelay = reconnectDelay
     }
 
     deinit {
@@ -51,11 +70,181 @@ public final class ProtectedSessionViewModel: ObservableObject {
         state?.current_frame
     }
 
+    public var clientState: ProtectedSessionClientState {
+        switch sessionLifecycleState {
+        case .connecting:
+            return .connecting
+        case .expired:
+            return .expired
+        case .ended:
+            return .ended
+        case .failed:
+            return .failed
+        case .live:
+            switch streamState {
+            case .connecting:
+                return .connecting
+            case .live:
+                return .live
+            case .reconnecting(let attempt):
+                return .reconnecting(attempt: attempt)
+            case .degradedPolling:
+                return .degradedPolling
+            }
+        }
+    }
+
+    public var canInteract: Bool {
+        if case .live = sessionLifecycleState {
+            return !isEndingSession
+        }
+        return false
+    }
+
+    public var isPerformingAction: Bool {
+        actionState.isPerforming
+    }
+
+    public var isStartingSession: Bool {
+        if case .connecting = sessionLifecycleState {
+            return state == nil
+        }
+        return false
+    }
+
+    public var isAwaitingFirstFrame: Bool {
+        guard canDisplayLiveSessionSurface else { return false }
+        return currentFrame == nil
+    }
+
+    public var canDisplayLiveSessionSurface: Bool {
+        switch sessionLifecycleState {
+        case .live, .expired, .ended, .failed:
+            return state != nil
+        case .connecting:
+            return false
+        }
+    }
+
+    public var shouldShowInteractiveControls: Bool {
+        canInteract && state != nil && clientState != .connecting
+    }
+
+    public var sessionStatusTitle: String {
+        switch clientState {
+        case .connecting:
+            return "Connecting"
+        case .live:
+            return "Live"
+        case .reconnecting:
+            return "Reconnecting"
+        case .degradedPolling:
+            return "Live with fallback"
+        case .expired:
+            return "Expired"
+        case .ended:
+            return "Ended"
+        case .failed:
+            return "Failed"
+        }
+    }
+
+    public var sessionStatusMessage: String {
+        switch clientState {
+        case .connecting:
+            return "Amon is opening the remote session and preparing the first protected snapshot for \(allowedHost)."
+        case .live:
+            return "Remote state is live for \(allowedHost). The session will expire unless you keep interacting."
+        case .reconnecting(let attempt):
+            return "Amon is reconnecting the live snapshot stream for \(allowedHost). Attempt \(attempt) of 2."
+        case .degradedPolling:
+            return streamFallbackMessage ?? "The live snapshot stream is degraded. Amon is keeping the session alive with periodic refreshes."
+        case .expired:
+            if case .expired(let message) = sessionLifecycleState {
+                return message ?? "This protected session expired and its remote state is no longer available."
+            }
+            return "This protected session expired and its remote state is no longer available."
+        case .ended:
+            if case .ended(let message) = sessionLifecycleState {
+                return message ?? "This protected session ended and won't accept new actions."
+            }
+            return "This protected session ended and won't accept new actions."
+        case .failed:
+            if case .failed(let message) = sessionLifecycleState {
+                return message ?? "Amon couldn't keep this protected session running."
+            }
+            return "Amon couldn't keep this protected session running."
+        }
+    }
+
+    public var streamStatusLabel: String {
+        switch streamState {
+        case .connecting:
+            return "Connecting"
+        case .live:
+            return "Live"
+        case .reconnecting(let attempt):
+            return "Reconnecting (\(attempt))"
+        case .degradedPolling:
+            return "Polling fallback"
+        }
+    }
+
+    public var actionStatusMessage: String? {
+        guard case .performing(let action) = actionState else { return nil }
+        switch action {
+        case .reload:
+            return "Reloading remote page…"
+        case .back:
+            return "Going back…"
+        case .forward:
+            return "Going forward…"
+        case .clickLink:
+            return "Opening remote link…"
+        case .updateField:
+            return "Updating remote form…"
+        case .submitForm:
+            return "Submitting remote form…"
+        case .navigateToURL:
+            return "Opening remote address…"
+        }
+    }
+
+    public var terminalStateTitle: String {
+        switch clientState {
+        case .expired:
+            return "Protected Session expired"
+        case .ended:
+            return "Protected Session ended"
+        case .failed:
+            return "Protected Session unavailable"
+        default:
+            return "Protected Session"
+        }
+    }
+
+    public var terminalStateMessage: String {
+        switch clientState {
+        case .expired, .ended, .failed:
+            return sessionStatusMessage
+        default:
+            return "Amon couldn't keep that protected session available."
+        }
+    }
+
+    private var streamFallbackMessage: String? {
+        if case .degradedPolling(let message) = streamState {
+            return message
+        }
+        return nil
+    }
+
     public func startIfNeeded() async {
         guard !didStart else { return }
         didStart = true
-        isLoading = true
-        defer { isLoading = false }
+        sessionLifecycleState = .connecting
+        streamState = .connecting
+        actionState = .idle
 
         do {
             let created = try await apiClient.createProtectedSession(url: initialURL.absoluteString)
@@ -64,14 +253,14 @@ public final class ProtectedSessionViewModel: ObservableObject {
             beginPolling()
         } catch {
             didStart = false
-            banner = AmonBanner(
-                tone: .error,
-                title: "Protected Session unavailable",
-                message: AmonErrorPresenter.message(
-                    for: error,
-                    fallback: "Amon couldn't start a protected session for that page."
-                )
+            let message = AmonErrorPresenter.message(
+                for: error,
+                fallback: "Amon couldn't start a protected session for that page."
             )
+            sessionLifecycleState = .failed(message: message)
+            streamState = .degradedPolling(message: nil)
+            actionState = .idle
+            banner = nil
         }
     }
 
@@ -171,7 +360,9 @@ public final class ProtectedSessionViewModel: ObservableObject {
             banner = nil
             pendingStreamActionID = nil
             pendingActionBaseRevision = nil
-            streamConnectionState = "closed"
+            actionState = .idle
+            sessionLifecycleState = .ended(message: "This protected session ended and its remote state was destroyed.")
+            streamState = .degradedPolling(message: nil)
             return true
         } catch {
             banner = AmonBanner(
@@ -192,8 +383,8 @@ public final class ProtectedSessionViewModel: ObservableObject {
 
     @discardableResult
     private func perform(action: ProtectedSessionActionRequestDTO, fallback: String) async -> Bool {
-        guard let sessionID else { return false }
-        isLoading = true
+        guard let sessionID, canInteract else { return false }
+        actionState = .performing(action.action)
 
         if let streamClient {
             let actionID = UUID().uuidString
@@ -207,15 +398,13 @@ public final class ProtectedSessionViewModel: ObservableObject {
                 )
                 return true
             } catch {
-                pendingStreamActionID = nil
-                pendingActionBaseRevision = nil
-                isLoading = false
+                clearPendingAction()
                 handleSessionError(error, fallback: fallback)
                 return false
             }
         }
 
-        defer { isLoading = false }
+        defer { actionState = .idle }
         do {
             let updated = try await apiClient.sendProtectedSessionAction(sessionID: sessionID, action: action)
             apply(state: updated)
@@ -239,29 +428,55 @@ public final class ProtectedSessionViewModel: ObservableObject {
 
     private func apply(state: ProtectedSessionStateDTO) {
         self.state = state
-        if state.stream_transport == "websocket" {
-            streamConnectionState = "live"
-        }
+        sessionLifecycleState = lifecycleState(from: state)
+        seedDrafts(from: state.current_page)
+
         if let pendingStreamActionID,
            let baseRevision = pendingActionBaseRevision,
            state.content_revision > baseRevision {
-            self.pendingStreamActionID = nil
-            self.pendingActionBaseRevision = nil
-            isLoading = false
+            clearPendingAction()
         }
-        if let detailMessage = state.detail_message, !detailMessage.isEmpty {
-            banner = AmonBanner(tone: .info, title: "Protected Session", message: detailMessage)
-        }
-        seedDrafts(from: state.current_page)
-        if ["closed", "expired", "failed"].contains(state.status) {
+
+        if state.isTerminalStatus || isTerminalLifecycleState {
             streamClient?.disconnect()
             streamClient = nil
             reconnectTask?.cancel()
             reconnectTask = nil
-            pendingStreamActionID = nil
-            pendingActionBaseRevision = nil
-            isLoading = false
-            streamConnectionState = state.status
+            clearPendingAction()
+        } else if streamClient == nil {
+            streamState = .degradedPolling(message: streamFallbackMessage)
+        }
+
+        if let detailMessage = state.detail_message, !detailMessage.isEmpty, !isTerminalLifecycleState {
+            banner = AmonBanner(tone: .info, title: "Protected Session", message: detailMessage)
+        }
+    }
+
+    private var isTerminalLifecycleState: Bool {
+        switch sessionLifecycleState {
+        case .expired, .ended, .failed:
+            return true
+        case .connecting, .live:
+            return false
+        }
+    }
+
+    private func lifecycleState(from state: ProtectedSessionStateDTO) -> ProtectedSessionLifecycleState {
+        let message = state.detail_message?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? state.detail_message
+            : nil
+
+        switch state.backendStatus {
+        case .creating, nil:
+            return .connecting
+        case .active:
+            return .live
+        case .terminating, .closed:
+            return .ended(message: message ?? "This protected session is ending and won't accept new actions.")
+        case .expired:
+            return .expired(message: message ?? "That protected session expired and its remote state was cleared.")
+        case .failed:
+            return .failed(message: message ?? "Amon couldn't keep that protected session running.")
         }
     }
 
@@ -278,26 +493,43 @@ public final class ProtectedSessionViewModel: ObservableObject {
 
     private func handleSessionError(_ error: Error, fallback: String) {
         let message = AmonErrorPresenter.message(for: error, fallback: fallback)
-        banner = AmonBanner(tone: .error, title: "Protected Session", message: message)
-        if message.localizedCaseInsensitiveContains("expired")
-            || message.localizedCaseInsensitiveContains("no longer available") {
+        clearPendingAction()
+
+        if let terminalState = terminalState(for: message) {
             pollingTask?.cancel()
             reconnectTask?.cancel()
             streamClient?.disconnect()
             streamClient = nil
-            state = nil
             fieldDrafts = [:]
-            pendingStreamActionID = nil
-            pendingActionBaseRevision = nil
-            isLoading = false
-            streamConnectionState = "closed"
+            sessionLifecycleState = terminalState
+            return
         }
+
+        banner = AmonBanner(tone: .error, title: "Protected Session", message: message)
+    }
+
+    private func terminalState(for message: String) -> ProtectedSessionLifecycleState? {
+        let normalized = message.localizedLowercase
+        if normalized.contains("expired") {
+            return .expired(message: message)
+        }
+        if normalized.contains("no longer available")
+            || normalized.contains("was closed")
+            || normalized.contains("is ending") {
+            return .ended(message: message)
+        }
+        if normalized.contains("couldn't keep")
+            || normalized.contains("was destroyed")
+            || normalized.contains("couldn't keep that protected session running") {
+            return .failed(message: message)
+        }
+        return nil
     }
 
     private func connectStream(for sessionID: String, resumeFromSequence: Int?) {
         do {
             let request = try apiClient.makeProtectedSessionStreamRequest(sessionID: sessionID)
-            let client = ProtectedSessionStreamClient(
+            let client = streamClientFactory.make(
                 request: request,
                 onMessage: { [weak self] message in
                     Task { @MainActor [weak self] in
@@ -312,22 +544,24 @@ public final class ProtectedSessionViewModel: ObservableObject {
             )
             streamClient?.disconnect()
             streamClient = client
-            streamConnectionState = "connecting"
+            streamState = resumeFromSequence == nil ? .connecting : .reconnecting(attempt: max(reconnectAttempts, 1))
             client.connect(lastStreamSequence: resumeFromSequence)
         } catch {
-            streamConnectionState = "unavailable"
+            let message = "Amon couldn't attach the live remote snapshot stream and will keep using periodic session refreshes."
+            if case .connecting = sessionLifecycleState, state == nil {
+                sessionLifecycleState = .failed(message: message)
+            }
+            streamState = .degradedPolling(message: message)
         }
     }
 
     private func handleStreamMessage(_ message: ProtectedSessionStreamMessageDTO) {
         lastStreamSequence = max(lastStreamSequence, message.stream_sequence)
-        if let workerState = message.worker_state, !workerState.isEmpty {
-            streamConnectionState = workerState
-        }
 
-        switch message.type {
-        case "subscribed":
+        switch message.kind {
+        case .subscribed:
             reconnectAttempts = 0
+            streamState = .live
             if let nextState = message.state {
                 apply(state: nextState)
             }
@@ -338,14 +572,15 @@ public final class ProtectedSessionViewModel: ObservableObject {
                     message: "Amon resumed the remote session with the latest available snapshot."
                 )
             }
-        case "state":
+        case .state:
             if let nextState = message.state {
                 apply(state: nextState)
             }
+            if case .live = sessionLifecycleState {
+                streamState = .live
+            }
             if let sourceActionID = message.source_action_id, sourceActionID == pendingStreamActionID {
-                pendingStreamActionID = nil
-                pendingActionBaseRevision = nil
-                isLoading = false
+                clearPendingAction()
             }
             if let dropped = message.dropped_events, dropped > 0 {
                 banner = AmonBanner(
@@ -354,68 +589,88 @@ public final class ProtectedSessionViewModel: ObservableObject {
                     message: "Amon skipped \(dropped) stale remote updates and kept the newest live snapshot."
                 )
             }
-        case "terminal":
+        case .terminal:
             if let nextState = message.state {
                 apply(state: nextState)
+            } else {
+                sessionLifecycleState = .ended(message: message.message ?? "This protected session ended remotely.")
             }
-            pendingStreamActionID = nil
-            isLoading = false
+            clearPendingAction()
             streamClient?.disconnect()
             streamClient = nil
-        case "heartbeat":
-            streamConnectionState = "attached"
-        case "action_ack":
+        case .heartbeat:
+            if case .live = sessionLifecycleState {
+                streamState = .live
+            }
+        case .actionAck:
             if let clientActionID = message.client_action_id,
                clientActionID == pendingStreamActionID,
                message.action_status == "failed" || message.action_status == "rejected" {
-                pendingStreamActionID = nil
-                pendingActionBaseRevision = nil
-                isLoading = false
+                clearPendingAction()
                 banner = AmonBanner(
                     tone: .error,
                     title: "Protected Session",
                     message: message.message ?? "That protected-session action could not be completed."
                 )
             }
-        case "error":
+        case .error:
             banner = AmonBanner(
                 tone: .error,
                 title: "Protected Session",
                 message: message.message ?? "That protected-session stream message was rejected."
             )
-        default:
+        case nil:
             break
         }
     }
 
     private func handleStreamDisconnect(_ error: Error?) {
         guard !isEndingSession else { return }
-        streamConnectionState = "disconnected"
-        guard let sessionID else { return }
-
-        if reconnectAttempts >= 2 {
+        guard !isTerminalLifecycleState else { return }
+        guard let sessionID else {
             if let error {
-                banner = AmonBanner(
-                    tone: .info,
-                    title: "Remote snapshot stream paused",
+                sessionLifecycleState = .failed(
                     message: AmonErrorPresenter.message(
                         for: error,
-                        fallback: "Amon lost the live remote snapshot stream and will keep using periodic session refreshes."
+                        fallback: "Amon couldn't attach the protected-session stream."
                     )
                 )
             }
             return
         }
 
+        if reconnectAttempts >= 2 {
+            let message = error.map {
+                AmonErrorPresenter.message(
+                    for: $0,
+                    fallback: "Amon lost the live remote snapshot stream and will keep using periodic session refreshes."
+                )
+            } ?? "Amon lost the live remote snapshot stream and will keep using periodic session refreshes."
+            streamState = .degradedPolling(message: message)
+            banner = AmonBanner(
+                tone: .info,
+                title: "Remote snapshot stream paused",
+                message: message
+            )
+            return
+        }
+
         reconnectAttempts += 1
+        streamState = .reconnecting(attempt: reconnectAttempts)
         reconnectTask?.cancel()
         reconnectTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: self?.reconnectDelay ?? .seconds(2))
             guard let self, !Task.isCancelled else { return }
             await MainActor.run {
                 self.connectStream(for: sessionID, resumeFromSequence: self.lastStreamSequence)
             }
         }
+    }
+
+    private func clearPendingAction() {
+        pendingStreamActionID = nil
+        pendingActionBaseRevision = nil
+        actionState = .idle
     }
 
     private func fieldKey(formID: String, fieldName: String) -> String {

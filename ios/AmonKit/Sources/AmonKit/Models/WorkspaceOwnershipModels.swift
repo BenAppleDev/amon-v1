@@ -21,6 +21,12 @@ public enum WorkspaceOwnedArtifactKind: String, Codable, Sendable {
     case research
 }
 
+public enum WorkspaceOwnershipLocalityState: String, Codable, Sendable {
+    case fullyLocal = "fully_local"
+    case partiallyLocal = "partially_local"
+    case referenceDependent = "reference_dependent"
+}
+
 public struct WorkspaceArtifactSourceCoverage: Equatable, Sendable {
     public let totalSources: Int
     public let ownedReadableSources: Int
@@ -38,6 +44,51 @@ public struct WorkspaceArtifactSourceCoverage: Equatable, Sendable {
 
     public var needsSourcePromotion: Bool {
         sourceOnlySources > 0
+    }
+}
+
+public struct WorkspaceOwnershipSummary: Equatable, Sendable {
+    public let totalItems: Int
+    public let ownedReadableItems: Int
+    public let sourceOnlyItems: Int
+    public let ownedLocalArtifacts: Int
+    public let artifactsNeedingSourcePromotion: Int
+    public let linkedSourceOnlyItems: Int
+
+    public init(
+        totalItems: Int,
+        ownedReadableItems: Int,
+        sourceOnlyItems: Int,
+        ownedLocalArtifacts: Int,
+        artifactsNeedingSourcePromotion: Int,
+        linkedSourceOnlyItems: Int
+    ) {
+        self.totalItems = totalItems
+        self.ownedReadableItems = ownedReadableItems
+        self.sourceOnlyItems = sourceOnlyItems
+        self.ownedLocalArtifacts = ownedLocalArtifacts
+        self.artifactsNeedingSourcePromotion = artifactsNeedingSourcePromotion
+        self.linkedSourceOnlyItems = linkedSourceOnlyItems
+    }
+
+    public var standaloneSourceOnlyItems: Int {
+        max(sourceOnlyItems - linkedSourceOnlyItems, 0)
+    }
+
+    public var canStrengthenFurther: Bool {
+        sourceOnlyItems > 0
+    }
+
+    public var localityState: WorkspaceOwnershipLocalityState {
+        if !canStrengthenFurther {
+            return .fullyLocal
+        }
+
+        if ownedReadableItems > 0 || ownedLocalArtifacts > 0 {
+            return .partiallyLocal
+        }
+
+        return .referenceDependent
     }
 }
 

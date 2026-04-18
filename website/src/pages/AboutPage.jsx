@@ -14,16 +14,16 @@ export function AboutPage() {
       <PageHero
         eyebrow="About / Vision"
         title="Why Amon exists."
-        lede="The modern economy runs on data and inference. Search history, browsing patterns, purchase intent, location signals, and inferred preferences all feed systems built to categorize and predict people."
+        lede="The modern economy runs on data and inference. Every meaningful question now produces signals: search history, browsing patterns, purchase intent, location data, and inferred preferences."
       />
 
       <section className="page-section belief-section">
         <div className="frame belief-stage belief-stage-page">
           <Reveal className="belief-copy">
             <span className="eyebrow">Why Amon exists</span>
-            <p className="belief-quote">Curiosity has become economic input.</p>
+            <p className="belief-quote">Every meaningful question now produces data.</p>
             <p className="belief-support">
-              When someone researches a move, compares jobs, evaluates a major purchase, or revisits a personal question, they are often not just using a service. They are producing data about intent, preference, and likely next action.
+              Researching a move, comparing jobs, evaluating a major purchase, or revisiting a personal question does not just return information. It also creates signals about intent, preference, and likely next action.
             </p>
           </Reveal>
         </div>
@@ -38,7 +38,7 @@ export function AboutPage() {
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
             <h3>What Amon is for</h3>
-            <p>Amon is a different environment for those moments: search, browse, compare, and decide in a system designed so no single system sees everything, and what you keep stays with you locally.</p>
+            <p>Amon is a search and browsing app for those moments. It routes requests through different privacy paths so no single system sees everything, and what you keep stays with you locally.</p>
           </Reveal>
         </div>
       </section>

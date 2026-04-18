@@ -16,7 +16,7 @@ export function PrivacyPage() {
       <PageHero
         eyebrow="Privacy"
         title="How Amon limits visibility."
-        lede="Amon is designed so no single system sees everything you search, open, and keep. What happens depends on mode, and what you save stays with you locally."
+        lede="Amon is designed so no single system sees everything you search, open, and keep. Search goes through Amon, some pages are fetched cleanly, some browsing is mediated, and what you save stays local."
       />
 
       <section className="page-section">

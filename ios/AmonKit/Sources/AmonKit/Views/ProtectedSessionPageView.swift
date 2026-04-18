@@ -30,11 +30,15 @@ public struct ProtectedSessionPageView: View {
 
                 sessionStatusCard
 
-                if viewModel.state != nil {
-                    remoteControls
+                if viewModel.canDisplayLiveSessionSurface {
+                    if viewModel.shouldShowInteractiveControls {
+                        remoteControls
+                    }
 
                     if let frame = viewModel.currentFrame {
                         snapshotCard(frame)
+                    } else if viewModel.isAwaitingFirstFrame {
+                        snapshotPlaceholderCard
                     }
 
                     if let page = viewModel.currentPage {
@@ -52,11 +56,29 @@ public struct ProtectedSessionPageView: View {
                             formsCard(page.forms)
                         }
                     }
-                } else if viewModel.isLoading {
+                } else if viewModel.isStartingSession {
                     AmonEmptyStateView(
                         title: "Starting Protected Session",
                         message: "Amon is opening a remote site session and preparing its first snapshot.",
                         systemImage: "lock.shield"
+                    )
+                } else if case .expired = viewModel.clientState {
+                    AmonEmptyStateView(
+                        title: viewModel.terminalStateTitle,
+                        message: viewModel.terminalStateMessage,
+                        systemImage: "hourglass.badge.exclamationmark"
+                    )
+                } else if case .ended = viewModel.clientState {
+                    AmonEmptyStateView(
+                        title: viewModel.terminalStateTitle,
+                        message: viewModel.terminalStateMessage,
+                        systemImage: "xmark.circle"
+                    )
+                } else if case .failed = viewModel.clientState {
+                    AmonEmptyStateView(
+                        title: viewModel.terminalStateTitle,
+                        message: viewModel.terminalStateMessage,
+                        systemImage: "exclamationmark.triangle"
                     )
                 } else {
                     AmonEmptyStateView(
@@ -118,14 +140,19 @@ public struct ProtectedSessionPageView: View {
                     .padding(.top, 6)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(statusTitle)
+                    Text(viewModel.sessionStatusTitle)
                         .font(.subheadline.weight(.semibold))
-                    Text("Remote state will expire unless you keep interacting. Current host: \(viewModel.allowedHost)")
+                    Text(viewModel.sessionStatusMessage)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                    Text("Worker: \(viewModel.state?.worker_type ?? "visual_stream_session") · Stream: \(viewModel.streamConnectionState)")
+                    Text("Worker: \(viewModel.state?.worker_type ?? "visual_stream_session") · Stream: \(viewModel.streamStatusLabel)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    if let actionMessage = viewModel.actionStatusMessage {
+                        Text(actionMessage)
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
                     if let state = viewModel.state {
                         Text("Expires \(AmonFormatters.relativeTimestamp(for: state.expires_at))")
                             .font(.footnote)
@@ -137,35 +164,14 @@ public struct ProtectedSessionPageView: View {
         .amonCardStyle()
     }
 
-    private var statusTitle: String {
-        switch viewModel.state?.status {
-        case "creating":
-            return "Connecting"
-        case "terminating":
-            return "Terminating"
-        case "closed":
-            return "Closed"
-        case "expired":
-            return "Expired"
-        case "failed":
-            return "Failed"
-        case "active":
-            return "Live"
-        default:
-            return viewModel.currentPage == nil ? "Connecting" : "Live"
-        }
-    }
-
     private var statusColor: Color {
-        switch viewModel.state?.status {
-        case "active":
+        switch viewModel.clientState {
+        case .live:
             return Color(uiColor: .systemGreen)
-        case "terminating", "creating":
+        case .reconnecting, .degradedPolling, .connecting:
             return Color(uiColor: .systemOrange)
-        case "closed", "expired", "failed":
+        case .ended, .expired, .failed:
             return Color(uiColor: .systemGray)
-        default:
-            return viewModel.currentPage == nil ? Color(uiColor: .systemOrange) : Color(uiColor: .systemGreen)
         }
     }
 
@@ -183,7 +189,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
-                    .disabled(!(viewModel.state?.can_go_back ?? false) || viewModel.isLoading)
+                    .disabled(!(viewModel.state?.can_go_back ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
                         Task { await viewModel.goForward() }
@@ -192,7 +198,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
-                    .disabled(!(viewModel.state?.can_go_forward ?? false) || viewModel.isLoading)
+                    .disabled(!(viewModel.state?.can_go_forward ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
                         Task { await viewModel.reload() }
@@ -201,7 +207,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isLoading)
+                    .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
 
                 HStack(spacing: 12) {
@@ -220,9 +226,23 @@ public struct ProtectedSessionPageView: View {
                         Task { await viewModel.navigate(to: navigationAddress) }
                     }
                     .buttonStyle(.bordered)
-                    .disabled(viewModel.isLoading || navigationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(viewModel.isPerformingAction || !viewModel.canInteract || navigationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+        }
+        .amonCardStyle()
+    }
+
+    private var snapshotPlaceholderCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Remote visual snapshot")
+                .font(.headline)
+
+            AmonEmptyStateView(
+                title: "Preparing first snapshot",
+                message: "The protected session is live, but Amon is still waiting for the first remote frame.",
+                systemImage: "photo.on.rectangle.angled"
+            )
         }
         .amonCardStyle()
     }
@@ -306,6 +326,7 @@ public struct ProtectedSessionPageView: View {
                     .padding(.vertical, 6)
                 }
                 .buttonStyle(.plain)
+                .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
             }
         }
         .amonCardStyle()
@@ -337,7 +358,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(viewModel.isLoading)
+                    .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
                 .padding(16)
                 .background(AmonTheme.elevatedSurface, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -358,6 +379,7 @@ public struct ProtectedSessionPageView: View {
             )
             .textInputAutocapitalization(.never)
             .disableAutocorrection(true)
+            .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(AmonTheme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -371,6 +393,7 @@ public struct ProtectedSessionPageView: View {
             )
             .textInputAutocapitalization(.never)
             .disableAutocorrection(true)
+            .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(AmonTheme.surface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))

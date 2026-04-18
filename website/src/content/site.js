@@ -35,22 +35,22 @@ export const homeMechanics = [
   {
     number: "01",
     title: "Search starts with Amon",
-    detail: "Your inquiry does not begin in the default search stack tied directly to your device identity."
+    detail: "Your query goes through Amon instead of directly through the default search stack tied to your device identity."
   },
   {
     number: "02",
     title: "Some pages can be handled cleanly",
-    detail: "Amon can broker retrieval and present the information without turning it into a conventional site visit from you."
+    detail: "If you only need the information, Amon can fetch it and present it without turning the page open into a conventional site visit from your device."
   },
   {
     number: "03",
     title: "Some live browsing can be mediated",
-    detail: "When the task needs the real site, Amon can route that interaction through a more controlled remote environment."
+    detail: "If the task needs the real site, Amon can route that browsing through a controlled remote session instead of exposing your own device directly."
   },
   {
     number: "04",
     title: "What you keep stays with you",
-    detail: "Saved work lives locally in an encrypted workspace instead of becoming centralized service-side history."
+    detail: "Saved results, notes, and comparisons stay locally in an encrypted workspace on your device."
   }
 ];
 
@@ -125,31 +125,31 @@ export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a search and browsing product for meaningful inquiry. It helps you search, compare options, open pages, and think through real decisions in a way that keeps any one system from seeing everything you do."
+      "Amon is a search and browsing app that helps you compare options and think through real decisions without creating a server-side history of everything you search, open, and keep."
   },
   {
     question: "Is it a browser?",
     answer:
-      "Amon includes browsing, but it is not trying to replace every browser use case. It is a system that decides how each search, page open, and saved result should be handled."
+      "Not in the usual sense. Amon includes search and browsing, but it is not trying to replace every browser use case. It routes each request through local, clean, or protected paths depending on what the task needs."
   },
   {
     question: "Is it a VPN?",
     answer:
-      "Amon uses VPN-like routing and remote infrastructure as part of its privacy model, but it is not just a consumer VPN. It changes how search, retrieval, mediated browsing, and saved work are handled end to end."
+      "Amon uses VPN-like routing and remote infrastructure as part of its privacy model, but it is not just a consumer VPN. It changes how search, clean retrieval, mediated browsing, and saved work are handled end to end."
   },
   {
     question: "Does Amon store my history?",
     answer:
-      "We do not store your browsing history. What you choose to keep belongs in your local workspace, not a server-side history log."
+      "We do not store your browsing history. Saved results, notes, and comparisons belong in your local workspace, not a server-side history log."
   },
   {
     question: "What is Protected Session?",
     answer:
-      "Protected Session is the mode Amon uses when you need the real site, not just extracted information. A remote host does the browsing on your behalf so the destination site does not see your own device and browser directly."
+      "Protected Session is when Amon opens the real site through a controlled remote host and lets you use it through that session. It is for tasks that need the actual site while keeping your own device and browser from being exposed directly."
   },
   {
     question: "What is in scope today?",
     answer:
-      "Amon is focused on the public web. It is not trying to replace every browser task or every account-based workflow on day one, so some tasks are in scope now and others are not."
+      "Today Amon is focused on public-web search and browsing. It is not trying to cover every website, every account flow, or every browser task on day one."
   }
 ];

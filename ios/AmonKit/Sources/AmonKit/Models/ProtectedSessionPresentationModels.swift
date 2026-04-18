@@ -1,0 +1,77 @@
+import Foundation
+
+public enum ProtectedSessionLifecycleState: Equatable, Sendable {
+    case connecting
+    case live
+    case expired(message: String?)
+    case ended(message: String?)
+    case failed(message: String?)
+}
+
+public enum ProtectedSessionStreamState: Equatable, Sendable {
+    case connecting
+    case live
+    case reconnecting(attempt: Int)
+    case degradedPolling(message: String?)
+}
+
+public enum ProtectedSessionActionState: Equatable, Sendable {
+    case idle
+    case performing(ProtectedSessionActionKindDTO)
+
+    public var isPerforming: Bool {
+        if case .performing = self {
+            return true
+        }
+        return false
+    }
+}
+
+public enum ProtectedSessionClientState: Equatable, Sendable {
+    case connecting
+    case live
+    case reconnecting(attempt: Int)
+    case degradedPolling
+    case expired
+    case ended
+    case failed
+}
+
+public enum ProtectedSessionBackendStatus: String, Codable, Sendable {
+    case creating
+    case active
+    case terminating
+    case closed
+    case expired
+    case failed
+}
+
+public enum ProtectedSessionStreamMessageKind: String, Codable, Sendable {
+    case subscribed
+    case state
+    case terminal
+    case heartbeat
+    case actionAck = "action_ack"
+    case error
+}
+
+public extension ProtectedSessionStateDTO {
+    var backendStatus: ProtectedSessionBackendStatus? {
+        ProtectedSessionBackendStatus(rawValue: status)
+    }
+
+    var isTerminalStatus: Bool {
+        switch backendStatus {
+        case .closed, .expired, .failed:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+public extension ProtectedSessionStreamMessageDTO {
+    var kind: ProtectedSessionStreamMessageKind? {
+        ProtectedSessionStreamMessageKind(rawValue: type)
+    }
+}

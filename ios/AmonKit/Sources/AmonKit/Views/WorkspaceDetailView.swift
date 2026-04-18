@@ -31,6 +31,7 @@ public struct WorkspaceDetailView: View {
 
             if let workspace = viewModel.workspace {
                 Section {
+                    let ownershipSummary = viewModel.ownershipSummary
                     VStack(alignment: .leading, spacing: 12) {
                         Text(workspace.title)
                             .font(.title3.weight(.semibold))
@@ -39,13 +40,47 @@ public struct WorkspaceDetailView: View {
                             AmonMetadataPill(text: "\(viewModel.items.count) items")
                             AmonMetadataPill(text: "\(viewModel.compareArtifacts.count) compares")
                             AmonMetadataPill(text: "\(viewModel.researchArtifacts.count) research")
+                            if viewModel.items.count + viewModel.compareArtifacts.count + viewModel.researchArtifacts.count > 0 {
+                                AmonMetadataPill(text: ownershipSummary.localityBadgeText)
+                            }
                         }
 
                         Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
 
-                        if !viewModel.items.isEmpty {
+                        if viewModel.items.count + viewModel.compareArtifacts.count + viewModel.researchArtifacts.count > 0 {
+                            Text(ownershipSummary.ownershipSummaryText)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            if let transitionSummary = ownershipSummary.transitionSummaryText {
+                                Text(transitionSummary)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            if viewModel.isStrengtheningWorkspace {
+                                HStack(spacing: 8) {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("Strengthening this workspace…")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else if ownershipSummary.canStrengthenFurther {
+                                Button {
+                                    Task {
+                                        await viewModel.strengthenWorkspace(apiClient: apiClient)
+                                    }
+                                } label: {
+                                    Label("Strengthen Workspace", systemImage: "square.and.arrow.down.on.square")
+                                        .font(.callout.weight(.semibold))
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.accentColor)
+                            }
+
                             AmonTrustStripView(items: viewModel.ownershipStripItems)
                         }
                     }

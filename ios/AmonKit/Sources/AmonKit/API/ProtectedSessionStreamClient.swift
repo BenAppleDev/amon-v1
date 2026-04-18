@@ -14,6 +14,38 @@ enum ProtectedSessionStreamClientError: LocalizedError {
     }
 }
 
+protocol ProtectedSessionStreamConnecting: AnyObject {
+    func connect(lastStreamSequence: Int?)
+    func disconnect()
+    func sendAction(
+        action: ProtectedSessionActionRequestDTO,
+        clientActionID: String,
+        expectedContentRevision: Int?
+    ) async throws
+}
+
+protocol ProtectedSessionStreamClientBuilding {
+    func make(
+        request: URLRequest,
+        onMessage: @escaping @Sendable (ProtectedSessionStreamMessageDTO) -> Void,
+        onDisconnect: @escaping @Sendable (Error?) -> Void
+    ) -> any ProtectedSessionStreamConnecting
+}
+
+struct DefaultProtectedSessionStreamClientFactory: ProtectedSessionStreamClientBuilding {
+    func make(
+        request: URLRequest,
+        onMessage: @escaping @Sendable (ProtectedSessionStreamMessageDTO) -> Void,
+        onDisconnect: @escaping @Sendable (Error?) -> Void
+    ) -> any ProtectedSessionStreamConnecting {
+        ProtectedSessionStreamClient(
+            request: request,
+            onMessage: onMessage,
+            onDisconnect: onDisconnect
+        )
+    }
+}
+
 final class ProtectedSessionStreamClient {
     private let session: URLSession
     private let task: URLSessionWebSocketTask
@@ -171,3 +203,5 @@ final class ProtectedSessionStreamClient {
         }
     }
 }
+
+extension ProtectedSessionStreamClient: ProtectedSessionStreamConnecting {}
