@@ -1,5 +1,17 @@
 import Foundation
 
+public struct AmonBackendErrorContext: Equatable, Sendable {
+    public let statusCode: Int
+    public let code: String?
+    public let message: String?
+
+    public init(statusCode: Int, code: String?, message: String?) {
+        self.statusCode = statusCode
+        self.code = code
+        self.message = message
+    }
+}
+
 public struct ProviderInfoDTO: Codable, Equatable, Sendable {
     public var name: String
     public var provider_result_id: String?

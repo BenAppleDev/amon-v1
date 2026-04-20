@@ -3,7 +3,7 @@ import { BoundaryGraphic } from "../components/BoundaryGraphic";
 import { PageHero } from "../components/PageHero";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { nonClaims } from "../content/site";
+import { nonClaims, privacyModeMap } from "../content/site";
 
 export function PrivacyPage() {
   return (
@@ -27,20 +27,21 @@ export function PrivacyPage() {
 
           <div className="stack">
             <Reveal className="trust-block">
-              <h3>What Amon minimizes</h3>
+              <h3>What Amon does not keep</h3>
               <ul className="bullet-list">
-                <li>Centralized visibility across the full inquiry.</li>
-                <li>Server-side retention of query text, result sets, and page content.</li>
-                <li>A single durable record of everything you searched, opened, and compared.</li>
+                <li>Browsing history.</li>
+                <li>A single server-side record of everything you searched, opened, and compared.</li>
+                <li>Saved work as centralized service-side history.</li>
               </ul>
             </Reveal>
 
             <Reveal className="trust-block" delay={80}>
-              <h3>What depends on mode</h3>
+              <h3>What changes by mode</h3>
               <ul className="bullet-list">
-                <li>Search and browsing start through Amon rather than the default stack tied to your device.</li>
-                <li>Some pages can be handled as clean retrieval instead of a conventional site visit.</li>
-                <li>Some live interactions can be mediated through a controlled remote session.</li>
+                <li>Search starts through Amon.</li>
+                <li>Pages can be handled cleanly when you only need the information.</li>
+                <li>Live browsing can be mediated when you need the actual site.</li>
+                <li>Saved work stays local in Workspace.</li>
               </ul>
             </Reveal>
 
@@ -57,16 +58,25 @@ export function PrivacyPage() {
       </section>
 
       <section className="page-section">
-        <div className="frame comparison-grid">
-          <Reveal className="comparison-panel">
-            <h3>We do not store browsing history.</h3>
-            <p>Your searches and page history do not become a server-side history log inside Amon.</p>
+        <div className="frame">
+          <Reveal className="section-heading">
+            <span className="eyebrow">Mode by mode</span>
+            <h2>How the boundary works in practice.</h2>
+            <p>The Product page explains each mode in full. This is the short privacy map.</p>
           </Reveal>
 
-          <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>What you keep stays local.</h3>
-            <p>Saved work lives in a local encrypted workspace on your device instead of becoming part of a centralized server-side profile.</p>
-          </Reveal>
+          <div className="privacy-mode-grid">
+            {privacyModeMap.map((item, index) => (
+              <Reveal
+                key={item.id}
+                className={`comparison-panel${index % 2 === 1 ? " comparison-panel-muted" : ""}`}
+                delay={index * 60}
+              >
+                <h3>{item.name}</h3>
+                <p>{item.detail}</p>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

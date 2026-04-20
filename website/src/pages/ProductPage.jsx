@@ -1,14 +1,11 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageHero } from "../components/PageHero";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
 import { WorkflowGraphic } from "../components/WorkflowGraphic";
-import { modeSteps } from "../content/site";
+import { modeDeepDives } from "../content/site";
 
 export function ProductPage() {
-  const [activeMode, setActiveMode] = useState(null);
-
   return (
     <>
       <Seo
@@ -31,52 +28,47 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame feature-split">
           <Reveal>
-            <WorkflowGraphic compact activeStep={activeMode} />
+            <WorkflowGraphic compact />
           </Reveal>
 
           <div className="stack">
-            {modeSteps.map((mode, index) => (
-              <Reveal
-                key={mode.id}
-                className={`mode-detail${activeMode === mode.id ? " is-active" : ""}`}
-                delay={index * 70}
-                tabIndex={0}
-                data-step={mode.id}
-                onMouseEnter={() => setActiveMode(mode.id)}
-                onMouseLeave={() => setActiveMode(null)}
-                onFocus={() => setActiveMode(mode.id)}
-                onBlur={() => setActiveMode(null)}
-              >
-                <div className="mode-detail-label">
-                  <span>{mode.number}</span>
-                  <strong>{mode.name}</strong>
-                </div>
-                <p className="mode-line">{mode.line}</p>
-                <p>{mode.detail}</p>
-              </Reveal>
-            ))}
+            <Reveal className="comparison-panel">
+              <h3>One workflow. Four modes.</h3>
+              <p>Amon starts in a familiar search layer, goes deeper when the task needs cleaner retrieval or mediated browsing, and keeps what matters in a local workspace.</p>
+            </Reveal>
+
+            <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
+              <h3>What changes when you click</h3>
+              <p>A page does not always have to open as a direct visit from your device. Amon can search, fetch, mediate, and save through different privacy paths.</p>
+            </Reveal>
           </div>
         </div>
       </section>
 
-      <section className="page-section">
-        <div className="frame product-summary-grid">
-          <Reveal className="comparison-panel">
-            <h3>Not one kind of click</h3>
-            <p>Opening something does not always have to mean the same type of request from your own device to the destination site.</p>
-          </Reveal>
+      {modeDeepDives.map((mode, modeIndex) => (
+        <section className="page-section product-mode-section" key={mode.id}>
+          <div className="frame product-mode-layout">
+            <Reveal className="product-mode-intro">
+              <span className="eyebrow">{mode.number}</span>
+              <h2>{mode.name}</h2>
+              <p>{mode.summary}</p>
+            </Reveal>
 
-          <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
-            <h3>Handled by task</h3>
-            <p>Amon can search, broker retrieval, mediate live browsing, or keep the result local depending on what the task actually needs.</p>
-          </Reveal>
-
-          <Reveal className="comparison-panel" delay={160}>
-            <h3>No single system sees everything</h3>
-            <p>Search, page access, live interaction, and saved work do not all collapse into one centralized record.</p>
-          </Reveal>
-        </div>
-      </section>
+            <div className="product-mode-facts">
+              {mode.facts.map((fact, factIndex) => (
+                <Reveal
+                  key={fact.title}
+                  className="comparison-panel"
+                  delay={(modeIndex * 40) + (factIndex * 50)}
+                >
+                  <h3>{fact.title}</h3>
+                  <p>{fact.text}</p>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
 
       <section className="page-section page-section-cta">
         <div className="frame">

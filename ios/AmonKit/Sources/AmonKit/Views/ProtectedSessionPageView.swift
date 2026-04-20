@@ -78,7 +78,12 @@ public struct ProtectedSessionPageView: View {
                     AmonEmptyStateView(
                         title: viewModel.terminalStateTitle,
                         message: viewModel.terminalStateMessage,
-                        systemImage: "exclamationmark.triangle"
+                        systemImage: {
+                            if case .some(.unavailable) = viewModel.failurePresentation {
+                                return "lock.slash"
+                            }
+                            return "exclamationmark.triangle"
+                        }()
                     )
                 } else {
                     AmonEmptyStateView(
@@ -170,8 +175,10 @@ public struct ProtectedSessionPageView: View {
             return Color(uiColor: .systemGreen)
         case .reconnecting, .degradedPolling, .connecting:
             return Color(uiColor: .systemOrange)
-        case .ended, .expired, .failed:
+        case .ended, .expired:
             return Color(uiColor: .systemGray)
+        case .failed:
+            return Color(uiColor: .systemRed)
         }
     }
 

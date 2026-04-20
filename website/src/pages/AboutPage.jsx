@@ -38,7 +38,7 @@ export function AboutPage() {
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
             <h3>What Amon is for</h3>
-            <p>Amon is a search and browsing app for those moments. It routes requests through different privacy paths so no single system sees everything, and what you keep stays with you locally.</p>
+            <p>Amon gives people a different environment for those moments: search, browse, compare, and decide without turning the whole inquiry into one continuous system record.</p>
           </Reveal>
         </div>
       </section>

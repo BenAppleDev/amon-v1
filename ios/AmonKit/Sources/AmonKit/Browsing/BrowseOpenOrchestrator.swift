@@ -32,11 +32,20 @@ public final class BrowseOpenOrchestrator: ObservableObject {
         pendingChoiceURLs.insert(cacheKey)
         defer { pendingChoiceURLs.remove(cacheKey) }
 
-        let decision = try? await apiClient.serveDecision(url: cacheKey, intent: intent)
-        if let decision {
+        do {
+            let decision = try await apiClient.serveDecision(url: cacheKey, intent: intent)
             cachedDecisions[cacheKey] = decision
+            activeChoice = BrowseOpenChoicePresentation(target: target, decision: decision)
+        } catch {
+            activeChoice = BrowseOpenChoicePresentation(
+                target: target,
+                decision: nil,
+                decisionErrorMessage: AmonErrorPresenter.message(
+                    for: error,
+                    fallback: "Amon couldn't check a recommendation right now."
+                )
+            )
         }
-        activeChoice = BrowseOpenChoicePresentation(target: target, decision: decision)
     }
 
     public func dismissChoice() {

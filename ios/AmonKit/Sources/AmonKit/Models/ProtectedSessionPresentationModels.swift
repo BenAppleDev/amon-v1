@@ -1,5 +1,35 @@
 import Foundation
 
+public enum ProtectedSessionFailurePresentation: Equatable, Sendable {
+    case unavailable(message: String)
+    case failed(message: String)
+
+    public var message: String {
+        switch self {
+        case .unavailable(let message), .failed(let message):
+            return message
+        }
+    }
+
+    public var sessionStatusTitle: String {
+        switch self {
+        case .unavailable:
+            return "Unavailable"
+        case .failed:
+            return "Failed"
+        }
+    }
+
+    public var terminalTitle: String {
+        switch self {
+        case .unavailable:
+            return "Protected Session unavailable"
+        case .failed:
+            return "Protected Session failed"
+        }
+    }
+}
+
 public enum ProtectedSessionLifecycleState: Equatable, Sendable {
     case connecting
     case live

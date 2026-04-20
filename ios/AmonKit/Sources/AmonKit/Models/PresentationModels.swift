@@ -28,59 +28,6 @@ enum SearchPresentation: Identifiable, Equatable {
 }
 
 enum AmonErrorPresenter {
-    private struct ServerErrorBody: Decodable {
-        let code: String?
-        let detail: ServerErrorDetail?
-
-        var detailMessage: String? {
-            detail?.message ?? detail?.stringValue
-        }
-
-        var detailCode: String? {
-            detail?.code ?? code
-        }
-    }
-
-    private enum ServerErrorDetail: Decodable {
-        case string(String)
-        case object(ServerErrorObject)
-
-        var stringValue: String? {
-            if case .string(let value) = self {
-                return value
-            }
-            return nil
-        }
-
-        var message: String? {
-            if case .object(let value) = self {
-                return value.message
-            }
-            return nil
-        }
-
-        var code: String? {
-            if case .object(let value) = self {
-                return value.code
-            }
-            return nil
-        }
-
-        init(from decoder: any Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            if let value = try? container.decode(String.self) {
-                self = .string(value)
-                return
-            }
-            self = .object(try container.decode(ServerErrorObject.self))
-        }
-    }
-
-    private struct ServerErrorObject: Decodable {
-        let code: String?
-        let message: String?
-    }
-
     static func message(for error: Error, fallback: String) -> String {
         if let apiError = error as? AmonAPIError {
             switch apiError {
@@ -90,9 +37,9 @@ enum AmonErrorPresenter {
                 return "Your session ended. Sign in again to keep going."
             case .decodingError:
                 return "Amon received an unreadable response from the backend."
-            case .serverError(let statusCode, let body):
-                let detail = serverDetail(from: body)
-                let code = serverCode(from: body)
+            case .serverError(let context):
+                let detail = context.message
+                let code = context.code
                 if code == "retrieve_blocked" {
                     return detail ?? "That site blocked Amon's clean-view fetch. You can still open the original page directly."
                 }
@@ -151,13 +98,13 @@ enum AmonErrorPresenter {
                     || code == "protected_session_unavailable" {
                     return detail ?? "Amon couldn't keep that protected session running right now."
                 }
-                if statusCode == 503 {
+                if context.statusCode == 503 {
                     return detail ?? "Amon can't reach that service right now. Check that the backend is running."
                 }
-                if statusCode == 403 {
+                if context.statusCode == 403 {
                     return detail ?? "That request was blocked."
                 }
-                if statusCode >= 500 {
+                if context.statusCode >= 500 {
                     return detail ?? "The backend couldn't complete that request right now."
                 }
                 return detail ?? "That request couldn't be completed."
@@ -181,8 +128,11 @@ enum AmonErrorPresenter {
             switch apiError {
             case .unauthorized:
                 return true
-            case .serverError(_, let body):
-                let detail = serverDetail(from: body)?.lowercased() ?? ""
+            case .serverError(let context):
+                if context.statusCode == 401 {
+                    return true
+                }
+                let detail = context.message?.lowercased() ?? ""
                 return detail.contains("expired session")
                     || detail.contains("invalid session")
                     || detail.contains("missing bearer token")
@@ -193,17 +143,150 @@ enum AmonErrorPresenter {
         return false
     }
 
-    private static func serverDetail(from body: String) -> String? {
-        guard !body.isEmpty, let data = body.data(using: .utf8) else { return nil }
-        if let envelope = try? JSONDecoder().decode(ServerErrorBody.self, from: data) {
-            return envelope.detailMessage
+    static func protectedSessionTerminalState(
+        for error: Error,
+        fallback: String
+    ) -> ProtectedSessionLifecycleState? {
+        let message = message(for: error, fallback: fallback)
+
+        if let apiError = error as? AmonAPIError {
+            switch apiError.backendCode {
+            case "protected_session_expired":
+                return .expired(message: message)
+            case "protected_session_terminating",
+                 "protected_session_closed",
+                 "protected_session_missing":
+                return .ended(message: message)
+            case "protected_session_failed",
+                 "protected_session_unavailable",
+                 "protected_session_resolution_failed",
+                 "protected_session_timeout",
+                 "protected_session_unreachable",
+                 "protected_session_upstream_error":
+                return .failed(message: message)
+            default:
+                break
+            }
+
+            if apiError.statusCode == 410 {
+                return message.localizedLowercase.contains("expired")
+                    ? .expired(message: message)
+                    : .ended(message: message)
+            }
         }
-        return body.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+
+        let normalized = message.localizedLowercase
+        if normalized.contains("expired") {
+            return .expired(message: message)
+        }
+        if normalized.contains("no longer available")
+            || normalized.contains("was closed")
+            || normalized.contains("is ending") {
+            return .ended(message: message)
+        }
+        if normalized.contains("couldn't keep")
+            || normalized.contains("was destroyed")
+            || normalized.contains("couldn't keep that protected session running") {
+            return .failed(message: message)
+        }
+        return nil
     }
 
-    private static func serverCode(from body: String) -> String? {
-        guard !body.isEmpty, let data = body.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode(ServerErrorBody.self, from: data).detailCode
+    static func protectedSessionFailurePresentation(
+        for error: Error,
+        fallback: String
+    ) -> ProtectedSessionFailurePresentation? {
+        let message = message(for: error, fallback: fallback)
+
+        if let apiError = error as? AmonAPIError {
+            switch apiError.backendCode {
+            case "protected_session_unavailable",
+                 "protected_session_host_not_allowed",
+                 "protected_session_navigation_blocked",
+                 "protected_session_blocked_address",
+                 "protected_session_invalid_url",
+                 "protected_session_invalid_port",
+                 "protected_session_non_html",
+                 "protected_session_response_too_large",
+                 "protected_session_parse_failed",
+                 "protected_session_starting":
+                return .unavailable(message: message)
+            case "protected_session_failed",
+                 "protected_session_resolution_failed",
+                 "protected_session_timeout",
+                 "protected_session_unreachable",
+                 "protected_session_upstream_error":
+                return .failed(message: message)
+            default:
+                break
+            }
+        }
+
+        return nil
+    }
+
+    static func protectedSessionActionBannerTitle(for error: Error) -> String {
+        guard let apiError = error as? AmonAPIError else {
+            return "Protected Session"
+        }
+
+        switch apiError.backendCode {
+        case "protected_session_navigation_blocked",
+             "protected_session_blocked_address",
+             "protected_session_invalid_url",
+             "protected_session_invalid_port",
+             "protected_session_non_html",
+             "protected_session_response_too_large",
+             "protected_session_parse_failed",
+             "protected_session_missing_form_id",
+             "protected_session_form_not_found",
+             "protected_session_missing_link_id",
+             "protected_session_link_not_found",
+             "protected_session_missing_field_name",
+             "protected_session_field_not_found",
+             "protected_session_invalid_action",
+             "protected_session_empty",
+             "protected_session_back_unavailable",
+             "protected_session_forward_unavailable":
+            return "Couldn't complete remote action"
+        default:
+            return "Protected Session"
+        }
+    }
+
+    static func protectedSessionActionBanner(
+        code: String?,
+        message: String?
+    ) -> AmonBanner {
+        let bannerTitle: String
+        switch code {
+        case "protected_session_navigation_blocked",
+             "protected_session_blocked_address",
+             "protected_session_invalid_url",
+             "protected_session_invalid_port",
+             "protected_session_non_html",
+             "protected_session_response_too_large",
+             "protected_session_parse_failed",
+             "protected_session_missing_form_id",
+             "protected_session_form_not_found",
+             "protected_session_missing_link_id",
+             "protected_session_link_not_found",
+             "protected_session_missing_field_name",
+             "protected_session_field_not_found",
+             "protected_session_invalid_action",
+             "protected_session_empty",
+             "protected_session_back_unavailable",
+             "protected_session_forward_unavailable":
+            bannerTitle = "Couldn't complete remote action"
+        default:
+            bannerTitle = "Protected Session"
+        }
+
+        return AmonBanner(
+            tone: .error,
+            title: bannerTitle,
+            message: message ?? "That protected-session action could not be completed."
+        )
     }
 }
 

@@ -7,8 +7,11 @@ final class ProtectedSessionViewModelTests: XCTestCase {
     func testStartFailureTransitionsToFailedState() async {
         let apiClient = ProtectedSessionAPIClientStub()
         apiClient.createSessionError = AmonAPIError.serverError(
-            statusCode: 503,
-            body: #"{"code":"protected_session_unavailable","detail":{"message":"Protected Session is unavailable right now."}}"#
+            AmonBackendErrorContext(
+                statusCode: 503,
+                code: "protected_session_unavailable",
+                message: "Protected Session is unavailable right now."
+            )
         )
 
         let viewModel = ProtectedSessionViewModel(
@@ -21,7 +24,8 @@ final class ProtectedSessionViewModelTests: XCTestCase {
         await viewModel.startIfNeeded()
 
         XCTAssertEqual(viewModel.clientState, .failed)
-        XCTAssertEqual(viewModel.sessionStatusTitle, "Failed")
+        XCTAssertEqual(viewModel.sessionStatusTitle, "Unavailable")
+        XCTAssertEqual(viewModel.terminalStateTitle, "Protected Session unavailable")
         XCTAssertTrue(viewModel.terminalStateMessage.contains("unavailable"))
     }
 
@@ -152,6 +156,58 @@ final class ProtectedSessionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.actionState, .idle)
         XCTAssertEqual(viewModel.clientState, .degradedPolling)
     }
+
+    func testActionFailureWhileSessionLivesUsesActionSpecificBannerTitle() async {
+        let apiClient = ProtectedSessionAPIClientStub()
+        apiClient.makeStreamRequestError = AmonAPIError.invalidURL
+        apiClient.actionError = AmonAPIError.serverError(
+            AmonBackendErrorContext(
+                statusCode: 409,
+                code: "protected_session_navigation_blocked",
+                message: "That remote session is limited to its original host in this build."
+            )
+        )
+
+        let viewModel = ProtectedSessionViewModel(
+            url: URL(string: "https://example.com")!,
+            apiClient: apiClient,
+            streamClientFactory: FakeProtectedSessionStreamClientFactory(),
+            reconnectDelay: .seconds(0)
+        )
+
+        await viewModel.startIfNeeded()
+        await viewModel.navigate(to: "https://other.example.com")
+
+        XCTAssertEqual(viewModel.clientState, .degradedPolling)
+        XCTAssertEqual(viewModel.banner?.title, "Couldn't complete remote action")
+        XCTAssertEqual(viewModel.banner?.message, "That remote session is limited to its original host in this build.")
+    }
+
+    func testClosedActionErrorTransitionsToEndedState() async {
+        let apiClient = ProtectedSessionAPIClientStub()
+        apiClient.makeStreamRequestError = AmonAPIError.invalidURL
+        apiClient.actionError = AmonAPIError.serverError(
+            AmonBackendErrorContext(
+                statusCode: 410,
+                code: "protected_session_closed",
+                message: "That protected session was closed and its remote state was destroyed."
+            )
+        )
+
+        let viewModel = ProtectedSessionViewModel(
+            url: URL(string: "https://example.com")!,
+            apiClient: apiClient,
+            streamClientFactory: FakeProtectedSessionStreamClientFactory(),
+            reconnectDelay: .seconds(0)
+        )
+
+        await viewModel.startIfNeeded()
+        await viewModel.reload()
+
+        XCTAssertEqual(viewModel.clientState, .ended)
+        XCTAssertEqual(viewModel.terminalStateTitle, "Protected Session ended")
+        XCTAssertTrue(viewModel.terminalStateMessage.contains("closed"))
+    }
 }
 
 private final class ProtectedSessionAPIClientStub: AmonAPIClienting, @unchecked Sendable {
@@ -188,6 +244,7 @@ private final class ProtectedSessionAPIClientStub: AmonAPIClienting, @unchecked 
     var createSessionError: Error?
     var makeStreamRequestError: Error?
     var sessionStateError: Error?
+    var actionError: Error?
     var sentActions: [ProtectedSessionActionRequestDTO] = []
 
     func devLogin(appleSubject: String) async throws -> AuthResponseDTO { throw stubError }
@@ -221,6 +278,9 @@ private final class ProtectedSessionAPIClientStub: AmonAPIClienting, @unchecked 
         sessionID: String,
         action: ProtectedSessionActionRequestDTO
     ) async throws -> ProtectedSessionStateDTO {
+        if let actionError {
+            throw actionError
+        }
         sentActions.append(action)
         return createdState
     }

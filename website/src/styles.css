@@ -881,6 +881,36 @@ h3 {
   gap: 16px;
 }
 
+.product-mode-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 44px;
+  align-items: start;
+}
+
+.product-mode-intro {
+  max-width: 32rem;
+}
+
+.product-mode-intro h2 {
+  margin-top: 14px;
+  max-width: 10ch;
+}
+
+.product-mode-intro p {
+  margin: 14px 0 0;
+  max-width: 40ch;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.product-mode-facts,
+.privacy-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .product-summary-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1569,6 +1599,10 @@ h3 {
   height: 100%;
 }
 
+.privacy-mode-grid {
+  margin-top: 30px;
+}
+
 .faq-list {
   display: grid;
   gap: 10px;
@@ -1856,12 +1890,15 @@ h3 {
   .comparison-grid,
   .trust-grid,
   .response-grid,
+  .product-mode-layout,
   .everyday-grid,
   .shift-grid,
   .cta-panel {
     grid-template-columns: 1fr;
   }
 
+  .product-mode-facts,
+  .privacy-mode-grid,
   .product-summary-grid {
     grid-template-columns: 1fr;
   }

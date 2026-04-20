@@ -3,8 +3,50 @@ import Foundation
 public enum AmonAPIError: Error, LocalizedError, Sendable {
     case invalidURL
     case unauthorized
-    case serverError(statusCode: Int, body: String)
+    case serverError(AmonBackendErrorContext)
     case decodingError
+
+    public var statusCode: Int? {
+        switch self {
+        case .invalidURL, .decodingError:
+            return nil
+        case .unauthorized:
+            return 401
+        case .serverError(let context):
+            return context.statusCode
+        }
+    }
+
+    public var backendCode: String? {
+        switch self {
+        case .serverError(let context):
+            return context.code
+        default:
+            return nil
+        }
+    }
+
+    public var backendMessage: String? {
+        switch self {
+        case .invalidURL:
+            return nil
+        case .unauthorized:
+            return "Session is missing or invalid."
+        case .serverError(let context):
+            return context.message
+        case .decodingError:
+            return nil
+        }
+    }
+
+    public var backendContext: AmonBackendErrorContext? {
+        switch self {
+        case .serverError(let context):
+            return context
+        default:
+            return nil
+        }
+    }
 
     public var errorDescription: String? {
         switch self {
@@ -12,8 +54,11 @@ public enum AmonAPIError: Error, LocalizedError, Sendable {
             return "Invalid API URL."
         case .unauthorized:
             return "Session is missing or invalid."
-        case .serverError(let statusCode, let body):
-            return "Server returned status \(statusCode): \(body)"
+        case .serverError(let context):
+            if let message = context.message {
+                return "Server returned status \(context.statusCode): \(message)"
+            }
+            return "Server returned status \(context.statusCode)."
         case .decodingError:
             return "Failed to decode server response."
         }
@@ -184,13 +229,19 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
     private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
-            throw AmonAPIError.serverError(statusCode: -1, body: "Non-HTTP response")
+            throw AmonAPIError.serverError(
+                AmonBackendErrorContext(
+                    statusCode: -1,
+                    code: "non_http_response",
+                    message: "Non-HTTP response"
+                )
+            )
         }
         guard (200..<300).contains(http.statusCode) else {
             if http.statusCode == 401 {
                 throw AmonAPIError.unauthorized
             }
-            throw AmonAPIError.serverError(statusCode: http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
+            throw AmonAPIError.serverError(decodeBackendErrorContext(statusCode: http.statusCode, data: data))
         }
         do {
             return try JSONDecoder.amon.decode(T.self, from: data)
@@ -198,6 +249,75 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
             throw AmonAPIError.decodingError
         }
     }
+
+    private func decodeBackendErrorContext(statusCode: Int, data: Data) -> AmonBackendErrorContext {
+        let rawBody = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+
+        if let envelope = try? JSONDecoder.amon.decode(BackendErrorEnvelope.self, from: data) {
+            return AmonBackendErrorContext(
+                statusCode: statusCode,
+                code: envelope.normalizedCode,
+                message: envelope.normalizedMessage ?? rawBody
+            )
+        }
+
+        return AmonBackendErrorContext(
+            statusCode: statusCode,
+            code: nil,
+            message: rawBody
+        )
+    }
+}
+
+private struct BackendErrorEnvelope: Decodable {
+    let code: String?
+    let message: String?
+    let detail: BackendErrorDetail?
+
+    var normalizedCode: String? {
+        detail?.code ?? code
+    }
+
+    var normalizedMessage: String? {
+        detail?.message ?? message
+    }
+}
+
+private enum BackendErrorDetail: Decodable {
+    case string(String)
+    case object(BackendErrorObject)
+
+    var code: String? {
+        if case .object(let detail) = self {
+            return detail.code
+        }
+        return nil
+    }
+
+    var message: String? {
+        switch self {
+        case .string(let value):
+            return value.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        case .object(let detail):
+            return detail.message?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        }
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let value = try? container.decode(String.self) {
+            self = .string(value)
+            return
+        }
+        self = .object(try container.decode(BackendErrorObject.self))
+    }
+}
+
+private struct BackendErrorObject: Decodable {
+    let code: String?
+    let message: String?
 }
 
 private extension URLSession {
@@ -212,4 +332,10 @@ private extension URLSession {
         configuration.timeoutIntervalForResource = 10
         return URLSession(configuration: configuration)
     }()
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
+    }
 }

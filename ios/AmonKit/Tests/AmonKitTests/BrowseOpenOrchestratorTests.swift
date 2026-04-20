@@ -21,7 +21,9 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
 
         XCTAssertEqual(apiClient.serveDecisionRequests.count, 1)
         XCTAssertEqual(orchestrator.activeChoice?.decision?.disposition, .recommendProtected)
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Protected Session Recommended")
         XCTAssertEqual(orchestrator.activeChoice?.protectedSessionTitle, "Open Protected Session (Recommended)")
+        XCTAssertEqual(orchestrator.activeChoice?.standardTitle, "Open Normally")
         XCTAssertTrue(orchestrator.activeChoice?.showsProtectedSession ?? false)
     }
 
@@ -36,9 +38,34 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertEqual(apiClient.serveDecisionRequests.count, 1)
         XCTAssertNil(orchestrator.activeChoice?.decision)
         XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Open on This Device")
+        XCTAssertEqual(orchestrator.activeChoice?.standardTitle, "Open Normally (Local)")
         XCTAssertEqual(
             orchestrator.activeChoice?.message,
-            "Amon couldn't fetch a recommendation, so this stays a local choice."
+            "Amon can't reach the backend right now. Make sure your local server is running and reachable from the device. Amon will keep this as a local choice for now."
+        )
+    }
+
+    func testLocalOnlyDecisionExplainsProtectedSessionIsUnavailable() async {
+        let apiClient = BrowseOpenMockAPIClient()
+        apiClient.serveDecisionResponse = ServeDecisionResponseDTO(
+            disposition: .deny,
+            reason_code: "uncertain_local_only",
+            confidence: 0.22,
+            policy_version: "test-policy",
+            site_class: nil,
+            budget_tier: "standard"
+        )
+        let orchestrator = BrowseOpenOrchestrator(apiClient: apiClient)
+        let target = BrowseOpenTarget(title: "Example", url: URL(string: "https://example.com/page")!)
+
+        await orchestrator.presentChoices(for: target)
+
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Open Locally")
+        XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
+        XCTAssertEqual(
+            orchestrator.activeChoice?.message,
+            "This page stays on-device in this build. You can open it normally or use Clean View, but Protected Session is not offered."
         )
     }
 

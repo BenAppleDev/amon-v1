@@ -103,11 +103,11 @@ public struct SearchView: View {
                 titleVisibility: .visible,
                 presenting: browseOpenOrchestrator.activeChoice
             ) { recommendation in
-                Button("Open Normally") {
+                Button(recommendation.standardTitle) {
                     browseOpenOrchestrator.open(.standard, from: recommendation)
                 }
 
-                Button("Clean View") {
+                Button(recommendation.cleanViewTitle) {
                     browseOpenOrchestrator.open(.cleanView, from: recommendation)
                 }
 

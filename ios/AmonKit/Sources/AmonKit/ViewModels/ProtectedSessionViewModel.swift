@@ -6,6 +6,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
     @Published public private(set) var sessionLifecycleState: ProtectedSessionLifecycleState = .connecting
     @Published public private(set) var streamState: ProtectedSessionStreamState = .connecting
     @Published public private(set) var actionState: ProtectedSessionActionState = .idle
+    @Published public private(set) var failurePresentation: ProtectedSessionFailurePresentation?
     @Published public private(set) var isEndingSession = false
     @Published var banner: AmonBanner?
     @Published private var fieldDrafts: [String: String] = [:]
@@ -130,6 +131,16 @@ public final class ProtectedSessionViewModel: ObservableObject {
         canInteract && state != nil && clientState != .connecting
     }
 
+    private var effectiveFailurePresentation: ProtectedSessionFailurePresentation? {
+        if let failurePresentation {
+            return failurePresentation
+        }
+        if case .failed(let message) = sessionLifecycleState {
+            return .failed(message: message ?? "Amon couldn't keep this protected session running.")
+        }
+        return nil
+    }
+
     public var sessionStatusTitle: String {
         switch clientState {
         case .connecting:
@@ -145,7 +156,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
         case .ended:
             return "Ended"
         case .failed:
-            return "Failed"
+            return effectiveFailurePresentation?.sessionStatusTitle ?? "Failed"
         }
     }
 
@@ -170,10 +181,8 @@ public final class ProtectedSessionViewModel: ObservableObject {
             }
             return "This protected session ended and won't accept new actions."
         case .failed:
-            if case .failed(let message) = sessionLifecycleState {
-                return message ?? "Amon couldn't keep this protected session running."
-            }
-            return "Amon couldn't keep this protected session running."
+            return effectiveFailurePresentation?.message
+                ?? "Amon couldn't keep this protected session running."
         }
     }
 
@@ -217,7 +226,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
         case .ended:
             return "Protected Session ended"
         case .failed:
-            return "Protected Session unavailable"
+            return effectiveFailurePresentation?.terminalTitle ?? "Protected Session unavailable"
         default:
             return "Protected Session"
         }
@@ -245,6 +254,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
         sessionLifecycleState = .connecting
         streamState = .connecting
         actionState = .idle
+        failurePresentation = nil
 
         do {
             let created = try await apiClient.createProtectedSession(url: initialURL.absoluteString)
@@ -253,10 +263,14 @@ public final class ProtectedSessionViewModel: ObservableObject {
             beginPolling()
         } catch {
             didStart = false
-            let message = AmonErrorPresenter.message(
+            let fallback = "Amon couldn't start a protected session for that page."
+            let presentation = AmonErrorPresenter.protectedSessionFailurePresentation(
                 for: error,
-                fallback: "Amon couldn't start a protected session for that page."
+                fallback: fallback
             )
+            let message = presentation?.message
+                ?? AmonErrorPresenter.message(for: error, fallback: fallback)
+            failurePresentation = presentation ?? .failed(message: message)
             sessionLifecycleState = .failed(message: message)
             streamState = .degradedPolling(message: nil)
             actionState = .idle
@@ -358,6 +372,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
             state = nil
             fieldDrafts = [:]
             banner = nil
+            failurePresentation = nil
             pendingStreamActionID = nil
             pendingActionBaseRevision = nil
             actionState = .idle
@@ -431,6 +446,15 @@ public final class ProtectedSessionViewModel: ObservableObject {
         sessionLifecycleState = lifecycleState(from: state)
         seedDrafts(from: state.current_page)
 
+        switch sessionLifecycleState {
+        case .failed(let message):
+            failurePresentation = .failed(
+                message: message ?? "Amon couldn't keep this protected session running."
+            )
+        case .connecting, .live, .expired, .ended:
+            failurePresentation = nil
+        }
+
         if let pendingStreamActionID,
            let baseRevision = pendingActionBaseRevision,
            state.content_revision > baseRevision {
@@ -492,38 +516,28 @@ public final class ProtectedSessionViewModel: ObservableObject {
     }
 
     private func handleSessionError(_ error: Error, fallback: String) {
-        let message = AmonErrorPresenter.message(for: error, fallback: fallback)
         clearPendingAction()
 
-        if let terminalState = terminalState(for: message) {
+        if let terminalState = AmonErrorPresenter.protectedSessionTerminalState(for: error, fallback: fallback) {
             pollingTask?.cancel()
             reconnectTask?.cancel()
             streamClient?.disconnect()
             streamClient = nil
             fieldDrafts = [:]
+            failurePresentation = AmonErrorPresenter.protectedSessionFailurePresentation(
+                for: error,
+                fallback: fallback
+            )
             sessionLifecycleState = terminalState
             return
         }
 
-        banner = AmonBanner(tone: .error, title: "Protected Session", message: message)
-    }
-
-    private func terminalState(for message: String) -> ProtectedSessionLifecycleState? {
-        let normalized = message.localizedLowercase
-        if normalized.contains("expired") {
-            return .expired(message: message)
-        }
-        if normalized.contains("no longer available")
-            || normalized.contains("was closed")
-            || normalized.contains("is ending") {
-            return .ended(message: message)
-        }
-        if normalized.contains("couldn't keep")
-            || normalized.contains("was destroyed")
-            || normalized.contains("couldn't keep that protected session running") {
-            return .failed(message: message)
-        }
-        return nil
+        let message = AmonErrorPresenter.message(for: error, fallback: fallback)
+        banner = AmonBanner(
+            tone: .error,
+            title: AmonErrorPresenter.protectedSessionActionBannerTitle(for: error),
+            message: message
+        )
     }
 
     private func connectStream(for sessionID: String, resumeFromSequence: Int?) {
@@ -549,6 +563,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
         } catch {
             let message = "Amon couldn't attach the live remote snapshot stream and will keep using periodic session refreshes."
             if case .connecting = sessionLifecycleState, state == nil {
+                failurePresentation = .failed(message: message)
                 sessionLifecycleState = .failed(message: message)
             }
             streamState = .degradedPolling(message: message)
@@ -593,6 +608,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
             if let nextState = message.state {
                 apply(state: nextState)
             } else {
+                failurePresentation = nil
                 sessionLifecycleState = .ended(message: message.message ?? "This protected session ended remotely.")
             }
             clearPendingAction()
@@ -607,16 +623,14 @@ public final class ProtectedSessionViewModel: ObservableObject {
                clientActionID == pendingStreamActionID,
                message.action_status == "failed" || message.action_status == "rejected" {
                 clearPendingAction()
-                banner = AmonBanner(
-                    tone: .error,
-                    title: "Protected Session",
-                    message: message.message ?? "That protected-session action could not be completed."
+                banner = AmonErrorPresenter.protectedSessionActionBanner(
+                    code: message.code,
+                    message: message.message
                 )
             }
         case .error:
-            banner = AmonBanner(
-                tone: .error,
-                title: "Protected Session",
+            banner = AmonErrorPresenter.protectedSessionActionBanner(
+                code: message.code,
                 message: message.message ?? "That protected-session stream message was rejected."
             )
         case nil:
@@ -629,10 +643,15 @@ public final class ProtectedSessionViewModel: ObservableObject {
         guard !isTerminalLifecycleState else { return }
         guard let sessionID else {
             if let error {
+                let fallback = "Amon couldn't attach the protected-session stream."
+                failurePresentation = AmonErrorPresenter.protectedSessionFailurePresentation(
+                    for: error,
+                    fallback: fallback
+                ) ?? .failed(message: AmonErrorPresenter.message(for: error, fallback: fallback))
                 sessionLifecycleState = .failed(
                     message: AmonErrorPresenter.message(
                         for: error,
-                        fallback: "Amon couldn't attach the protected-session stream."
+                        fallback: fallback
                     )
                 )
             }
