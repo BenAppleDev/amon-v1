@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const modes = [
   {
@@ -115,11 +115,26 @@ function OutcomeObject({ mode }) {
 }
 
 export function RequestFlowDiagram({ compact = false }) {
-  const [activeMode, setActiveMode] = useState("clean");
+  const [cycleIndex, setCycleIndex] = useState(1);
+  const [hoverMode, setHoverMode] = useState(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setCycleIndex((current) => (current + 1) % modes.length);
+    }, 10000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const activeMode = hoverMode ?? modes[cycleIndex].id;
   const active = modes.find((mode) => mode.id === activeMode) ?? modes[1];
 
   return (
-    <div className={`request-router${compact ? " is-compact" : ""}`} data-mode={activeMode}>
+    <div
+      className={`request-router${compact ? " is-compact" : ""}`}
+      data-mode={activeMode}
+      style={{ "--active-accent": active.accent }}
+    >
       <div className="request-router-header">
         <span className="diagram-kicker">Request handling</span>
         <strong>Every request enters Amon first.</strong>
@@ -143,17 +158,26 @@ export function RequestFlowDiagram({ compact = false }) {
             <p>Always on for Amon browsing.</p>
           </div>
 
-          <div className="mode-switcher" aria-label="Choose request handling mode">
+          <div
+            className="mode-switcher"
+            role="listbox"
+            aria-label="Preview request handling mode"
+            onMouseLeave={() => setHoverMode(null)}
+          >
             {modes.map((mode) => (
-              <button
+              <div
                 key={mode.id}
-                type="button"
-                className={`mode-switcher-button${activeMode === mode.id ? " is-active" : ""}`}
-                onClick={() => setActiveMode(mode.id)}
-                aria-pressed={activeMode === mode.id}
+                role="option"
+                tabIndex={0}
+                aria-selected={activeMode === mode.id}
+                className={`mode-switcher-option${activeMode === mode.id ? " is-active" : ""}`}
+                style={{ "--mode-accent": mode.accent }}
+                onMouseEnter={() => setHoverMode(mode.id)}
+                onFocus={() => setHoverMode(mode.id)}
+                onBlur={() => setHoverMode(null)}
               >
                 {mode.chip}
-              </button>
+              </div>
             ))}
           </div>
         </div>

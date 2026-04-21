@@ -1,67 +1,126 @@
+import { useState } from "react";
+
+const columns = [
+  { id: "amon", label: "Amon" },
+  { id: "destination", label: "Destination" },
+  { id: "network", label: "Network" },
+  { id: "device", label: "Device" }
+];
+
 const rows = [
   {
     mode: "Search",
     tone: "neutral",
-    amon: "Brokers request",
-    destination: "Sees Amon",
-    network: "Sees Amon traffic",
-    device: "No saved history unless you save"
+    cells: {
+      amon: "Brokers request",
+      destination: "Sees Amon",
+      network: "Sees Amon traffic",
+      device: "No saved history unless you save"
+    }
   },
   {
     mode: "Local",
     tone: "lime",
-    amon: "Routes live page",
-    destination: "Sees Amon-mediated path",
-    network: "Sees Amon",
-    device: "Renders live page"
+    cells: {
+      amon: "Routes live page",
+      destination: "Sees Amon-mediated path",
+      network: "Sees Amon",
+      device: "Renders live page"
+    }
   },
   {
     mode: "Clean",
     tone: "lime",
-    amon: "Fetches and extracts text",
-    destination: "Sees Amon retrieval",
-    network: "Sees Amon",
-    device: "Receives readable text"
+    cells: {
+      amon: "Fetches and extracts text",
+      destination: "Sees Amon retrieval",
+      network: "Sees Amon",
+      device: "Receives readable text"
+    }
   },
   {
     mode: "Protected",
     tone: "red",
-    amon: "Runs remote session",
-    destination: "Sees Amon machine",
-    network: "Sees Amon",
-    device: "Controls session"
+    cells: {
+      amon: "Runs remote session",
+      destination: "Sees Amon machine",
+      network: "Sees Amon",
+      device: "Controls session"
+    }
   },
   {
     mode: "Workspace",
     tone: "neutral",
-    amon: "Cannot decrypt files",
-    destination: "Sees nothing",
-    network: "Sees nothing",
-    device: "Encrypted local work"
+    cells: {
+      amon: "Cannot decrypt files",
+      destination: "Sees nothing",
+      network: "Sees nothing",
+      device: "Encrypted local work"
+    }
   }
 ];
 
 export function VisibilityMatrixDiagram() {
+  const [hovered, setHovered] = useState(null);
+
+  const isColumnActive = (columnId) => hovered?.column === columnId;
+  const isRowActive = (rowIndex) => hovered?.row === rowIndex;
+
   return (
-    <div className="visibility-map">
-      <div className="visibility-map-header">
-        <span>Mode</span>
-        <span>Amon</span>
-        <span>Destination</span>
-        <span>Network</span>
-        <span>Device</span>
+    <div
+      className="visibility-map"
+      onMouseLeave={() => setHovered(null)}
+      role="table"
+      aria-label="Who sees what depends on the request path."
+    >
+      <div className="visibility-map-header" role="row">
+        <div
+          className={`visibility-map-cell visibility-map-heading visibility-map-mode-heading${isColumnActive("mode") ? " is-col-hover" : ""}`}
+          role="columnheader"
+          onMouseEnter={() => setHovered({ row: null, column: "mode" })}
+        >
+          Mode
+        </div>
+
+        {columns.map((column) => (
+          <div
+            key={column.id}
+            className={`visibility-map-cell visibility-map-heading${isColumnActive(column.id) ? " is-col-hover" : ""}`}
+            role="columnheader"
+            onMouseEnter={() => setHovered({ row: null, column: column.id })}
+          >
+            {column.label}
+          </div>
+        ))}
       </div>
 
-      {rows.map((row) => (
-        <div className={`visibility-map-row is-${row.tone}`} key={row.mode}>
-          <div className="visibility-map-mode">
+      {rows.map((row, rowIndex) => (
+        <div
+          className={`visibility-map-row is-${row.tone}${isRowActive(rowIndex) ? " is-row-hover" : ""}`}
+          role="row"
+          key={row.mode}
+          onMouseEnter={() => setHovered({ row: rowIndex, column: null })}
+        >
+          <div
+            className={`visibility-map-cell visibility-map-mode${isRowActive(rowIndex) ? " is-row-hover" : ""}${isColumnActive("mode") ? " is-col-hover" : ""}${hovered?.row === rowIndex && hovered?.column === "mode" ? " is-target" : ""}`}
+            role="cell"
+            onMouseEnter={() => setHovered({ row: rowIndex, column: "mode" })}
+          >
             <i />
             <strong>{row.mode}</strong>
           </div>
-          <div>{row.amon}</div>
-          <div>{row.destination}</div>
-          <div>{row.network}</div>
-          <div>{row.device}</div>
+
+          {columns.map((column) => (
+            <div
+              key={column.id}
+              className={`visibility-map-cell${isRowActive(rowIndex) ? " is-row-hover" : ""}${isColumnActive(column.id) ? " is-col-hover" : ""}${hovered?.row === rowIndex && hovered?.column === column.id ? " is-target" : ""}`}
+              role="cell"
+              data-column={column.label}
+              onMouseEnter={() => setHovered({ row: rowIndex, column: column.id })}
+            >
+              {row.cells[column.id]}
+            </div>
+          ))}
         </div>
       ))}
 

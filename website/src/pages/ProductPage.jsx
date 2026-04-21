@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { ModeComparisonDiagram } from "../components/ModeComparisonDiagram";
 import { PageHero } from "../components/PageHero";
-import { RequestFlowDiagram } from "../components/RequestFlowDiagram";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
 import { modeDeepDives, policyBoundaries } from "../content/site";
@@ -21,32 +20,26 @@ export function ProductPage() {
         aside={
           <>
             <span className="note-kicker">Core model</span>
-            <p>Privacy route → live, text, or remote → local workspace</p>
+            <p>Privacy route. Live page, extracted text, or remote session. Saved work stays local.</p>
           </>
         }
       />
 
       <section className="page-section">
-        <div className="frame feature-split">
-          <Reveal>
-            <RequestFlowDiagram compact />
+        <div className="frame comparison-grid comparison-grid-equal">
+          <Reveal className="comparison-panel">
+            <h3>Not a linear flow.</h3>
+            <p>
+              Local, Clean View, and Protected Session are not steps. They are choices for how to handle a page after the request enters Amon.
+            </p>
           </Reveal>
 
-          <div className="stack">
-            <Reveal className="comparison-panel">
-              <h3>Not a linear flow.</h3>
-              <p>
-                Local, Clean View, and Protected Session are not steps. They are choices for how to handle a page after the request enters Amon.
-              </p>
-            </Reveal>
-
-            <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
-              <h3>The system recommends. You choose.</h3>
-              <p>
-                Amon can recommend text extraction or protected remote browsing when a site needs it, but the user stays in control of the path.
-              </p>
-            </Reveal>
-          </div>
+          <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
+            <h3>The system recommends. You choose.</h3>
+            <p>
+              Amon can recommend text extraction or protected remote browsing when a site needs it, but the user stays in control of the path.
+            </p>
+          </Reveal>
         </div>
       </section>
 

@@ -5,7 +5,7 @@ const modeCards = [
     name: "Local",
     title: "Open the real site through Amon.",
     body: "Amon keeps the privacy route in the path while the site opens live in-app.",
-    route: "You → Amon privacy route → Site",
+    handling: "Live site carried through Amon’s privacy route.",
     bestFor: "Normal browsing"
   },
   {
@@ -14,7 +14,7 @@ const modeCards = [
     name: "Clean View",
     title: "Extract the information.",
     body: "Amon fetches the page and returns readable text when you mainly need the content.",
-    route: "You → Amon fetch → Extracted text",
+    handling: "Readable text extracted from the page.",
     bestFor: "Reading and research"
   },
   {
@@ -23,7 +23,7 @@ const modeCards = [
     name: "Protected Session",
     title: "Remote into the real site.",
     body: "Amon opens the site from an Amon-controlled machine and you interact through that session.",
-    route: "You → Amon machine → Site",
+    handling: "Remote session hosted by Amon.",
     bestFor: "Dynamic or sensitive tasks"
   }
 ];
@@ -67,6 +67,7 @@ function TextMini() {
     <div className="mini-text-extract">
       <div className="mini-source-shadow" />
       <div className="mini-document">
+        <span className="document-title-line" />
         <span />
         <span />
         <span className="short" />
@@ -83,8 +84,9 @@ function RemoteMini() {
         <span />
       </div>
       <div className="mini-remote-screen">
-        <i />
-        <span />
+        <div className="mini-remote-dot" />
+        <span className="mini-remote-line strong" />
+        <span className="mini-remote-line" />
       </div>
     </div>
   );
@@ -119,7 +121,10 @@ export function ModeComparisonDiagram() {
             <p>{mode.body}</p>
           </div>
 
-          <div className="mode-card-path">{mode.route}</div>
+          <div className="mode-card-handling">
+            <span>Handling</span>
+            <strong>{mode.handling}</strong>
+          </div>
 
           <div className="mode-card-best">
             <span>Best for</span>
