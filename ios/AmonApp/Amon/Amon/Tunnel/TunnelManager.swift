@@ -20,6 +20,10 @@ final class TunnelManager: ObservableObject {
         static let remoteAddress = "remoteAddress"
         static let dnsServers = "dnsServers"
         static let mtu = "mtu"
+        static let routeSessionID = "routeSessionID"
+        static let routeAccessToken = "routeAccessToken"
+        static let routeExpiresAt = "routeExpiresAt"
+        static let routeAuthSessionID = "routeAuthSessionID"
     }
 
     private enum StartOptionKey {
@@ -68,7 +72,7 @@ final class TunnelManager: ObservableObject {
         }
     }
 
-    func connect(using settings: TransportPrivacySettings) async {
+    func connect(using settings: TransportPrivacySettings, routeSession: RouteSessionStateDTO?) async {
         log("Connect requested with settings \(configurationSummary(for: settings))")
 
         guard settings.endpoint.isConfigured else {
@@ -90,16 +94,17 @@ final class TunnelManager: ObservableObject {
 
         do {
             try validateSettings(settings)
+            try validateRouteSession(routeSession)
             try validateProviderConfiguration()
 
             let manager = try await loadOrCreateManager()
             log("Using tunnel manager object \(String(describing: ObjectIdentifier(manager)))")
 
-            try await installConfigurationIfNeeded(using: settings, on: manager)
+            try await installConfigurationIfNeeded(using: settings, routeSession: routeSession, on: manager)
             self.manager = manager
             attachStatusObserver()
 
-            let startOptions = makeStartOptions(from: settings)
+            let startOptions = makeStartOptions(from: settings, routeSession: routeSession)
             if let session = manager.connection as? NETunnelProviderSession {
                 log("Starting NETunnelProviderSession with options \(startOptions)")
                 try session.startTunnel(options: startOptions)
@@ -271,6 +276,21 @@ final class TunnelManager: ObservableObject {
         }
     }
 
+    private func validateRouteSession(_ routeSession: RouteSessionStateDTO?) throws {
+        guard let routeSession else {
+            throw TunnelConfigurationError.routeSessionMissing
+        }
+        guard routeSession.status == .active else {
+            throw TunnelConfigurationError.routeSessionInactive
+        }
+        guard routeSession.route_kind == .localRouted else {
+            throw TunnelConfigurationError.routeSessionInactive
+        }
+        guard routeSession.expires_at > Date() else {
+            throw TunnelConfigurationError.routeSessionExpired
+        }
+    }
+
     private func embeddedPluginBundles() -> [Bundle] {
         let pluginURLs = Bundle.main.builtInPlugInsURL
             .flatMap { try? FileManager.default.contentsOfDirectory(at: $0, includingPropertiesForKeys: nil) }
@@ -306,10 +326,18 @@ final class TunnelManager: ObservableObject {
         resolvedProviderBundleIdentifier ?? Self.fallbackTunnelProviderBundleIdentifier
     }
 
-    private func installConfigurationIfNeeded(using settings: TransportPrivacySettings, on manager: NETunnelProviderManager) async throws {
-        if configurationMatchesExistingManager(manager, settings: settings) {
+    private func installConfigurationIfNeeded(
+        using settings: TransportPrivacySettings,
+        routeSession: RouteSessionStateDTO?,
+        on manager: NETunnelProviderManager
+    ) async throws {
+        if configurationMatchesExistingManager(manager, settings: settings, routeSession: routeSession) {
             log("Persisted tunnel configuration already matches the requested endpoint; skipping save")
             return
+        }
+
+        guard let routeSession else {
+            throw TunnelConfigurationError.routeSessionMissing
         }
 
         let providerConfiguration: [String: Any] = [
@@ -320,6 +348,10 @@ final class TunnelManager: ObservableObject {
             ConfigurationKey.remoteAddress: settings.endpoint.remoteAddress,
             ConfigurationKey.dnsServers: settings.endpoint.dnsServers,
             ConfigurationKey.mtu: settings.endpoint.mtu,
+            ConfigurationKey.routeSessionID: routeSession.session_id,
+            ConfigurationKey.routeAccessToken: routeSession.access_token,
+            ConfigurationKey.routeExpiresAt: ISO8601DateFormatter().string(from: routeSession.expires_at),
+            ConfigurationKey.routeAuthSessionID: routeSession.auth_session_id,
         ]
 
         let protocolConfiguration = NETunnelProviderProtocol()
@@ -344,7 +376,8 @@ final class TunnelManager: ObservableObject {
 
     private func configurationMatchesExistingManager(
         _ manager: NETunnelProviderManager,
-        settings: TransportPrivacySettings
+        settings: TransportPrivacySettings,
+        routeSession: RouteSessionStateDTO?
     ) -> Bool {
         guard let configuration = manager.protocolConfiguration as? NETunnelProviderProtocol else {
             return false
@@ -358,6 +391,9 @@ final class TunnelManager: ObservableObject {
         let storedRemote = providerConfiguration[ConfigurationKey.remoteAddress] as? String
         let storedMTU = intValue(providerConfiguration[ConfigurationKey.mtu])
         let storedDNS = stringArrayValue(providerConfiguration[ConfigurationKey.dnsServers])
+        let storedRouteSessionID = providerConfiguration[ConfigurationKey.routeSessionID] as? String
+        let storedRouteExpiresAt = providerConfiguration[ConfigurationKey.routeExpiresAt] as? String
+        let storedRouteAuthSessionID = providerConfiguration[ConfigurationKey.routeAuthSessionID] as? String
 
         let endpoint = settings.endpoint
         return configuration.providerBundleIdentifier == providerBundleIdentifier
@@ -370,6 +406,9 @@ final class TunnelManager: ObservableObject {
             && storedRemote == endpoint.remoteAddress
             && storedMTU == endpoint.mtu
             && storedDNS == endpoint.dnsServers
+            && storedRouteSessionID == routeSession?.session_id
+            && storedRouteExpiresAt == routeSession.map { ISO8601DateFormatter().string(from: $0.expires_at) }
+            && storedRouteAuthSessionID == routeSession?.auth_session_id
     }
 
     private func endpointSummary(from manager: NETunnelProviderManager) -> String? {
@@ -393,7 +432,9 @@ final class TunnelManager: ObservableObject {
         let remote = providerConfiguration[ConfigurationKey.remoteAddress] ?? "<missing>"
         let mtu = providerConfiguration[ConfigurationKey.mtu] ?? "<missing>"
         let dns = (providerConfiguration[ConfigurationKey.dnsServers] as? [String])?.joined(separator: ",") ?? "<missing>"
-        return "bundle=\(configuration.providerBundleIdentifier ?? "<nil>") host=\(host) port=\(port) client=\(client) remote=\(remote) mtu=\(mtu) dns=\(dns)"
+        let routeSessionID = providerConfiguration[ConfigurationKey.routeSessionID] as? String ?? "<missing>"
+        let routeExpiresAt = providerConfiguration[ConfigurationKey.routeExpiresAt] as? String ?? "<missing>"
+        return "bundle=\(configuration.providerBundleIdentifier ?? "<nil>") host=\(host) port=\(port) client=\(client) remote=\(remote) mtu=\(mtu) dns=\(dns) routeSession=\(routeSessionID) routeExpiresAt=\(routeExpiresAt)"
     }
 
     private func monitorStartTransition(for manager: NETunnelProviderManager) async {
@@ -474,12 +515,13 @@ final class TunnelManager: ObservableObject {
         return "\(nsError.domain) code=\(nsError.code) \(humanReadableMessage(for: error))"
     }
 
-    private func makeStartOptions(from settings: TransportPrivacySettings) -> [String: NSObject] {
+    private func makeStartOptions(from settings: TransportPrivacySettings, routeSession: RouteSessionStateDTO?) -> [String: NSObject] {
         [
             StartOptionKey.requestedAt: ISO8601DateFormatter().string(from: Date()) as NSString,
             StartOptionKey.requestedHost: settings.endpoint.serverHost as NSString,
             StartOptionKey.requestedPort: NSNumber(value: settings.endpoint.serverPort),
             StartOptionKey.providerBundleIdentifier: providerBundleIdentifier as NSString,
+            "routeSessionID": (routeSession?.session_id ?? "<missing>") as NSString,
         ]
     }
 
@@ -530,6 +572,9 @@ private enum TunnelConfigurationError: LocalizedError {
     case providerMissing(expectedBundleIdentifier: String)
     case invalidEndpointHost(String)
     case invalidPort
+    case routeSessionMissing
+    case routeSessionInactive
+    case routeSessionExpired
 
     var errorDescription: String? {
         switch self {
@@ -539,6 +584,12 @@ private enum TunnelConfigurationError: LocalizedError {
             return message
         case .invalidPort:
             return "Use a valid tunnel port between 1 and 65535."
+        case .routeSessionMissing:
+            return "Amon could not mint a routed-local session for this tunnel start."
+        case .routeSessionInactive:
+            return "The routed-local session is no longer active. Refresh it before reconnecting."
+        case .routeSessionExpired:
+            return "The routed-local session expired before the tunnel could start."
         }
     }
 }

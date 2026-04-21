@@ -72,6 +72,7 @@ The repo now includes a stage-1 daemon in `tools/tunnel/amon_tunnel_daemon.py` f
 Keep the services separate on the laptop:
 
 - FastAPI backend: for auth, search, retrieval, compare, research
+- FastAPI backend: also now issues short-lived routed-local route sessions for control/auth only
 - Tunnel endpoint: for encrypted transport only
 
 Recommended local split:
@@ -142,7 +143,7 @@ python3 tools/tunnel/amon_tunnel_daemon.py --port 9443
 
 - This is not a production VPN service
 - There is no kill switch
-- There is no backend-issued tunnel credential flow yet
+- The backend now exposes a routed-local route-session control plane, but the tunnel endpoint does not validate or consume that credential yet
 - There is no relay fleet or server-side control plane
 - The repo now includes only a stage-1 laptop endpoint for handshake and packet logging
 - The current protocol is development-oriented, not hardened

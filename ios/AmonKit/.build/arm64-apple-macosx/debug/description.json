@@ -52,6 +52,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowsePathContract.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/LocalRouteCapability.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift"
         },
         {
@@ -68,7 +76,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/ProtectedSessionPresentationModels.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/WorkspaceOwnershipModels.swift"
         },
         {
           "kind" : "file",
@@ -201,11 +217,15 @@
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionStreamClient.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenModels.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/JSONValue.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PresentationModels.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/KeychainHelper.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalFieldCipher.swift.o",
@@ -282,7 +302,8 @@
         "-Xcc",
         "-g",
         "-package-name",
-        "amonkit"
+        "amonkit",
+        "-disable-sandbox"
       ],
       "outputFileMapPath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/output-file-map.json",
       "outputs" : [
@@ -312,6 +333,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.swift.o"
         },
         {
@@ -328,7 +357,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.swift.o"
         },
         {
           "kind" : "file",
@@ -455,11 +492,15 @@
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/ProtectedSessionStreamClient.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenModels.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenOrchestrator.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowsePathContract.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/LocalRouteCapability.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/JSONValue.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PrivacySettings.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/ProtectedSessionPresentationModels.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/WorkspaceOwnershipModels.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/BrowserPrivacyController.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/KeychainHelper.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/LocalFieldCipher.swift",
@@ -567,7 +608,8 @@
         "-Xcc",
         "-g",
         "-package-name",
-        "amonkit"
+        "amonkit",
+        "-disable-sandbox"
       ],
       "outputFileMapPath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitPackageTests.build/output-file-map.json",
       "outputs" : [
@@ -594,11 +636,27 @@
       "inputs" : [
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift"
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift"
         },
         {
           "kind" : "file",
@@ -607,6 +665,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift"
         },
         {
           "kind" : "file",
@@ -625,10 +687,15 @@
       "moduleName" : "AmonKitTests",
       "moduleOutputPath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/Modules/AmonKitTests.swiftmodule",
       "objects" : [
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/AmonAPIClientTests.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/ProtectedSessionViewModelTests.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.swift.o",
         "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/SearchViewModelTests.swift.o",
-        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swift.o"
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swift.o",
+        "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -676,17 +743,34 @@
         "-Xcc",
         "-g",
         "-package-name",
-        "amonkit"
+        "amonkit",
+        "-disable-sandbox"
       ],
       "outputFileMapPath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/output-file-map.json",
       "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/AmonAPIClientTests.swift.o"
+        },
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swift.o"
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/ProtectedSessionViewModelTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.swift.o"
         },
         {
           "kind" : "file",
@@ -698,15 +782,24 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/Modules/AmonKitTests.swiftmodule"
         }
       ],
       "prepareForIndexing" : false,
       "sources" : [
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift",
         "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SearchViewModelTests.swift",
-        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift"
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift",
+        "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift"
       ],
       "tempsPath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build",
       "wholeModuleOptimization" : false
@@ -729,11 +822,15 @@
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/API/ProtectedSessionStreamClient.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenModels.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowseOpenOrchestrator.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowsePathContract.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/LocalRouteCapability.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/JSONValue.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PresentationModels.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/PrivacySettings.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/ProtectedSessionPresentationModels.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/WorkspaceOwnershipModels.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/BrowserPrivacyController.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/KeychainHelper.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/LocalFieldCipher.swift",
@@ -811,6 +908,7 @@
       "-g",
       "-package-name",
       "amonkit",
+      "-disable-sandbox",
       "-driver-use-frontend-path",
       "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ],
@@ -871,6 +969,7 @@
       "-g",
       "-package-name",
       "amonkit",
+      "-disable-sandbox",
       "-driver-use-frontend-path",
       "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ],
@@ -881,10 +980,15 @@
       "-package-name",
       "amonkit",
       "-c",
+      "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SearchViewModelTests.swift",
       "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift",
+      "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift",
       "-I",
       "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/Modules",
       "-target",
@@ -933,6 +1037,7 @@
       "-g",
       "-package-name",
       "amonkit",
+      "-disable-sandbox",
       "-driver-use-frontend-path",
       "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
     ]
@@ -1004,6 +1109,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowsePathContract.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/LocalRouteCapability.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift"
         },
         {
@@ -1020,7 +1133,15 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/ProtectedSessionPresentationModels.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/WorkspaceOwnershipModels.swift"
         },
         {
           "kind" : "file",
@@ -1196,6 +1317,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.swift.o"
         },
         {
@@ -1224,6 +1349,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PresentationModels.swift.o"
         },
         {
@@ -1237,6 +1366,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPageView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.swift.o"
         },
         {
           "kind" : "file",
@@ -1312,6 +1445,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceStore.swift.o"
         },
         {
@@ -1320,11 +1457,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/AmonAPIClientTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swift.o"
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/ProtectedSessionViewModelTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.swift.o"
         },
         {
           "kind" : "file",
@@ -1333,6 +1486,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.swift.o"
         }
       ],
       "outputFilePath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitPackageTests.product/Objects.LinkFileList"
@@ -1346,11 +1503,27 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift"
         },
         {
           "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift"
         },
         {
           "kind" : "file",
@@ -1359,6 +1532,10 @@
         {
           "kind" : "file",
           "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift"
         }
       ],
       "outputFilePath" : "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKitTests.build/sources"

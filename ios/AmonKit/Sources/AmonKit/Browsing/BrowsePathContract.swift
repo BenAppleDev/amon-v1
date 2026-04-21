@@ -20,41 +20,27 @@ public enum BrowsePath: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public enum LocalPrivacyRouteState: String, CaseIterable, Codable, Sendable {
-    case connected
-    case connecting
-    case degraded
-    case unavailable
-
-    public var title: String {
-        switch self {
-        case .connected:
-            return "Connected"
-        case .connecting:
-            return "Connecting"
-        case .degraded:
-            return "Degraded"
-        case .unavailable:
-            return "Unavailable"
-        }
-    }
-}
-
 public struct BrowsePathResolution: Equatable, Hashable, Sendable {
     public let requestedPath: BrowsePath
     public let effectivePath: BrowsePath
     public let localRouteState: LocalPrivacyRouteState
+    public let localRouteReason: LocalRouteCapabilityReason?
+    public let localRouteDetail: String?
     public let fallbackReason: String?
 
     public init(
         requestedPath: BrowsePath,
         effectivePath: BrowsePath,
         localRouteState: LocalPrivacyRouteState,
+        localRouteReason: LocalRouteCapabilityReason? = nil,
+        localRouteDetail: String? = nil,
         fallbackReason: String? = nil
     ) {
         self.requestedPath = requestedPath
         self.effectivePath = effectivePath
         self.localRouteState = localRouteState
+        self.localRouteReason = localRouteReason
+        self.localRouteDetail = localRouteDetail
         self.fallbackReason = fallbackReason
     }
 }
@@ -62,38 +48,36 @@ public struct BrowsePathResolution: Equatable, Hashable, Sendable {
 public enum BrowsePathResolver {
     public static func resolve(
         requestedPath: BrowsePath,
-        localRouteState: LocalPrivacyRouteState
+        localRouteCapability: LocalRouteCapabilitySnapshot
     ) -> BrowsePathResolution {
         guard requestedPath == .localRouted else {
             return BrowsePathResolution(
                 requestedPath: requestedPath,
                 effectivePath: requestedPath,
-                localRouteState: localRouteState
+                localRouteState: localRouteCapability.state,
+                localRouteReason: localRouteCapability.reason,
+                localRouteDetail: localRouteCapability.detail
             )
         }
 
-        switch localRouteState {
-        case .connected, .connecting:
+        if localRouteCapability.canRemainLocalRouted {
             return BrowsePathResolution(
                 requestedPath: .localRouted,
                 effectivePath: .localRouted,
-                localRouteState: localRouteState
-            )
-        case .degraded:
-            return BrowsePathResolution(
-                requestedPath: .localRouted,
-                effectivePath: .directFallback,
-                localRouteState: localRouteState,
-                fallbackReason: "Amon privacy route is degraded, so this open falls back to direct device browsing."
-            )
-        case .unavailable:
-            return BrowsePathResolution(
-                requestedPath: .localRouted,
-                effectivePath: .directFallback,
-                localRouteState: localRouteState,
-                fallbackReason: "Amon privacy route is not available in this build yet, so local opens currently use direct fallback."
+                localRouteState: localRouteCapability.state,
+                localRouteReason: localRouteCapability.reason,
+                localRouteDetail: localRouteCapability.detail
             )
         }
+
+        return BrowsePathResolution(
+            requestedPath: .localRouted,
+            effectivePath: .directFallback,
+            localRouteState: localRouteCapability.state,
+            localRouteReason: localRouteCapability.reason,
+            localRouteDetail: localRouteCapability.detail,
+            fallbackReason: localRouteCapability.fallbackReason
+        )
     }
 }
 
@@ -127,21 +111,6 @@ public extension DefaultBrowsingMode {
             return .cleanView
         case .protectedSession:
             return .protectedSession
-        }
-    }
-}
-
-public extension LocalPrivacyRouteState {
-    init(tunnelStatus: TransportTunnelStatusState) {
-        switch tunnelStatus {
-        case .connected:
-            self = .connected
-        case .connecting:
-            self = .connecting
-        case .disconnecting, .failed:
-            self = .degraded
-        case .disconnected:
-            self = .unavailable
         }
     }
 }

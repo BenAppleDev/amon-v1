@@ -17,6 +17,7 @@ from app.routers.ops_auth import router as ops_auth_router
 from app.routers.ops_protected_sessions import router as ops_protected_sessions_router
 from app.routers.ops_surface import router as ops_surface_router
 from app.routers.protected_sessions import router as protected_sessions_router
+from app.routers.route_sessions import router as route_sessions_router
 from app.routers.research import router as research_router
 from app.routers.retrieve import router as retrieve_router
 from app.routers.search import router as search_router
@@ -67,6 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(me_router)
     app.include_router(search_router)
     app.include_router(retrieve_router)
+    app.include_router(route_sessions_router)
     app.include_router(protected_sessions_router)
     app.include_router(internal_protected_sessions_router)
     app.include_router(ops_auth_router)

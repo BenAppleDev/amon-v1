@@ -110,6 +110,23 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
         )
     }
 
+    public func mintRouteSession() async throws -> RouteSessionStateDTO {
+        try await request(path: "/v1/route-sessions", method: "POST", body: EmptyRequestBody(), requiresAuth: true)
+    }
+
+    public func refreshRouteSession(sessionID: String) async throws -> RouteSessionStateDTO {
+        try await request(
+            path: "/v1/route-sessions/\(sessionID)/refresh",
+            method: "POST",
+            body: EmptyRequestBody(),
+            requiresAuth: true
+        )
+    }
+
+    public func revokeRouteSession(sessionID: String) async throws -> RouteSessionRevokeResponseDTO {
+        try await request(path: "/v1/route-sessions/\(sessionID)", method: "DELETE", requiresAuth: true)
+    }
+
     public func createProtectedSession(url: String) async throws -> ProtectedSessionStateDTO {
         try await request(
             path: "/v1/protected-sessions",
@@ -319,6 +336,8 @@ private struct BackendErrorObject: Decodable {
     let code: String?
     let message: String?
 }
+
+private struct EmptyRequestBody: Encodable {}
 
 private extension URLSession {
     static let amonDefault: URLSession = {

@@ -5,6 +5,7 @@ public struct AmonSettingsView: View {
     @ObservedObject private var searchViewModel: SearchViewModel
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     @ObservedObject private var transportSettingsStore: TransportPrivacySettingsStore
+    private let localRouteCapability: LocalRouteCapabilitySnapshot
     private let tunnelStatus: TransportTunnelStatusSnapshot
     private let tunnelDiagnostics: [String]
     private let connectTunnel: () -> Void
@@ -16,6 +17,7 @@ public struct AmonSettingsView: View {
         searchViewModel: SearchViewModel,
         privacySettingsStore: PrivacySettingsStore,
         transportSettingsStore: TransportPrivacySettingsStore,
+        localRouteCapability: LocalRouteCapabilitySnapshot,
         tunnelStatus: TransportTunnelStatusSnapshot,
         tunnelDiagnostics: [String],
         connectTunnel: @escaping () -> Void,
@@ -24,6 +26,7 @@ public struct AmonSettingsView: View {
         self.searchViewModel = searchViewModel
         self.privacySettingsStore = privacySettingsStore
         self.transportSettingsStore = transportSettingsStore
+        self.localRouteCapability = localRouteCapability
         self.tunnelStatus = tunnelStatus
         self.tunnelDiagnostics = tunnelDiagnostics
         self.connectTunnel = connectTunnel
@@ -37,6 +40,7 @@ public struct AmonSettingsView: View {
                     NavigationLink {
                         TransportSettingsView(
                             store: transportSettingsStore,
+                            capability: localRouteCapability,
                             status: tunnelStatus,
                             diagnostics: tunnelDiagnostics,
                             connectAction: connectTunnel,
@@ -154,9 +158,9 @@ public struct AmonSettingsView: View {
     }
 
     private var tunnelStatusLabel: String {
-        if let detail = tunnelStatus.detail, !detail.isEmpty {
-            return "\(tunnelStatus.state.title) • \(detail)"
+        if let detail = localRouteCapability.detail, !detail.isEmpty {
+            return "\(localRouteCapability.state.title) • \(detail)"
         }
-        return tunnelStatus.state.title
+        return localRouteCapability.state.title
     }
 }

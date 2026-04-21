@@ -12,6 +12,10 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         static let remoteAddress = "remoteAddress"
         static let dnsServers = "dnsServers"
         static let mtu = "mtu"
+        static let routeSessionID = "routeSessionID"
+        static let routeAccessToken = "routeAccessToken"
+        static let routeExpiresAt = "routeExpiresAt"
+        static let routeAuthSessionID = "routeAuthSessionID"
     }
 
     fileprivate enum TunnelProviderError: LocalizedError {
@@ -348,9 +352,13 @@ private struct DevTunnelConfiguration {
     let remoteAddress: String
     let dnsServers: [String]
     let mtu: Int
+    let routeSessionID: String
+    let routeAccessToken: String
+    let routeExpiresAt: String
+    let routeAuthSessionID: String
 
     var summary: String {
-        "host=\(serverHost) port=\(serverPort) client=\(clientAddress) remote=\(remoteAddress) mtu=\(mtu) dns=\(dnsServers.joined(separator: ","))"
+        "host=\(serverHost) port=\(serverPort) client=\(clientAddress) remote=\(remoteAddress) mtu=\(mtu) dns=\(dnsServers.joined(separator: ",")) routeSession=\(routeSessionID) routeExpiresAt=\(routeExpiresAt)"
     }
 
     init(protocolConfiguration: NEVPNProtocol) throws {
@@ -360,7 +368,7 @@ private struct DevTunnelConfiguration {
             throw PacketTunnelProvider.TunnelProviderError.invalidConfiguration("Amon couldn't read the tunnel provider configuration.")
         }
 
-        NSLog("[AmonPacketTunnel] raw providerConfiguration=%@", providerConfiguration.description)
+        NSLog("[AmonPacketTunnel] providerConfiguration keys=%@", providerConfiguration.keys.sorted().description)
         NSLog(
             "[AmonPacketTunnel] providerBundleIdentifier=%@ serverAddress=%@",
             providerProtocol.providerBundleIdentifier ?? "<nil>",
@@ -392,6 +400,22 @@ private struct DevTunnelConfiguration {
             in: providerConfiguration
         )
         dnsServers = (providerConfiguration[PacketTunnelProvider.ConfigurationKey.dnsServers] as? [String]) ?? []
+        routeSessionID = try DevTunnelConfiguration.stringValue(
+            for: PacketTunnelProvider.ConfigurationKey.routeSessionID,
+            in: providerConfiguration
+        )
+        routeAccessToken = try DevTunnelConfiguration.stringValue(
+            for: PacketTunnelProvider.ConfigurationKey.routeAccessToken,
+            in: providerConfiguration
+        )
+        routeExpiresAt = try DevTunnelConfiguration.stringValue(
+            for: PacketTunnelProvider.ConfigurationKey.routeExpiresAt,
+            in: providerConfiguration
+        )
+        routeAuthSessionID = try DevTunnelConfiguration.stringValue(
+            for: PacketTunnelProvider.ConfigurationKey.routeAuthSessionID,
+            in: providerConfiguration
+        )
     }
 
     private static func stringValue(for key: String, in configuration: [String: Any]) throws -> String {

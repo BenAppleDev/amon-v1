@@ -38,7 +38,7 @@ public enum TransportTunnelStatusState: String, Equatable, Sendable {
     }
 }
 
-public struct TransportTunnelStatusSnapshot: Equatable, Sendable {
+public struct TransportTunnelStatusSnapshot: Equatable, Hashable, Sendable {
     public var state: TransportTunnelStatusState
     public var detail: String?
     public var lastUpdatedAt: Date

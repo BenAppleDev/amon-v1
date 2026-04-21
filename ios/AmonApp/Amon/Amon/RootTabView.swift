@@ -13,6 +13,7 @@ struct RootTabView: View {
     @StateObject private var privacySettingsStore: PrivacySettingsStore
     @StateObject private var transportSettingsStore: TransportPrivacySettingsStore
     @StateObject private var tunnelManager: TunnelManager
+    @StateObject private var localRouteController: LocalRouteCapabilityController
     @State private var selectedTab: AppTab = .search
     @State private var isPresentingSettings = false
     @State private var hasCompletedInitialSessionRestore = false
@@ -48,6 +49,7 @@ struct RootTabView: View {
         _privacySettingsStore = StateObject(wrappedValue: privacySettingsStore)
         _transportSettingsStore = StateObject(wrappedValue: transportSettingsStore)
         _tunnelManager = StateObject(wrappedValue: TunnelManager())
+        _localRouteController = StateObject(wrappedValue: LocalRouteCapabilityController(apiClient: apiClient))
     }
 
     var body: some View {
@@ -66,8 +68,8 @@ struct RootTabView: View {
                         viewModel: searchViewModel,
                         privacySettingsStore: privacySettingsStore,
                         openAppMenu: { isPresentingSettings = true },
-                        localRouteStateProvider: {
-                            LocalPrivacyRouteState(tunnelStatus: tunnelManager.statusSnapshot.state)
+                        localRouteCapabilityProvider: {
+                            localRouteController.capability
                         }
                     )
                     .tag(AppTab.search)
@@ -77,8 +79,8 @@ struct RootTabView: View {
                         apiClient: apiClient,
                         privacySettingsStore: privacySettingsStore,
                         openAppMenu: { isPresentingSettings = true },
-                        localRouteStateProvider: {
-                            LocalPrivacyRouteState(tunnelStatus: tunnelManager.statusSnapshot.state)
+                        localRouteCapabilityProvider: {
+                            localRouteController.capability
                         }
                     )
                     .tag(AppTab.workspace)
@@ -102,6 +104,11 @@ struct RootTabView: View {
             tunnelManager.recordExternalEvent("Tunnel preferences refresh completed during startup")
             await searchViewModel.restoreSessionIfNeeded()
             tunnelManager.recordExternalEvent("Session restore finished; authenticated=\(searchViewModel.isAuthenticated)")
+            await localRouteController.refresh(
+                isAuthenticated: searchViewModel.isAuthenticated,
+                settings: transportSettingsStore.settings,
+                tunnelStatus: tunnelManager.statusSnapshot
+            )
             await BrowserPrivacyController.clearWebsiteDataIfNeededOnLaunch(using: privacySettingsStore.settings)
             hasCompletedInitialSessionRestore = true
             if searchViewModel.isAuthenticated {
@@ -127,7 +134,15 @@ struct RootTabView: View {
             Task {
                 tunnelManager.recordExternalEvent("Transport settings changed to host=\(newValue.endpoint.serverHost.isEmpty ? "<empty>" : newValue.endpoint.serverHost) port=\(newValue.endpoint.serverPort) enabledWhenSignedIn=\(newValue.enabledWhenSignedIn) autoConnectOnRestore=\(newValue.autoConnectOnSessionRestore)")
                 await tunnelManager.refreshFromPreferences(using: newValue)
+                await localRouteController.refresh(
+                    isAuthenticated: searchViewModel.isAuthenticated,
+                    settings: newValue,
+                    tunnelStatus: tunnelManager.statusSnapshot
+                )
             }
+        }
+        .onChange(of: tunnelManager.statusSnapshot) { _, newValue in
+            localRouteController.updateTunnelStatus(newValue)
         }
         .onChange(of: searchViewModel.isAuthenticated) { oldValue, newValue in
             guard hasCompletedInitialSessionRestore else { return }
@@ -141,6 +156,13 @@ struct RootTabView: View {
                 pendingTunnelPrompt = nil
                 tunnelManager.recordExternalEvent("User signed out; disconnecting tunnel")
                 tunnelManager.disconnect()
+                Task {
+                    await localRouteController.refresh(
+                        isAuthenticated: false,
+                        settings: transportSettingsStore.settings,
+                        tunnelStatus: tunnelManager.statusSnapshot
+                    )
+                }
             }
         }
         .sheet(isPresented: $isPresentingSettings) {
@@ -148,12 +170,21 @@ struct RootTabView: View {
                 searchViewModel: searchViewModel,
                 privacySettingsStore: privacySettingsStore,
                 transportSettingsStore: transportSettingsStore,
+                localRouteCapability: localRouteController.capability,
                 tunnelStatus: tunnelManager.statusSnapshot,
                 tunnelDiagnostics: tunnelManager.diagnostics,
                 connectTunnel: {
                     Task {
                         tunnelManager.recordExternalEvent("Manual connect requested from settings")
-                        await tunnelManager.connect(using: transportSettingsStore.settings)
+                        let routeSession = await localRouteController.prepareForTunnelConnection(
+                            isAuthenticated: searchViewModel.isAuthenticated,
+                            settings: transportSettingsStore.settings,
+                            tunnelStatus: tunnelManager.statusSnapshot
+                        )
+                        await tunnelManager.connect(
+                            using: transportSettingsStore.settings,
+                            routeSession: routeSession
+                        )
                     }
                 },
                 disconnectTunnel: {
@@ -170,7 +201,15 @@ struct RootTabView: View {
                     transportSettingsStore.updateEnabledWhenSignedIn(true)
                     Task {
                         tunnelManager.recordExternalEvent("Tunnel prompt accepted for \(prompt.rawValue)")
-                        await tunnelManager.connect(using: transportSettingsStore.settings)
+                        let routeSession = await localRouteController.prepareForTunnelConnection(
+                            isAuthenticated: searchViewModel.isAuthenticated,
+                            settings: transportSettingsStore.settings,
+                            tunnelStatus: tunnelManager.statusSnapshot
+                        )
+                        await tunnelManager.connect(
+                            using: transportSettingsStore.settings,
+                            routeSession: routeSession
+                        )
                     }
                 },
                 secondaryButton: .cancel(Text("Not now")) {
@@ -184,6 +223,11 @@ struct RootTabView: View {
         let settings = transportSettingsStore.settings
         tunnelManager.recordExternalEvent("Refreshing tunnel state for authenticated session; restore=\(isSessionRestore)")
         await tunnelManager.refreshFromPreferences(using: settings)
+        await localRouteController.refresh(
+            isAuthenticated: searchViewModel.isAuthenticated,
+            settings: settings,
+            tunnelStatus: tunnelManager.statusSnapshot
+        )
 
         guard settings.endpoint.isConfigured else {
             tunnelManager.recordExternalEvent("Authenticated state handling skipped because endpoint is not configured")
@@ -200,7 +244,12 @@ struct RootTabView: View {
             }
 
             tunnelManager.recordExternalEvent("Auto-connect path chosen; requesting tunnel connect")
-            await tunnelManager.connect(using: settings)
+            let routeSession = await localRouteController.prepareForTunnelConnection(
+                isAuthenticated: searchViewModel.isAuthenticated,
+                settings: settings,
+                tunnelStatus: tunnelManager.statusSnapshot
+            )
+            await tunnelManager.connect(using: settings, routeSession: routeSession)
         } else if tunnelManager.statusSnapshot.state == .disconnected {
             tunnelManager.recordExternalEvent("Tunnel not enabled when signed in; presenting opt-in prompt")
             pendingTunnelPrompt = isSessionRestore ? .sessionRestore : .signIn

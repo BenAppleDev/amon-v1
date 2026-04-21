@@ -44,6 +44,20 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowseOpenOrchestrator.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/BrowsePathContract.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowsePathContract.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Browsing/LocalRouteCapability.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/LocalRouteCapability.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/DomainModels.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DomainModels.swift.o",
@@ -72,12 +86,26 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/PrivacySettings.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/ProtectedSessionPresentationModels.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/ProtectedSessionPresentationModels.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/TransportSettings.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.swift.o",
     "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings~partial.swiftmodule",
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/TransportSettings.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Models/WorkspaceOwnershipModels.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/WorkspaceOwnershipModels.dia"
   },
   "/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Security/BrowserPrivacyController.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/BrowserPrivacyController.d",

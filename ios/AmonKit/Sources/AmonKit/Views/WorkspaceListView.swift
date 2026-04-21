@@ -5,7 +5,7 @@ public struct WorkspaceListView: View {
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     private let apiClient: any AmonAPIClienting
     private let openAppMenu: () -> Void
-    private let localRouteStateProvider: () -> LocalPrivacyRouteState
+    private let localRouteCapabilityProvider: () -> LocalRouteCapabilitySnapshot
     @State private var isPresentingNewWorkspace = false
     @State private var newWorkspaceTitle = ""
 
@@ -14,13 +14,13 @@ public struct WorkspaceListView: View {
         apiClient: any AmonAPIClienting,
         privacySettingsStore: PrivacySettingsStore,
         openAppMenu: @escaping () -> Void,
-        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
+        localRouteCapabilityProvider: @escaping () -> LocalRouteCapabilitySnapshot = { .unsupported }
     ) {
         self.viewModel = viewModel
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
         self.openAppMenu = openAppMenu
-        self.localRouteStateProvider = localRouteStateProvider
+        self.localRouteCapabilityProvider = localRouteCapabilityProvider
     }
 
     public var body: some View {
@@ -55,7 +55,7 @@ public struct WorkspaceListView: View {
                                             viewModel: viewModel.makeDetailViewModel(for: summary),
                                             apiClient: apiClient,
                                             privacySettingsStore: privacySettingsStore,
-                                            localRouteStateProvider: localRouteStateProvider
+                                            localRouteCapabilityProvider: localRouteCapabilityProvider
                                         )
                                     } label: {
                                         WorkspaceSummaryCard(summary: summary)

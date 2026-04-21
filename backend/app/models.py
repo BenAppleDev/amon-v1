@@ -64,6 +64,25 @@ class SessionRecord(Base):
     user: Mapped['User'] = relationship(back_populates='sessions')
 
 
+class RouteSessionRecord(Base):
+    __tablename__ = 'route_sessions'
+    __table_args__ = (UniqueConstraint('access_token', name='uq_route_sessions_access_token'),)
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    auth_session_id: Mapped[str] = mapped_column(ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False, index=True)
+    route_kind: Mapped[str] = mapped_column(String(64), nullable=False, default='local_routed')
+    transport_kind: Mapped[str] = mapped_column(String(64), nullable=False, default='packet_tunnel')
+    control_plane_kind: Mapped[str] = mapped_column(String(64), nullable=False, default='control_only')
+    access_token: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    last_refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    revoke_reason: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    refresh_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
 class RateLimitWindow(TimestampMixin, Base):
     __tablename__ = 'rate_limit_windows'
 

@@ -14,7 +14,7 @@ public struct SearchView: View {
         viewModel: SearchViewModel,
         privacySettingsStore: PrivacySettingsStore,
         openAppMenu: @escaping () -> Void,
-        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
+        localRouteCapabilityProvider: @escaping () -> LocalRouteCapabilitySnapshot = { .unsupported }
     ) {
         self.viewModel = viewModel
         self.privacySettingsStore = privacySettingsStore
@@ -22,7 +22,7 @@ public struct SearchView: View {
         _browseOpenOrchestrator = StateObject(
             wrappedValue: BrowseOpenOrchestrator(
                 apiClient: viewModel.apiClient,
-                localRouteStateProvider: localRouteStateProvider
+                localRouteCapabilityProvider: localRouteCapabilityProvider
             )
         )
     }
@@ -96,6 +96,7 @@ public struct SearchView: View {
                     requestedPath: page.requestedPath,
                     resolvedPath: page.effectivePath,
                     localRouteState: page.localRouteState,
+                    localRouteDetail: page.localRouteDetail,
                     fallbackReason: page.fallbackReason
                 )
             }

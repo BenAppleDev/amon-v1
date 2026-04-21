@@ -245,6 +245,31 @@ public struct ProtectedSessionEndResponseDTO: Codable, Sendable {
     public var status: String
 }
 
+public enum RouteSessionStatusDTO: String, Codable, Sendable {
+    case active
+    case revoked
+    case expired
+}
+
+public struct RouteSessionStateDTO: Codable, Sendable {
+    public var session_id: String
+    public var access_token: String
+    public var status: RouteSessionStatusDTO
+    public var route_kind: BrowsePathDTO
+    public var transport_kind: String
+    public var control_plane_kind: String
+    public var auth_session_id: String
+    public var issued_at: Date
+    public var refresh_after: Date
+    public var expires_at: Date
+}
+
+public struct RouteSessionRevokeResponseDTO: Codable, Sendable {
+    public var session_id: String
+    public var status: String
+    public var revoked_at: Date
+}
+
 public struct ProtectedSessionStreamClientMessageDTO: Codable, Sendable {
     public var type: String
     public var client_message_id: String?

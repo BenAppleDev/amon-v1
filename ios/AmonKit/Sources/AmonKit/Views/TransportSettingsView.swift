@@ -3,6 +3,7 @@ import SwiftUI
 public struct TransportSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var store: TransportPrivacySettingsStore
+    private let capability: LocalRouteCapabilitySnapshot
     private let status: TransportTunnelStatusSnapshot
     private let diagnostics: [String]
     private let connectAction: () -> Void
@@ -10,12 +11,14 @@ public struct TransportSettingsView: View {
 
     public init(
         store: TransportPrivacySettingsStore,
+        capability: LocalRouteCapabilitySnapshot,
         status: TransportTunnelStatusSnapshot,
         diagnostics: [String],
         connectAction: @escaping () -> Void,
         disconnectAction: @escaping () -> Void
     ) {
         self.store = store
+        self.capability = capability
         self.status = status
         self.diagnostics = diagnostics
         self.connectAction = connectAction
@@ -58,7 +61,7 @@ public struct TransportSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             AmonTrustStripView(
                 items: [
-                    status.state.title,
+                    capability.state.title,
                     store.settings.endpoint.displayAddress,
                 ]
             )
@@ -82,13 +85,19 @@ public struct TransportSettingsView: View {
                         .padding(.top, 6)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(status.state.title)
+                        Text(capability.state.title)
                             .font(.subheadline.weight(.semibold))
-                        Text(status.detail ?? status.state.summary)
+                        Text(capability.detail ?? status.detail ?? status.state.summary)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                }
+
+                if let expiresAt = capability.routeSessionExpiresAt {
+                    Text("Route session: \(capability.routeSessionStatus.rawValue.capitalized) until \(AmonFormatters.relativeTimestamp(for: expiresAt))")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 HStack(spacing: 10) {

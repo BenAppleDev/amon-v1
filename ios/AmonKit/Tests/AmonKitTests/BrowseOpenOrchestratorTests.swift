@@ -43,7 +43,7 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local (Falls Back to Direct)")
         XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
         XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Amon can't reach the backend right now") ?? false)
-        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("local browsing currently uses direct fallback") ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("does not currently support routed-local browsing") ?? false)
     }
 
     func testLocalOnlyDecisionExplainsProtectedSessionIsUnavailable() async {
@@ -93,15 +93,20 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
 
         XCTAssertEqual(orchestrator.presentedPage?.requestedPath, .localRouted)
         XCTAssertEqual(orchestrator.presentedPage?.effectivePath, .directFallback)
-        XCTAssertEqual(orchestrator.presentedPage?.localRouteState, .unavailable)
-        XCTAssertTrue(orchestrator.presentedPage?.fallbackReason?.contains("not available in this build yet") ?? false)
+        XCTAssertEqual(orchestrator.presentedPage?.localRouteState, .unsupported)
+        XCTAssertTrue(orchestrator.presentedPage?.fallbackReason?.contains("not supported in this build") ?? false)
     }
 
     func testOpenLocalRoutedStaysLocalWhenRouteConnected() {
         let apiClient = BrowseOpenMockAPIClient()
         let orchestrator = BrowseOpenOrchestrator(
             apiClient: apiClient,
-            localRouteStateProvider: { .connected }
+            localRouteCapabilityProvider: {
+                LocalRouteCapabilitySnapshot(
+                    state: .connected,
+                    tunnelStatus: TransportTunnelStatusSnapshot(state: .connected)
+                )
+            }
         )
         let target = BrowseOpenTarget(title: "Example", url: URL(string: "https://example.com/page")!)
 

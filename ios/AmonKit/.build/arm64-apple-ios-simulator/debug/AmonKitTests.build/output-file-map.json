@@ -1,0 +1,68 @@
+{
+  "": {
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/primary.swiftdeps"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/AmonAPIClientTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/AmonAPIClientTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/AmonAPIClientTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/AmonAPIClientTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/AmonAPIClientTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/PrivacySettingsStoreTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/PrivacySettingsStoreTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/PrivacySettingsStoreTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/PrivacySettingsStoreTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/PrivacySettingsStoreTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/ProtectedSessionViewModelTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/ProtectedSessionViewModelTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/ProtectedSessionViewModelTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/ProtectedSessionViewModelTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/ProtectedSessionViewModelTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SQLiteWorkspaceStoreTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SearchViewModelTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SearchViewModelTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SearchViewModelTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SearchViewModelTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SearchViewModelTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/SearchViewModelTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/TransportPrivacySettingsStoreTests.dia"
+  },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/WorkspaceOwnershipModelsTests.dia"
+  }
+}

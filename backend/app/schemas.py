@@ -488,6 +488,25 @@ class AuthResponse(BaseModel):
     user: UserView
 
 
+class RouteSessionState(BaseModel):
+    session_id: str
+    access_token: str
+    status: Literal['active', 'revoked', 'expired']
+    route_kind: Literal['local_routed'] = 'local_routed'
+    transport_kind: Literal['packet_tunnel'] = 'packet_tunnel'
+    control_plane_kind: Literal['control_only'] = 'control_only'
+    auth_session_id: str
+    issued_at: datetime
+    refresh_after: datetime
+    expires_at: datetime
+
+
+class RouteSessionRevokeResponse(BaseModel):
+    session_id: str
+    status: Literal['revoked'] = 'revoked'
+    revoked_at: datetime
+
+
 class HealthResponse(BaseModel):
     status: Literal['ok'] = 'ok'
     app_name: str

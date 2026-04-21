@@ -6,16 +6,16 @@ public final class BrowseOpenOrchestrator: ObservableObject {
     @Published public private(set) var activeChoice: BrowseOpenChoicePresentation?
 
     private let apiClient: any AmonAPIClienting
-    private let localRouteStateProvider: () -> LocalPrivacyRouteState
+    private let localRouteCapabilityProvider: () -> LocalRouteCapabilitySnapshot
     private var cachedDecisions: [String: ServeDecisionResponseDTO] = [:]
     private var pendingChoiceURLs: Set<String> = []
 
     public init(
         apiClient: any AmonAPIClienting,
-        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
+        localRouteCapabilityProvider: @escaping () -> LocalRouteCapabilitySnapshot = { .unsupported }
     ) {
         self.apiClient = apiClient
-        self.localRouteStateProvider = localRouteStateProvider
+        self.localRouteCapabilityProvider = localRouteCapabilityProvider
     }
 
     public func isPreparingChoice(for urlString: String) -> Bool {
@@ -27,13 +27,13 @@ public final class BrowseOpenOrchestrator: ObservableObject {
         intent: ServeDecisionIntentDTO = .open
     ) async {
         let cacheKey = target.url.absoluteString
-        let localRouteState = localRouteStateProvider()
+        let localRouteCapability = localRouteCapabilityProvider()
 
         if let cachedDecision = cachedDecisions[cacheKey] {
             activeChoice = BrowseOpenChoicePresentation(
                 target: target,
                 decision: cachedDecision,
-                localRouteState: localRouteState
+                localRouteCapability: localRouteCapability
             )
             return
         }
@@ -48,7 +48,7 @@ public final class BrowseOpenOrchestrator: ObservableObject {
             activeChoice = BrowseOpenChoicePresentation(
                 target: target,
                 decision: decision,
-                localRouteState: localRouteState
+                localRouteCapability: localRouteCapability
             )
         } catch {
             activeChoice = BrowseOpenChoicePresentation(
@@ -58,7 +58,7 @@ public final class BrowseOpenOrchestrator: ObservableObject {
                     for: error,
                     fallback: "Amon couldn't check a recommendation right now."
                 ),
-                localRouteState: localRouteState
+                localRouteCapability: localRouteCapability
             )
         }
     }
@@ -74,7 +74,7 @@ public final class BrowseOpenOrchestrator: ObservableObject {
     public func open(_ path: BrowsePath, for target: BrowseOpenTarget) {
         let resolution = BrowsePathResolver.resolve(
             requestedPath: path,
-            localRouteState: localRouteStateProvider()
+            localRouteCapability: localRouteCapabilityProvider()
         )
         presentedPage = BrowseOpenPresentedPage(
             title: target.title,

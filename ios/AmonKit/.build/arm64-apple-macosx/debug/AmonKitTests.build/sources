@@ -1,4 +1,9 @@
+/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/AmonAPIClientTests.swift
 /Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowseOpenOrchestratorTests.swift
+/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift
 /Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/PrivacySettingsStoreTests.swift
+/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/ProtectedSessionViewModelTests.swift
+/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SQLiteWorkspaceStoreTests.swift
 /Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/SearchViewModelTests.swift
 /Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/TransportPrivacySettingsStoreTests.swift
+/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/WorkspaceOwnershipModelsTests.swift

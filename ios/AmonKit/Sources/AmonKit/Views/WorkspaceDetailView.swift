@@ -7,22 +7,22 @@ public struct WorkspaceDetailView: View {
     @StateObject private var browseOpenOrchestrator: BrowseOpenOrchestrator
     @State private var presentedSavedPage: PresentedSavedPage?
     private let apiClient: any AmonAPIClienting
-    private let localRouteStateProvider: () -> LocalPrivacyRouteState
+    private let localRouteCapabilityProvider: () -> LocalRouteCapabilitySnapshot
 
     init(
         viewModel: WorkspaceDetailViewModel,
         apiClient: any AmonAPIClienting,
         privacySettingsStore: PrivacySettingsStore,
-        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
+        localRouteCapabilityProvider: @escaping () -> LocalRouteCapabilitySnapshot = { .unsupported }
     ) {
         self.viewModel = viewModel
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
-        self.localRouteStateProvider = localRouteStateProvider
+        self.localRouteCapabilityProvider = localRouteCapabilityProvider
         _browseOpenOrchestrator = StateObject(
             wrappedValue: BrowseOpenOrchestrator(
                 apiClient: apiClient,
-                localRouteStateProvider: localRouteStateProvider
+                localRouteCapabilityProvider: localRouteCapabilityProvider
             )
         )
     }
@@ -411,7 +411,7 @@ public struct WorkspaceDetailView: View {
                 url: page.url,
                 apiClient: apiClient,
                 privacySettingsStore: privacySettingsStore,
-                localRouteStateProvider: localRouteStateProvider,
+                localRouteCapabilityProvider: localRouteCapabilityProvider,
                 initialPage: page.page
             )
         }
@@ -433,6 +433,7 @@ public struct WorkspaceDetailView: View {
                 requestedPath: page.requestedPath,
                 resolvedPath: page.effectivePath,
                 localRouteState: page.localRouteState,
+                localRouteDetail: page.localRouteDetail,
                 fallbackReason: page.fallbackReason
             )
         }

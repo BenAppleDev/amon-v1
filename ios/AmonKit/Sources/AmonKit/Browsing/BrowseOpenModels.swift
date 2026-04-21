@@ -42,6 +42,14 @@ public struct BrowseOpenPresentedPage: Identifiable, Hashable {
         pathResolution.localRouteState
     }
 
+    public var localRouteReason: LocalRouteCapabilityReason? {
+        pathResolution.localRouteReason
+    }
+
+    public var localRouteDetail: String? {
+        pathResolution.localRouteDetail
+    }
+
     public var fallbackReason: String? {
         pathResolution.fallbackReason
     }
@@ -52,18 +60,18 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     public let target: BrowseOpenTarget
     public let decision: ServeDecisionResponseDTO?
     public let decisionErrorMessage: String?
-    public let localRouteState: LocalPrivacyRouteState
+    public let localRouteCapability: LocalRouteCapabilitySnapshot
 
     public init(
         target: BrowseOpenTarget,
         decision: ServeDecisionResponseDTO?,
         decisionErrorMessage: String? = nil,
-        localRouteState: LocalPrivacyRouteState = .unavailable
+        localRouteCapability: LocalRouteCapabilitySnapshot = .unsupported
     ) {
         self.target = target
         self.decision = decision
         self.decisionErrorMessage = decisionErrorMessage
-        self.localRouteState = localRouteState
+        self.localRouteCapability = localRouteCapability
     }
 
     public var recommendationState: BrowseOpenRecommendationState {
@@ -111,12 +119,12 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     }
 
     public var localRoutedTitle: String {
-        switch localRouteState {
+        switch localRouteCapability.state {
         case .connected:
             return "Open Local (Privacy Route)"
         case .connecting:
             return "Open Local (Route Connecting)"
-        case .degraded, .unavailable:
+        case .unsupported, .disconnected, .degraded, .unavailable:
             return "Open Local (Falls Back to Direct)"
         }
     }
@@ -162,15 +170,23 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     }
 
     private var localRouteMessage: String {
-        switch localRouteState {
-        case .connected:
-            return "Amon privacy route is connected for local browsing."
+        if let detail = localRouteCapability.detail, !detail.isEmpty {
+            return detail
+        }
+
+        switch localRouteCapability.state {
+        case .unsupported:
+            return "Amon privacy route is unsupported in this build, so local browsing currently uses direct fallback."
+        case .disconnected:
+            return "Amon privacy route is disconnected, so local browsing currently uses direct fallback."
         case .connecting:
             return "Amon privacy route is connecting, so local browsing may temporarily degrade to direct fallback."
+        case .connected:
+            return "Amon privacy route is connected for local browsing."
         case .degraded:
             return "Amon privacy route is degraded, so local browsing currently uses direct fallback."
         case .unavailable:
-            return "Amon privacy route is not available in this build yet, so local browsing currently uses direct fallback."
+            return "Amon privacy route is unavailable, so local browsing currently uses direct fallback."
         }
     }
 }

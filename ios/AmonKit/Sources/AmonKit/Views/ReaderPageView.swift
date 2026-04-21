@@ -8,6 +8,7 @@ public struct PrivacyAwarePageView: View {
     private let requestedPath: BrowsePath?
     private let resolvedPath: BrowsePath?
     private let localRouteState: LocalPrivacyRouteState
+    private let localRouteDetail: String?
     private let fallbackReason: String?
 
     public init(
@@ -17,7 +18,8 @@ public struct PrivacyAwarePageView: View {
         privacySettingsStore: PrivacySettingsStore,
         requestedPath: BrowsePath? = nil,
         resolvedPath: BrowsePath? = nil,
-        localRouteState: LocalPrivacyRouteState = .unavailable,
+        localRouteState: LocalPrivacyRouteState = .unsupported,
+        localRouteDetail: String? = nil,
         fallbackReason: String? = nil
     ) {
         self.title = title
@@ -27,6 +29,7 @@ public struct PrivacyAwarePageView: View {
         self.requestedPath = requestedPath
         self.resolvedPath = resolvedPath
         self.localRouteState = localRouteState
+        self.localRouteDetail = localRouteDetail
         self.fallbackReason = fallbackReason
     }
 
@@ -47,7 +50,14 @@ public struct PrivacyAwarePageView: View {
                 url: url,
                 apiClient: apiClient,
                 privacySettingsStore: privacySettingsStore,
-                localRouteStateProvider: { openResolution.localRouteState }
+                localRouteCapabilityProvider: {
+                    LocalRouteCapabilitySnapshot(
+                        state: openResolution.localRouteState,
+                        reason: openResolution.localRouteReason,
+                        detail: openResolution.localRouteDetail,
+                        tunnelStatus: .disconnected
+                    )
+                }
             )
 
         case .protectedSession:
@@ -65,13 +75,18 @@ public struct PrivacyAwarePageView: View {
                 requestedPath: requestedPath,
                 effectivePath: resolvedPath ?? requestedPath,
                 localRouteState: localRouteState,
+                localRouteDetail: localRouteDetail,
                 fallbackReason: fallbackReason
             )
         }
 
         return BrowsePathResolver.resolve(
             requestedPath: privacySettingsStore.settings.browsing.defaultBrowsingMode.preferredBrowsePath,
-            localRouteState: localRouteState
+            localRouteCapability: LocalRouteCapabilitySnapshot(
+                state: localRouteState,
+                detail: localRouteDetail,
+                tunnelStatus: .disconnected
+            )
         )
     }
 }
@@ -87,7 +102,7 @@ public struct ReaderPageView: View {
         url: URL,
         apiClient: any AmonAPIClienting,
         privacySettingsStore: PrivacySettingsStore,
-        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable },
+        localRouteCapabilityProvider: @escaping () -> LocalRouteCapabilitySnapshot = { .unsupported },
         initialPage: StructuredRetrievalDTO? = nil
     ) {
         _viewModel = StateObject(
@@ -101,7 +116,7 @@ public struct ReaderPageView: View {
         _browseOpenOrchestrator = StateObject(
             wrappedValue: BrowseOpenOrchestrator(
                 apiClient: apiClient,
-                localRouteStateProvider: localRouteStateProvider
+                localRouteCapabilityProvider: localRouteCapabilityProvider
             )
         )
         self.privacySettingsStore = privacySettingsStore
@@ -154,6 +169,7 @@ public struct ReaderPageView: View {
                 requestedPath: page.requestedPath,
                 resolvedPath: page.effectivePath,
                 localRouteState: page.localRouteState,
+                localRouteDetail: page.localRouteDetail,
                 fallbackReason: page.fallbackReason
             )
         }
