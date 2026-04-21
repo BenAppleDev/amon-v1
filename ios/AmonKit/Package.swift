@@ -12,7 +12,10 @@ let package = Package(
     targets: [
         .target(
             name: "AmonKit",
-            path: "Sources/AmonKit"
+            path: "Sources/AmonKit",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "AmonKitTests",

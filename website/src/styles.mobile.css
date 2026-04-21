@@ -629,3 +629,79 @@
     min-height: 68px;
   }
 }
+
+/* Security page mobile */
+
+@media (max-width: 980px) {
+  .security-layer-strip,
+  .security-feature-grid,
+  .security-foundation-grid,
+  .security-roadmap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .security-layers-graphic {
+    padding: 18px;
+    border-radius: 26px;
+  }
+
+  .security-layer-card {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .security-visual {
+    height: 108px;
+    margin-bottom: 0;
+  }
+
+  .security-layer-tags {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .security-layer-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .security-layer-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .security-layer-tags {
+    justify-content: center;
+  }
+
+  .security-layers-header,
+  .security-layers-footer {
+    text-align: center;
+  }
+
+  .security-layers-header .diagram-kicker {
+    justify-content: center;
+  }
+
+  .security-feature-grid,
+  .security-foundation-grid,
+  .security-roadmap-grid {
+    margin-top: 24px;
+  }
+
+  .security-foundation-card {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .security-foundation-card h3 {
+    max-width: 100%;
+  }
+}

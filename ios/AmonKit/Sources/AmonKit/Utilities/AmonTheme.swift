@@ -2,85 +2,53 @@ import SwiftUI
 import UIKit
 
 public enum AmonTheme {
-    public static let accent: Color = Color(uiColor: accentUIColor)
-    public static let canvas: Color = Color(uiColor: canvasUIColor)
-    public static let surface: Color = Color(uiColor: surfaceUIColor)
-    public static let elevatedSurface: Color = Color(uiColor: elevatedSurfaceUIColor)
-    public static let pillSurface: Color = Color(uiColor: pillSurfaceUIColor)
-    public static let border: Color = Color(uiColor: borderUIColor)
-    public static let tabBarSurface: Color = Color(uiColor: tabBarSurfaceUIColor)
-    public static let shadow: Color = Color(uiColor: shadowUIColor)
+    public static let accent = Color(uiColor: accentUIColor)
+    public static let danger = Color(uiColor: dangerUIColor)
+    public static let canvas = Color(uiColor: canvasUIColor)
+    public static let softCanvas = Color(uiColor: softCanvasUIColor)
+    public static let elevatedSurface = Color(uiColor: elevatedSurfaceUIColor)
+    public static let surface = Color(uiColor: surfaceUIColor)
+    public static let pillSurface = Color(uiColor: pillSurfaceUIColor)
+    public static let border = Color(uiColor: borderUIColor)
+    public static let strongBorder = Color(uiColor: strongBorderUIColor)
+    public static let ink = Color(uiColor: inkUIColor)
+    public static let muted = Color(uiColor: mutedUIColor)
+    public static let tabBarSurface = Color(uiColor: tabBarSurfaceUIColor)
+    public static let shadow = Color(uiColor: shadowUIColor)
 
-    private static let accentUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.56, green: 0.69, blue: 0.88, alpha: 1)
-        }
-        return UIColor(red: 0.26, green: 0.36, blue: 0.55, alpha: 1)
-    }
-
-    private static let canvasUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.06, green: 0.07, blue: 0.09, alpha: 1)
-        }
-        return UIColor(red: 0.95, green: 0.96, blue: 0.98, alpha: 1)
-    }
-
-    private static let surfaceUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.12, green: 0.13, blue: 0.16, alpha: 1)
-        }
-        return UIColor.white
-    }
-
-    private static let elevatedSurfaceUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.16, green: 0.18, blue: 0.22, alpha: 1)
-        }
-        return UIColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1)
-    }
-
-    private static let pillSurfaceUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.18, green: 0.20, blue: 0.24, alpha: 1)
-        }
-        return UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
-    }
-
-    private static let borderUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor.white.withAlphaComponent(0.1)
-        }
-        return UIColor.black.withAlphaComponent(0.08)
-    }
-
-    private static let tabBarSurfaceUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.10, green: 0.11, blue: 0.14, alpha: 0.98)
-        }
-        return UIColor(red: 0.97, green: 0.97, blue: 0.98, alpha: 0.98)
-    }
-
-    private static let shadowUIColor = UIColor { traitCollection in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor.black.withAlphaComponent(0.34)
-        }
-        return UIColor.black.withAlphaComponent(0.08)
-    }
+    public static let accentUIColor = UIColor(hex: 0xC6FF61)
+    public static let dangerUIColor = UIColor(hex: 0xFF5E4F)
+    public static let canvasUIColor = UIColor(hex: 0x060606)
+    public static let softCanvasUIColor = UIColor(hex: 0x0C0C0C)
+    public static let elevatedSurfaceUIColor = UIColor(hex: 0x121212)
+    public static let surfaceUIColor = UIColor.white.withAlphaComponent(0.035)
+    public static let pillSurfaceUIColor = UIColor.white.withAlphaComponent(0.06)
+    public static let borderUIColor = UIColor.white.withAlphaComponent(0.12)
+    public static let strongBorderUIColor = UIColor.white.withAlphaComponent(0.22)
+    public static let inkUIColor = UIColor(hex: 0xF4EFE8)
+    public static let mutedUIColor = UIColor(hex: 0x9F988F)
+    public static let tabBarSurfaceUIColor = UIColor(hex: 0x0C0C0C).withAlphaComponent(0.96)
+    public static let shadowUIColor = UIColor.black.withAlphaComponent(0.34)
 
     public static func applyGlobalAppearance() {
+        AmonBrandTypography.registerFontsIfNeeded()
         configureNavigationBar()
     }
 
     private static func configureNavigationBar() {
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithDefaultBackground()
-        appearance.backgroundColor = elevatedSurfaceUIColor.withAlphaComponent(0.98)
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = softCanvasUIColor
         appearance.shadowColor = borderUIColor
         appearance.titleTextAttributes = [
-            .foregroundColor: UIColor.label,
+            .foregroundColor: inkUIColor,
+            .font: UIFont(name: AmonBrandTypography.brandDisplayFontName, size: 19)
+                ?? .systemFont(ofSize: 19, weight: .semibold),
         ]
         appearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor.label,
+            .foregroundColor: inkUIColor,
+            .font: UIFont(name: AmonBrandTypography.brandDisplayFontName, size: 32)
+                ?? .systemFont(ofSize: 32, weight: .semibold),
         ]
 
         let navigationBar = UINavigationBar.appearance()
@@ -88,5 +56,14 @@ public enum AmonTheme {
         navigationBar.scrollEdgeAppearance = appearance
         navigationBar.compactAppearance = appearance
         navigationBar.tintColor = accentUIColor
+    }
+}
+
+private extension UIColor {
+    convenience init(hex: UInt32, alpha: CGFloat = 1) {
+        let red = CGFloat((hex & 0xFF0000) >> 16) / 255
+        let green = CGFloat((hex & 0x00FF00) >> 8) / 255
+        let blue = CGFloat(hex & 0x0000FF) / 255
+        self.init(red: red, green: green, blue: blue, alpha: alpha)
     }
 }

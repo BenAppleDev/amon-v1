@@ -15,6 +15,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         static let routeSessionID = "routeSessionID"
         static let routeAccessToken = "routeAccessToken"
         static let routeExpiresAt = "routeExpiresAt"
+        static let routeProductSessionID = "routeProductSessionID"
         static let routeAuthSessionID = "routeAuthSessionID"
     }
 
@@ -299,6 +300,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
                 detail: response.message,
                 configuration: configuration,
                 sessionID: response.session_id,
+                productSessionID: response.product_session_id,
                 authSessionID: response.auth_session_id,
                 expiresAt: response.expires_at,
                 packetPlaneReady: response.packet_plane_ready,
@@ -346,6 +348,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         detail: String? = nil,
         configuration: DevTunnelConfiguration? = nil,
         sessionID: String? = nil,
+        productSessionID: String? = nil,
         authSessionID: String? = nil,
         expiresAt: String? = nil,
         packetPlaneReady: Bool? = nil,
@@ -357,6 +360,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             code: code,
             detail: detail,
             session_id: sessionID ?? configuration?.routeSessionID,
+            product_session_id: productSessionID ?? configuration?.routeProductSessionID,
             auth_session_id: authSessionID ?? configuration?.routeAuthSessionID,
             expires_at: expiresAt ?? configuration?.routeExpiresAt,
             packet_plane_ready: packetPlaneReady,
@@ -526,7 +530,8 @@ private struct DevTunnelConfiguration {
     let routeSessionID: String
     let routeAccessToken: String
     let routeExpiresAt: String
-    let routeAuthSessionID: String
+    let routeProductSessionID: String
+    let routeAuthSessionID: String?
 
     var summary: String {
         "host=\(serverHost) port=\(serverPort) client=\(clientAddress) remote=\(remoteAddress) mtu=\(mtu) dns=\(dnsServers.joined(separator: ",")) routeSession=\(routeSessionID) routeExpiresAt=\(routeExpiresAt)"
@@ -583,10 +588,11 @@ private struct DevTunnelConfiguration {
             for: PacketTunnelProvider.ConfigurationKey.routeExpiresAt,
             in: providerConfiguration
         )
-        routeAuthSessionID = try DevTunnelConfiguration.stringValue(
-            for: PacketTunnelProvider.ConfigurationKey.routeAuthSessionID,
+        routeProductSessionID = try DevTunnelConfiguration.stringValue(
+            for: PacketTunnelProvider.ConfigurationKey.routeProductSessionID,
             in: providerConfiguration
         )
+        routeAuthSessionID = providerConfiguration[PacketTunnelProvider.ConfigurationKey.routeAuthSessionID] as? String
     }
 
     private static func stringValue(for key: String, in configuration: [String: Any]) throws -> String {
@@ -621,7 +627,8 @@ private struct RelayBootstrapHandshakeRequest: Encodable {
     let request_id: String
     let route_session_id: String
     let route_access_token: String
-    let route_auth_session_id: String
+    let route_product_session_id: String
+    let route_auth_session_id: String?
     let requested_path: String = "local_routed"
     let transport_kind: String = "packet_tunnel"
     let client_platform: String = "ios"
@@ -633,6 +640,7 @@ private struct RelayBootstrapHandshakeRequest: Encodable {
         request_id = UUID().uuidString
         route_session_id = configuration.routeSessionID
         route_access_token = configuration.routeAccessToken
+        route_product_session_id = configuration.routeProductSessionID
         route_auth_session_id = configuration.routeAuthSessionID
         app_bundle_id = Bundle.main.bundleIdentifier
     }
@@ -653,6 +661,7 @@ private struct RelayBootstrapHandshakeResponse: Decodable {
     let forwarding_ready: Bool?
     let request_id: String?
     let session_id: String?
+    let product_session_id: String?
     let auth_session_id: String?
     let expires_at: String?
     let `protocol`: String
@@ -664,6 +673,7 @@ private struct RouteBootstrapStatusResponse: Codable {
     let code: String?
     let detail: String?
     let session_id: String?
+    let product_session_id: String?
     let auth_session_id: String?
     let expires_at: String?
     let packet_plane_ready: Bool?
@@ -675,6 +685,7 @@ private struct RouteBootstrapStatusResponse: Codable {
         code: nil,
         detail: nil,
         session_id: nil,
+        product_session_id: nil,
         auth_session_id: nil,
         expires_at: nil,
         packet_plane_ready: nil,

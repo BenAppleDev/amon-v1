@@ -91,8 +91,8 @@ export function HomePage() {
               <Link className="button" to="/contact">
                 Join the waitlist
               </Link>
-              <Link className="button button-secondary" to="/privacy">
-                Read the privacy model
+              <Link className="button button-secondary" to="/security">
+                Read security
               </Link>
             </div>
           </Reveal>

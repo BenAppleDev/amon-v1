@@ -35,6 +35,7 @@ public struct SearchView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+                        browseModesHero
                         searchComposer
                         AmonTrustStripView(items: ["Saved locally", "No server history"])
 
@@ -100,41 +101,18 @@ public struct SearchView: View {
                     fallbackReason: page.fallbackReason
                 )
             }
-            .confirmationDialog(
-                browseOpenOrchestrator.activeChoice?.dialogTitle ?? "Open",
-                isPresented: Binding(
-                    get: { browseOpenOrchestrator.activeChoice != nil },
-                    set: { isPresented in
-                        if !isPresented {
+            .sheet(
+                item: Binding(
+                    get: { browseOpenOrchestrator.activeChoice },
+                    set: { choice in
+                        if choice == nil {
                             browseOpenOrchestrator.dismissChoice()
                         }
                     }
-                ),
-                titleVisibility: .visible,
-                presenting: browseOpenOrchestrator.activeChoice
+                )
             ) { recommendation in
-                Button(recommendation.localRoutedTitle) {
-                    browseOpenOrchestrator.open(.localRouted, from: recommendation)
-                }
-
-                Button(recommendation.cleanViewTitle) {
-                    browseOpenOrchestrator.open(.cleanView, from: recommendation)
-                }
-
-                if recommendation.showsProtectedSession {
-                    Button(recommendation.protectedSessionTitle) {
-                        browseOpenOrchestrator.open(.protectedSession, from: recommendation)
-                    }
-                }
-
-                if recommendation.showsDirectFallback {
-                    Button(recommendation.directFallbackTitle) {
-                        browseOpenOrchestrator.open(.directFallback, from: recommendation)
-                    }
-                }
-            } message: { recommendation in
-                if let message = recommendation.message {
-                    Text(message)
+                AmonBrowseModeSheet(choice: recommendation) { path in
+                    browseOpenOrchestrator.open(path, from: recommendation)
                 }
             }
             .sheet(isPresented: $isPresentingWorkspaceChooser, onDismiss: {
@@ -220,6 +198,15 @@ public struct SearchView: View {
         }
     }
 
+    private var browseModesHero: some View {
+        AmonBrandHeroCard(
+            eyebrow: "Search / Browse",
+            title: "Search privately. Open in local, clean, or protected mode.",
+            message: "Every result can open as a local visit on this device, a readable clean fetch, or a Protected Session when deeper isolation is available.",
+            badges: ["Local", "Clean View", "Protected Session"]
+        )
+    }
+
     private var workspaceDestinationCard: some View {
         Button {
             presentWorkspaceChooser()
@@ -227,21 +214,21 @@ public struct SearchView: View {
             HStack(spacing: 12) {
                 Image(systemName: "folder")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(viewModel.currentWorkspace == nil ? Color.accentColor : .primary)
+                    .foregroundStyle(viewModel.currentWorkspace == nil ? AmonTheme.accent : AmonTheme.ink)
                     .frame(width: 34, height: 34)
                     .background(
-                        (viewModel.currentWorkspace == nil ? Color.accentColor.opacity(0.12) : AmonTheme.pillSurface),
+                        (viewModel.currentWorkspace == nil ? AmonTheme.accent.opacity(0.12) : AmonTheme.pillSurface),
                         in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                     )
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.currentWorkspaceTitle ?? "Choose a workspace")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(AmonTheme.ink)
 
                     Text(viewModel.currentWorkspaceSubtitle)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                         .lineLimit(1)
                 }
 
@@ -249,11 +236,11 @@ public struct SearchView: View {
 
                 Text(viewModel.workspaceChooserButtonTitle)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(AmonTheme.accent)
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(AmonTheme.muted)
             }
             .amonCardStyle(padding: 14)
         }
@@ -339,7 +326,7 @@ public struct SearchView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("\(viewModel.selectedCount) selected")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AmonTheme.muted)
 
             HStack(spacing: 10) {
                 Button {
@@ -376,10 +363,10 @@ public struct SearchView: View {
             }
         }
         .padding(16)
-        .background(AmonTheme.surface.opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(AmonTheme.softCanvas.opacity(0.96), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(AmonTheme.border.opacity(0.85), lineWidth: 1)
+                .strokeBorder(AmonTheme.border, lineWidth: 1)
         )
         .shadow(color: AmonTheme.shadow, radius: 18, y: 8)
     }
@@ -484,19 +471,19 @@ private struct SearchResultCard: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(result.title)
                             .font(.headline)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(AmonTheme.ink)
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text(result.domain)
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AmonTheme.muted)
                     }
 
                     Spacer()
 
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(AmonTheme.accent)
                             .font(.title3)
                     }
                 }
@@ -514,7 +501,7 @@ private struct SearchResultCard: View {
                 if let snippet = result.snippet, !snippet.isEmpty {
                     Text(snippet)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -522,8 +509,10 @@ private struct SearchResultCard: View {
             HStack(spacing: 10) {
                 Button(action: onOpenChooser) {
                     AmonActionChip(
-                        title: isPreparingOpenChoice ? "Checking..." : "Open",
-                        systemImage: isPreparingOpenChoice ? "ellipsis.circle" : "arrow.up.right.square"
+                        title: isPreparingOpenChoice ? "Checking..." : "Open Modes",
+                        systemImage: isPreparingOpenChoice ? "ellipsis.circle" : "square.grid.2x2",
+                        tone: .accent,
+                        expands: true
                     )
                 }
                 .buttonStyle(.plain)
@@ -544,7 +533,7 @@ private struct SearchResultCard: View {
                         AmonActionChip(
                             title: "Selected",
                             systemImage: "checkmark.circle.fill",
-                            tone: .accent
+                            tone: .selected
                         )
                     }
                     .buttonStyle(.plain)
@@ -559,12 +548,12 @@ private struct SearchResultCard: View {
         .amonCardStyle()
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(isSelected ? Color.accentColor.opacity(0.35) : .clear, lineWidth: 1.5)
+                .strokeBorder(isSelected ? AmonTheme.strongBorder : .clear, lineWidth: 1.5)
         )
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .contextMenu {
             Button(action: onOpenChooser) {
-                Label("Choose Browse Path", systemImage: "arrow.up.right.square")
+                Label("Open Modes", systemImage: "square.grid.2x2")
             }
 
             Button(action: onOpenLocalRouted) {
@@ -684,18 +673,18 @@ private struct WorkspaceChooserRow: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(workspace.title)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.primary)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(AmonTheme.ink)
                 Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AmonTheme.muted)
             }
 
             Spacer()
 
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(AmonTheme.accent)
             }
         }
     }

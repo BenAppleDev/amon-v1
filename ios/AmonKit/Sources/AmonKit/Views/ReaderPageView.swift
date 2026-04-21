@@ -128,6 +128,13 @@ public struct ReaderPageView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                AmonBrandHeroCard(
+                    eyebrow: "Mode / Clean View",
+                    title: "Clean View",
+                    message: "Readable retrieval first. The live site stays optional until you choose a deeper open mode.",
+                    badges: ["Local", "Clean View", "Protected Session"]
+                )
+
                 AmonTrustStripView(
                     items: viewModel.trustStripItems
                 )
@@ -145,7 +152,7 @@ public struct ReaderPageView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(isPreparingOpenChoices ? "Checking..." : "Open Site") {
+                Button(isPreparingOpenChoices ? "Checking..." : "Open Modes") {
                     Task {
                         await presentSiteChoices()
                     }
@@ -175,41 +182,18 @@ public struct ReaderPageView: View {
                 fallbackReason: page.fallbackReason
             )
         }
-        .confirmationDialog(
-            browseOpenOrchestrator.activeChoice?.dialogTitle ?? "Open",
-            isPresented: Binding(
-                get: { browseOpenOrchestrator.activeChoice != nil },
-                set: { isPresented in
-                    if !isPresented {
+        .sheet(
+            item: Binding(
+                get: { browseOpenOrchestrator.activeChoice },
+                set: { choice in
+                    if choice == nil {
                         browseOpenOrchestrator.dismissChoice()
                     }
                 }
-            ),
-            titleVisibility: .visible,
-            presenting: browseOpenOrchestrator.activeChoice
+            )
         ) { recommendation in
-            Button(recommendation.localRoutedTitle) {
-                browseOpenOrchestrator.open(.localRouted, from: recommendation)
-            }
-
-            Button(recommendation.cleanViewTitle) {
-                browseOpenOrchestrator.open(.cleanView, from: recommendation)
-            }
-
-            if recommendation.showsProtectedSession {
-                Button(recommendation.protectedSessionTitle) {
-                    browseOpenOrchestrator.open(.protectedSession, from: recommendation)
-                }
-            }
-
-            if recommendation.showsDirectFallback {
-                Button(recommendation.directFallbackTitle) {
-                    browseOpenOrchestrator.open(.directFallback, from: recommendation)
-                }
-            }
-        } message: { recommendation in
-            if let message = recommendation.message {
-                Text(message)
+            AmonBrowseModeSheet(choice: recommendation) { path in
+                browseOpenOrchestrator.open(path, from: recommendation)
             }
         }
         .task {
@@ -229,16 +213,16 @@ public struct ReaderPageView: View {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(page.title)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.primary)
+                        .font(AmonBrandTypography.brandDisplay(size: 30, relativeTo: .title2))
+                        .foregroundStyle(AmonTheme.ink)
 
                     Text(page.domain)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
 
                     Text(viewModel.pageIntroMessage)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                 }
                 .amonCardStyle(padding: 20)
 
@@ -261,7 +245,7 @@ public struct ReaderPageView: View {
                         ForEach(Array(page.bullet_points.enumerated()), id: \.offset) { _, bullet in
                             HStack(alignment: .top, spacing: 10) {
                                 Circle()
-                                    .fill(Color.accentColor)
+                                    .fill(AmonTheme.accent)
                                     .frame(width: 7, height: 7)
                                     .padding(.top, 7)
                                 Text(bullet)

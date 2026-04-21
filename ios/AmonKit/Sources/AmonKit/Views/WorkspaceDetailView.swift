@@ -42,7 +42,8 @@ public struct WorkspaceDetailView: View {
                     let ownershipSummary = viewModel.ownershipSummary
                     VStack(alignment: .leading, spacing: 12) {
                         Text(workspace.title)
-                            .font(.title3.weight(.semibold))
+                            .font(AmonBrandTypography.brandDisplay(size: 30, relativeTo: .title3))
+                            .foregroundStyle(AmonTheme.ink)
 
                         HStack(spacing: 8) {
                             AmonMetadataPill(text: "\(viewModel.items.count) items")
@@ -55,17 +56,17 @@ public struct WorkspaceDetailView: View {
 
                         Text("Updated \(AmonFormatters.relativeTimestamp(for: workspace.updatedAt))")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AmonTheme.muted)
 
                         if viewModel.items.count + viewModel.compareArtifacts.count + viewModel.researchArtifacts.count > 0 {
                             Text(ownershipSummary.ownershipSummaryText)
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(AmonTheme.muted)
 
                             if let transitionSummary = ownershipSummary.transitionSummaryText {
                                 Text(transitionSummary)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(AmonTheme.muted)
                             }
 
                             if viewModel.isStrengtheningWorkspace {
@@ -74,7 +75,7 @@ public struct WorkspaceDetailView: View {
                                         .controlSize(.small)
                                     Text("Strengthening this workspace…")
                                         .font(.caption.weight(.medium))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(AmonTheme.muted)
                                 }
                             } else if ownershipSummary.canStrengthenFurther {
                                 Button {
@@ -134,27 +135,27 @@ public struct WorkspaceDetailView: View {
                                             Text(item.displayTitle)
                                                 .font(.headline)
                                             HStack(spacing: 8) {
-                                                Text(item.domain)
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
+                                            Text(item.domain)
+                                                .font(.caption)
+                                                .foregroundStyle(AmonTheme.muted)
                                                 AmonMetadataPill(text: item.ownershipBadgeText)
                                             }
                                             if let previewText = item.previewText {
                                                 Text(previewText)
                                                     .font(.subheadline)
-                                                    .foregroundStyle(.secondary)
+                                                    .foregroundStyle(AmonTheme.muted)
                                                     .lineLimit(3)
                                             } else {
                                                 Text(item.ownershipSummary)
                                                     .font(.subheadline)
-                                                    .foregroundStyle(.secondary)
+                                                    .foregroundStyle(AmonTheme.muted)
                                                     .lineLimit(2)
                                             }
 
                                             if let transitionText = item.ownershipTransitionText {
                                                 Text(transitionText)
                                                     .font(.caption)
-                                                    .foregroundStyle(.secondary)
+                                                    .foregroundStyle(AmonTheme.muted)
                                                     .lineLimit(2)
                                             }
 
@@ -164,7 +165,7 @@ public struct WorkspaceDetailView: View {
                                                         .controlSize(.small)
                                                     Text("Saving readable copy locally…")
                                                         .font(.caption.weight(.medium))
-                                                        .foregroundStyle(.secondary)
+                                                        .foregroundStyle(AmonTheme.muted)
                                                 }
                                             }
                                         }
@@ -173,7 +174,7 @@ public struct WorkspaceDetailView: View {
 
                                         Image(systemName: "chevron.right")
                                             .font(.caption.weight(.semibold))
-                                            .foregroundStyle(.tertiary)
+                                            .foregroundStyle(AmonTheme.muted)
                                             .padding(.top, 4)
                                     }
                                 }
@@ -213,8 +214,8 @@ public struct WorkspaceDetailView: View {
                                         }
                                     } label: {
                                         Label(
-                                            item.hasOwnedReadableContent ? "Open Source..." : "Choose Browse Path",
-                                            systemImage: "arrow.up.right.square"
+                                            item.hasOwnedReadableContent ? "Open Modes..." : "Open Modes",
+                                            systemImage: "square.grid.2x2"
                                         )
                                     }
 
@@ -437,41 +438,18 @@ public struct WorkspaceDetailView: View {
                 fallbackReason: page.fallbackReason
             )
         }
-        .confirmationDialog(
-            browseOpenOrchestrator.activeChoice?.dialogTitle ?? "Open",
-            isPresented: Binding(
-                get: { browseOpenOrchestrator.activeChoice != nil },
-                set: { isPresented in
-                    if !isPresented {
+        .sheet(
+            item: Binding(
+                get: { browseOpenOrchestrator.activeChoice },
+                set: { choice in
+                    if choice == nil {
                         browseOpenOrchestrator.dismissChoice()
                     }
                 }
-            ),
-            titleVisibility: .visible,
-            presenting: browseOpenOrchestrator.activeChoice
+            )
         ) { recommendation in
-            Button(recommendation.localRoutedTitle) {
-                browseOpenOrchestrator.open(.localRouted, from: recommendation)
-            }
-
-            Button(recommendation.cleanViewTitle) {
-                browseOpenOrchestrator.open(.cleanView, from: recommendation)
-            }
-
-            if recommendation.showsProtectedSession {
-                Button(recommendation.protectedSessionTitle) {
-                    browseOpenOrchestrator.open(.protectedSession, from: recommendation)
-                }
-            }
-
-            if recommendation.showsDirectFallback {
-                Button(recommendation.directFallbackTitle) {
-                    browseOpenOrchestrator.open(.directFallback, from: recommendation)
-                }
-            }
-        } message: { recommendation in
-            if let message = recommendation.message {
-                Text(message)
+            AmonBrowseModeSheet(choice: recommendation) { path in
+                browseOpenOrchestrator.open(path, from: recommendation)
             }
         }
         .refreshable {

@@ -150,11 +150,11 @@ export function PrivacyPage() {
               <h2>Want the plain-language version?</h2>
             </div>
             <div className="button-row">
-              <Link className="button" to="/faq">
-                Read FAQ
+              <Link className="button" to="/security">
+                Read security
               </Link>
-              <Link className="button button-secondary" to="/contact">
-                Request access
+              <Link className="button button-secondary" to="/faq">
+                Read FAQ
               </Link>
             </div>
           </Reveal>

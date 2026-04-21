@@ -258,7 +258,8 @@ public struct RouteSessionStateDTO: Codable, Sendable {
     public var route_kind: BrowsePathDTO
     public var transport_kind: String
     public var control_plane_kind: String
-    public var auth_session_id: String
+    public var product_session_id: String
+    public var auth_session_id: String?
     public var issued_at: Date
     public var refresh_after: Date
     public var expires_at: Date

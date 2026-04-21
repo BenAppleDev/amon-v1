@@ -21,9 +21,9 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
 
         XCTAssertEqual(apiClient.serveDecisionRequests.count, 1)
         XCTAssertEqual(orchestrator.activeChoice?.decision?.disposition, .recommendProtected)
-        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Protected Session Recommended")
-        XCTAssertEqual(orchestrator.activeChoice?.protectedSessionTitle, "Open Protected Session (Recommended)")
-        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local (Falls Back to Direct)")
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Protected recommended")
+        XCTAssertEqual(orchestrator.activeChoice?.protectedSessionTitle, "Open Protected Session")
+        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local")
         XCTAssertTrue(orchestrator.activeChoice?.showsProtectedSession ?? false)
         XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
     }
@@ -39,11 +39,11 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertEqual(apiClient.serveDecisionRequests.count, 1)
         XCTAssertNil(orchestrator.activeChoice?.decision)
         XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
-        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Choose Browse Path")
-        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local (Falls Back to Direct)")
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Choose a mode")
+        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local")
         XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
         XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Amon can't reach the backend right now") ?? false)
-        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("does not currently support routed-local browsing") ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("local or clean open path") ?? false)
     }
 
     func testLocalOnlyDecisionExplainsProtectedSessionIsUnavailable() async {
@@ -61,10 +61,10 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
 
         await orchestrator.presentChoices(for: target)
 
-        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Local Browsing")
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Choose a mode")
         XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
         XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
-        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Protected Session is not offered") ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Protected Session is not currently offered") ?? false)
     }
 
     func testOpenClearsChoiceAndPresentsRequestedPath() async throws {

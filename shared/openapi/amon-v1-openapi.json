@@ -27,6 +27,27 @@
         }
       }
     },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/auth/dev-login": {
       "post": {
         "tags": [
@@ -219,6 +240,1669 @@
                 "schema": {
                   "$ref": "#/components/schemas/StructuredRetrievalResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/route-sessions": {
+      "post": {
+        "tags": [
+          "route_sessions"
+        ],
+        "summary": "Mint Route Session",
+        "operationId": "mint_route_session_v1_route_sessions_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteSessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/route-sessions/{session_id}/refresh": {
+      "post": {
+        "tags": [
+          "route_sessions"
+        ],
+        "summary": "Refresh Route Session",
+        "operationId": "refresh_route_session_v1_route_sessions__session_id__refresh_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteSessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/route-sessions/{session_id}": {
+      "delete": {
+        "tags": [
+          "route_sessions"
+        ],
+        "summary": "Revoke Route Session",
+        "operationId": "revoke_route_session_v1_route_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteSessionRevokeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/protected-sessions/decision": {
+      "post": {
+        "tags": [
+          "protected_sessions"
+        ],
+        "summary": "Protected Session Decision",
+        "operationId": "protected_session_decision_v1_protected_sessions_decision_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServeDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServeDecisionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/protected-sessions": {
+      "post": {
+        "tags": [
+          "protected_sessions"
+        ],
+        "summary": "Create Protected Session",
+        "operationId": "create_protected_session_v1_protected_sessions_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectedSessionCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/protected-sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "protected_sessions"
+        ],
+        "summary": "Get Protected Session",
+        "operationId": "get_protected_session_v1_protected_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "protected_sessions"
+        ],
+        "summary": "End Protected Session",
+        "operationId": "end_protected_session_v1_protected_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionEndResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/protected-sessions/{session_id}/actions": {
+      "post": {
+        "tags": [
+          "protected_sessions"
+        ],
+        "summary": "Act On Protected Session",
+        "operationId": "act_on_protected_session_v1_protected_sessions__session_id__actions_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProtectedSessionActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/overview": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Overview",
+        "operationId": "protected_overview_internal_protected_sessions_overview_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/sessions": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Sessions Overview",
+        "operationId": "protected_sessions_overview_internal_protected_sessions_sessions_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedSessionsOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/sessions/active": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Active Sessions",
+        "operationId": "protected_active_sessions_internal_protected_sessions_sessions_active_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedSessionsOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Session Detail",
+        "operationId": "protected_session_detail_internal_protected_sessions_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionMetadataView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/workers": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Workers Overview",
+        "operationId": "protected_workers_overview_internal_protected_sessions_workers_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedWorkersOverview"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/counters/policy": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Policy Counters",
+        "operationId": "protected_policy_counters_internal_protected_sessions_counters_policy_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedPolicyCounters"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/counters/quota": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Quota Counters",
+        "operationId": "protected_quota_counters_internal_protected_sessions_counters_quota_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedQuotaCounters"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/counters/stream": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Stream Counters",
+        "operationId": "protected_stream_counters_internal_protected_sessions_counters_stream_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedStreamCounters"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/counters/terminations": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Termination Counters",
+        "operationId": "protected_termination_counters_internal_protected_sessions_counters_terminations_get",
+        "parameters": [
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedTerminationCounters"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/events": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected Recent Events",
+        "operationId": "protected_recent_events_internal_protected_sessions_events_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedEventFeed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/history/summary": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected History Summary",
+        "operationId": "protected_history_summary_internal_protected_sessions_history_summary_get",
+        "parameters": [
+          {
+            "name": "hours",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 168,
+              "minimum": 1,
+              "default": 24,
+              "title": "Hours"
+            }
+          },
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionOpsHistoricalSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/protected-sessions/history/snapshots": {
+      "get": {
+        "tags": [
+          "internal_protected_sessions"
+        ],
+        "summary": "Protected History Snapshots",
+        "operationId": "protected_history_snapshots_internal_protected_sessions_history_snapshots_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 240,
+              "minimum": 1,
+              "default": 72,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "X-Amon-Internal-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Internal-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionOpsSnapshotSeries"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/route-sessions/validate": {
+      "post": {
+        "tags": [
+          "internal_route_sessions"
+        ],
+        "summary": "Validate Route Session For Relay",
+        "operationId": "validate_route_session_for_relay_internal_route_sessions_validate_post",
+        "parameters": [
+          {
+            "name": "X-Amon-Route-Relay-Secret",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Amon-Route-Relay-Secret"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteRelayValidationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteRelayValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/auth/status": {
+      "get": {
+        "tags": [
+          "ops_auth"
+        ],
+        "summary": "Ops Auth Status",
+        "operationId": "ops_auth_status_ops_auth_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsAuthStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/auth/session": {
+      "post": {
+        "tags": [
+          "ops_auth"
+        ],
+        "summary": "Ops Dev Login",
+        "operationId": "ops_dev_login_ops_auth_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpsDevLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsAuthStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/auth/logout": {
+      "post": {
+        "tags": [
+          "ops_auth"
+        ],
+        "summary": "Ops Logout",
+        "operationId": "ops_logout_ops_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsAuthStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/overview": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Overview",
+        "operationId": "ops_protected_overview_ops_api_protected_sessions_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/sessions": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Sessions",
+        "operationId": "ops_protected_sessions_ops_api_protected_sessions_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedSessionsOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/sessions/active": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Active Sessions",
+        "operationId": "ops_protected_active_sessions_ops_api_protected_sessions_sessions_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedSessionsOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Session Detail",
+        "operationId": "ops_protected_session_detail_ops_api_protected_sessions_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionMetadataView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/workers": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Workers",
+        "operationId": "ops_protected_workers_ops_api_protected_sessions_workers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedWorkersOverview"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/counters/policy": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Policy",
+        "operationId": "ops_protected_policy_ops_api_protected_sessions_counters_policy_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedPolicyCounters"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/counters/quota": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Quota",
+        "operationId": "ops_protected_quota_ops_api_protected_sessions_counters_quota_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedQuotaCounters"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/counters/stream": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Stream",
+        "operationId": "ops_protected_stream_ops_api_protected_sessions_counters_stream_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedStreamCounters"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/counters/terminations": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Terminations",
+        "operationId": "ops_protected_terminations_ops_api_protected_sessions_counters_terminations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedTerminationCounters"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/events": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected Events",
+        "operationId": "ops_protected_events_ops_api_protected_sessions_events_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalProtectedEventFeed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/history/summary": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected History Summary",
+        "operationId": "ops_protected_history_summary_ops_api_protected_sessions_history_summary_get",
+        "parameters": [
+          {
+            "name": "hours",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 168,
+              "minimum": 1,
+              "default": 24,
+              "title": "Hours"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionOpsHistoricalSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/api/protected-sessions/history/snapshots": {
+      "get": {
+        "tags": [
+          "ops_protected_sessions"
+        ],
+        "summary": "Ops Protected History Snapshots",
+        "operationId": "ops_protected_history_snapshots_ops_api_protected_sessions_history_snapshots_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 240,
+              "minimum": 1,
+              "default": 72,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedSessionOpsSnapshotSeries"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops": {
+      "get": {
+        "tags": [
+          "ops_surface"
+        ],
+        "summary": "Ops Root Redirect",
+        "operationId": "ops_root_redirect_ops_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/": {
+      "get": {
+        "tags": [
+          "ops_surface"
+        ],
+        "summary": "Ops Index",
+        "operationId": "ops_index_ops__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/assets/{asset_path}": {
+      "get": {
+        "tags": [
+          "ops_surface"
+        ],
+        "summary": "Ops Assets",
+        "operationId": "ops_assets_ops_assets__asset_path__get",
+        "parameters": [
+          {
+            "name": "asset_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -565,6 +2249,382 @@
         ],
         "title": "HealthResponse"
       },
+      "InternalProtectedEventFeed": {
+        "properties": {
+          "total_events": {
+            "type": "integer",
+            "title": "Total Events",
+            "default": 0
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionEventView"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "title": "InternalProtectedEventFeed"
+      },
+      "InternalProtectedOverview": {
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "total_sessions": {
+            "type": "integer",
+            "title": "Total Sessions",
+            "default": 0
+          },
+          "active_sessions": {
+            "type": "integer",
+            "title": "Active Sessions",
+            "default": 0
+          },
+          "active_streams": {
+            "type": "integer",
+            "title": "Active Streams",
+            "default": 0
+          },
+          "users_with_active_sessions": {
+            "type": "integer",
+            "title": "Users With Active Sessions",
+            "default": 0
+          },
+          "users_with_live_streams": {
+            "type": "integer",
+            "title": "Users With Live Streams",
+            "default": 0
+          },
+          "total_workers": {
+            "type": "integer",
+            "title": "Total Workers",
+            "default": 0
+          },
+          "healthy_workers": {
+            "type": "integer",
+            "title": "Healthy Workers",
+            "default": 0
+          },
+          "degraded_workers": {
+            "type": "integer",
+            "title": "Degraded Workers",
+            "default": 0
+          },
+          "total_worker_capacity": {
+            "type": "integer",
+            "title": "Total Worker Capacity",
+            "default": 0
+          },
+          "total_worker_stream_capacity": {
+            "type": "integer",
+            "title": "Total Worker Stream Capacity",
+            "default": 0
+          },
+          "total_assigned_sessions": {
+            "type": "integer",
+            "title": "Total Assigned Sessions",
+            "default": 0
+          },
+          "quota_rejections_total": {
+            "type": "integer",
+            "title": "Quota Rejections Total",
+            "default": 0
+          },
+          "protocol_errors_total": {
+            "type": "integer",
+            "title": "Protocol Errors Total",
+            "default": 0
+          },
+          "heartbeat_timeouts_total": {
+            "type": "integer",
+            "title": "Heartbeat Timeouts Total",
+            "default": 0
+          },
+          "dropped_events_total": {
+            "type": "integer",
+            "title": "Dropped Events Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "generated_at"
+        ],
+        "title": "InternalProtectedOverview"
+      },
+      "InternalProtectedPolicyCounters": {
+        "properties": {
+          "policy_decisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Policy Decisions"
+          },
+          "event_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Event Counts"
+          },
+          "reason_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Reason Counts"
+          },
+          "recent_events": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionEventView"
+            },
+            "type": "array",
+            "title": "Recent Events"
+          }
+        },
+        "type": "object",
+        "title": "InternalProtectedPolicyCounters"
+      },
+      "InternalProtectedQuotaCounters": {
+        "properties": {
+          "quota_rejections": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Quota Rejections"
+          },
+          "total_rejections": {
+            "type": "integer",
+            "title": "Total Rejections",
+            "default": 0
+          },
+          "active_sessions_total": {
+            "type": "integer",
+            "title": "Active Sessions Total",
+            "default": 0
+          },
+          "users_with_active_sessions": {
+            "type": "integer",
+            "title": "Users With Active Sessions",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "InternalProtectedQuotaCounters"
+      },
+      "InternalProtectedSessionsOverview": {
+        "properties": {
+          "total_sessions": {
+            "type": "integer",
+            "title": "Total Sessions"
+          },
+          "active_sessions": {
+            "type": "integer",
+            "title": "Active Sessions"
+          },
+          "state_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "State Counts"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionMetadataView"
+            },
+            "type": "array",
+            "title": "Sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_sessions",
+          "active_sessions"
+        ],
+        "title": "InternalProtectedSessionsOverview"
+      },
+      "InternalProtectedStreamCounters": {
+        "properties": {
+          "active_streams_total": {
+            "type": "integer",
+            "title": "Active Streams Total",
+            "default": 0
+          },
+          "users_with_live_streams": {
+            "type": "integer",
+            "title": "Users With Live Streams",
+            "default": 0
+          },
+          "attach_count": {
+            "type": "integer",
+            "title": "Attach Count",
+            "default": 0
+          },
+          "detach_count": {
+            "type": "integer",
+            "title": "Detach Count",
+            "default": 0
+          },
+          "reconnect_attempts": {
+            "type": "integer",
+            "title": "Reconnect Attempts",
+            "default": 0
+          },
+          "successful_resumes": {
+            "type": "integer",
+            "title": "Successful Resumes",
+            "default": 0
+          },
+          "heartbeat_timeout_count": {
+            "type": "integer",
+            "title": "Heartbeat Timeout Count",
+            "default": 0
+          },
+          "dropped_events_total": {
+            "type": "integer",
+            "title": "Dropped Events Total",
+            "default": 0
+          },
+          "protocol_error_count": {
+            "type": "integer",
+            "title": "Protocol Error Count",
+            "default": 0
+          },
+          "protocol_error_codes": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Protocol Error Codes"
+          },
+          "state_update_count": {
+            "type": "integer",
+            "title": "State Update Count",
+            "default": 0
+          },
+          "frame_update_count": {
+            "type": "integer",
+            "title": "Frame Update Count",
+            "default": 0
+          },
+          "action_ack_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Action Ack Counts"
+          },
+          "action_result_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Action Result Counts"
+          },
+          "average_action_duration_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Action Duration Ms"
+          },
+          "worker_assignments": {
+            "type": "integer",
+            "title": "Worker Assignments",
+            "default": 0
+          },
+          "worker_releases": {
+            "type": "integer",
+            "title": "Worker Releases",
+            "default": 0
+          },
+          "total_live_stream_capacity": {
+            "type": "integer",
+            "title": "Total Live Stream Capacity",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "InternalProtectedStreamCounters"
+      },
+      "InternalProtectedTerminationCounters": {
+        "properties": {
+          "terminal_event_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Terminal Event Counts"
+          },
+          "terminal_reason_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Terminal Reason Counts"
+          },
+          "failure_reason_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Failure Reason Counts"
+          }
+        },
+        "type": "object",
+        "title": "InternalProtectedTerminationCounters"
+      },
+      "InternalProtectedWorkersOverview": {
+        "properties": {
+          "total_workers": {
+            "type": "integer",
+            "title": "Total Workers"
+          },
+          "total_capacity": {
+            "type": "integer",
+            "title": "Total Capacity"
+          },
+          "total_stream_capacity": {
+            "type": "integer",
+            "title": "Total Stream Capacity"
+          },
+          "total_assigned_sessions": {
+            "type": "integer",
+            "title": "Total Assigned Sessions"
+          },
+          "total_active_streams": {
+            "type": "integer",
+            "title": "Total Active Streams"
+          },
+          "workers": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionWorkerView"
+            },
+            "type": "array",
+            "title": "Workers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_workers",
+          "total_capacity",
+          "total_stream_capacity",
+          "total_assigned_sessions",
+          "total_active_streams"
+        ],
+        "title": "InternalProtectedWorkersOverview"
+      },
       "ItemSourcePayload": {
         "properties": {
           "item_id": {
@@ -671,6 +2731,1426 @@
           "version"
         ],
         "title": "ModelInfo"
+      },
+      "OpsAuthStatusResponse": {
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "title": "Authenticated"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/OpsEnvironmentView"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id"
+          },
+          "auth_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auth Method"
+          },
+          "session_expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Expires At"
+          },
+          "dev_token_login_enabled": {
+            "type": "boolean",
+            "title": "Dev Token Login Enabled",
+            "default": false
+          },
+          "trusted_upstream_enabled": {
+            "type": "boolean",
+            "title": "Trusted Upstream Enabled",
+            "default": false
+          },
+          "trusted_upstream_mode": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "shared_secret_headers",
+              "asserted_identity_headers"
+            ],
+            "title": "Trusted Upstream Mode",
+            "default": "disabled"
+          },
+          "trusted_upstream_provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "generic",
+                  "cloudflare_access"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trusted Upstream Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "authenticated",
+          "environment"
+        ],
+        "title": "OpsAuthStatusResponse"
+      },
+      "OpsDevLoginRequest": {
+        "properties": {
+          "admin_token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Admin Token"
+          },
+          "operator_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "admin_token"
+        ],
+        "title": "OpsDevLoginRequest"
+      },
+      "OpsEnvironmentView": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "app_env": {
+            "type": "string",
+            "title": "App Env"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "app_env"
+        ],
+        "title": "OpsEnvironmentView"
+      },
+      "ProtectedSessionActionRequest": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "reload",
+              "back",
+              "forward",
+              "click_link",
+              "update_field",
+              "submit_form",
+              "navigate_to_url"
+            ],
+            "title": "Action"
+          },
+          "link_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Link Id"
+          },
+          "form_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Id"
+          },
+          "field_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Name"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "ProtectedSessionActionRequest"
+      },
+      "ProtectedSessionCreateRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "ProtectedSessionCreateRequest"
+      },
+      "ProtectedSessionEndResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "ended",
+            "title": "Status",
+            "default": "ended"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "ProtectedSessionEndResponse"
+      },
+      "ProtectedSessionEventView": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "event_type": {
+            "type": "string",
+            "title": "Event Type"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "worker_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Id"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason Code"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
+          "metric_value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Value"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_type",
+          "occurred_at"
+        ],
+        "title": "ProtectedSessionEventView"
+      },
+      "ProtectedSessionField": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "field_type": {
+            "type": "string",
+            "title": "Field Type"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "placeholder": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Placeholder"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "field_type"
+        ],
+        "title": "ProtectedSessionField"
+      },
+      "ProtectedSessionForm": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "action_url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Action Url"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "get",
+              "post"
+            ],
+            "title": "Method"
+          },
+          "submit_label": {
+            "type": "string",
+            "title": "Submit Label"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionField"
+            },
+            "type": "array",
+            "title": "Fields"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "action_url",
+          "method",
+          "submit_label"
+        ],
+        "title": "ProtectedSessionForm"
+      },
+      "ProtectedSessionFrame": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "mime_type": {
+            "type": "string",
+            "const": "image/svg+xml",
+            "title": "Mime Type"
+          },
+          "document": {
+            "type": "string",
+            "title": "Document"
+          },
+          "width": {
+            "type": "integer",
+            "title": "Width"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "mime_type",
+          "document",
+          "width",
+          "height",
+          "generated_at"
+        ],
+        "title": "ProtectedSessionFrame"
+      },
+      "ProtectedSessionLink": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "url"
+        ],
+        "title": "ProtectedSessionLink"
+      },
+      "ProtectedSessionMetadataView": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Activity At"
+          },
+          "action_count": {
+            "type": "integer",
+            "title": "Action Count"
+          },
+          "termination_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termination Reason"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/ProtectedSessionPolicySummary"
+          },
+          "quota": {
+            "$ref": "#/components/schemas/ProtectedSessionQuotaSummary"
+          },
+          "worker_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Id"
+          },
+          "worker_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Type"
+          },
+          "runtime_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime Kind"
+          },
+          "worker_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker State"
+          },
+          "worker_health": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Health"
+          },
+          "frame_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frame Revision"
+          },
+          "frames_emitted": {
+            "type": "integer",
+            "title": "Frames Emitted",
+            "default": 0
+          },
+          "last_frame_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Frame At"
+          },
+          "active_streams": {
+            "type": "integer",
+            "title": "Active Streams",
+            "default": 0
+          },
+          "total_stream_attaches": {
+            "type": "integer",
+            "title": "Total Stream Attaches",
+            "default": 0
+          },
+          "total_stream_detaches": {
+            "type": "integer",
+            "title": "Total Stream Detaches",
+            "default": 0
+          },
+          "reconnect_attempts": {
+            "type": "integer",
+            "title": "Reconnect Attempts",
+            "default": 0
+          },
+          "successful_resumes": {
+            "type": "integer",
+            "title": "Successful Resumes",
+            "default": 0
+          },
+          "heartbeat_timeout_count": {
+            "type": "integer",
+            "title": "Heartbeat Timeout Count",
+            "default": 0
+          },
+          "dropped_events_total": {
+            "type": "integer",
+            "title": "Dropped Events Total",
+            "default": 0
+          },
+          "protocol_error_count": {
+            "type": "integer",
+            "title": "Protocol Error Count",
+            "default": 0
+          },
+          "last_protocol_error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Protocol Error Code"
+          },
+          "state_update_count": {
+            "type": "integer",
+            "title": "State Update Count",
+            "default": 0
+          },
+          "frame_update_count": {
+            "type": "integer",
+            "title": "Frame Update Count",
+            "default": 0
+          },
+          "action_ack_accepted_count": {
+            "type": "integer",
+            "title": "Action Ack Accepted Count",
+            "default": 0
+          },
+          "action_ack_failed_count": {
+            "type": "integer",
+            "title": "Action Ack Failed Count",
+            "default": 0
+          },
+          "action_ack_rejected_count": {
+            "type": "integer",
+            "title": "Action Ack Rejected Count",
+            "default": 0
+          },
+          "action_completed_count": {
+            "type": "integer",
+            "title": "Action Completed Count",
+            "default": 0
+          },
+          "action_failed_count": {
+            "type": "integer",
+            "title": "Action Failed Count",
+            "default": 0
+          },
+          "average_action_duration_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Action Duration Ms"
+          },
+          "last_action_duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Action Duration Ms"
+          },
+          "last_stream_attached_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Stream Attached At"
+          },
+          "last_stream_detached_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Stream Detached At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "user_id",
+          "domain",
+          "state",
+          "created_at",
+          "last_activity_at",
+          "action_count",
+          "policy",
+          "quota"
+        ],
+        "title": "ProtectedSessionMetadataView"
+      },
+      "ProtectedSessionOpsHistoricalSummary": {
+        "properties": {
+          "environment": {
+            "$ref": "#/components/schemas/OpsEnvironmentView"
+          },
+          "window_hours": {
+            "type": "integer",
+            "title": "Window Hours"
+          },
+          "total_events": {
+            "type": "integer",
+            "title": "Total Events",
+            "default": 0
+          },
+          "event_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Event Counts"
+          },
+          "reason_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Reason Counts"
+          },
+          "terminal_reason_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Terminal Reason Counts"
+          },
+          "stream_error_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Stream Error Counts"
+          },
+          "latest_snapshot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProtectedSessionOpsSnapshotView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment",
+          "window_hours"
+        ],
+        "title": "ProtectedSessionOpsHistoricalSummary"
+      },
+      "ProtectedSessionOpsSnapshotSeries": {
+        "properties": {
+          "environment": {
+            "$ref": "#/components/schemas/OpsEnvironmentView"
+          },
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionOpsSnapshotView"
+            },
+            "type": "array",
+            "title": "Snapshots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "environment"
+        ],
+        "title": "ProtectedSessionOpsSnapshotSeries"
+      },
+      "ProtectedSessionOpsSnapshotView": {
+        "properties": {
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Recorded At"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment"
+          },
+          "total_sessions": {
+            "type": "integer",
+            "title": "Total Sessions",
+            "default": 0
+          },
+          "active_sessions": {
+            "type": "integer",
+            "title": "Active Sessions",
+            "default": 0
+          },
+          "active_streams": {
+            "type": "integer",
+            "title": "Active Streams",
+            "default": 0
+          },
+          "users_with_active_sessions": {
+            "type": "integer",
+            "title": "Users With Active Sessions",
+            "default": 0
+          },
+          "users_with_live_streams": {
+            "type": "integer",
+            "title": "Users With Live Streams",
+            "default": 0
+          },
+          "total_workers": {
+            "type": "integer",
+            "title": "Total Workers",
+            "default": 0
+          },
+          "healthy_workers": {
+            "type": "integer",
+            "title": "Healthy Workers",
+            "default": 0
+          },
+          "degraded_workers": {
+            "type": "integer",
+            "title": "Degraded Workers",
+            "default": 0
+          },
+          "total_worker_capacity": {
+            "type": "integer",
+            "title": "Total Worker Capacity",
+            "default": 0
+          },
+          "total_worker_stream_capacity": {
+            "type": "integer",
+            "title": "Total Worker Stream Capacity",
+            "default": 0
+          },
+          "total_assigned_sessions": {
+            "type": "integer",
+            "title": "Total Assigned Sessions",
+            "default": 0
+          },
+          "quota_rejections_total": {
+            "type": "integer",
+            "title": "Quota Rejections Total",
+            "default": 0
+          },
+          "protocol_errors_total": {
+            "type": "integer",
+            "title": "Protocol Errors Total",
+            "default": 0
+          },
+          "heartbeat_timeouts_total": {
+            "type": "integer",
+            "title": "Heartbeat Timeouts Total",
+            "default": 0
+          },
+          "dropped_events_total": {
+            "type": "integer",
+            "title": "Dropped Events Total",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "recorded_at",
+          "environment"
+        ],
+        "title": "ProtectedSessionOpsSnapshotView"
+      },
+      "ProtectedSessionPage": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "text_blocks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Text Blocks"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionLink"
+            },
+            "type": "array",
+            "title": "Links"
+          },
+          "forms": {
+            "items": {
+              "$ref": "#/components/schemas/ProtectedSessionForm"
+            },
+            "type": "array",
+            "title": "Forms"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "domain",
+          "fetched_at"
+        ],
+        "title": "ProtectedSessionPage"
+      },
+      "ProtectedSessionPolicySummary": {
+        "properties": {
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "ALLOW_LOCAL",
+              "ALLOW_CLEAN_VIEW",
+              "RECOMMEND_PROTECTED",
+              "ALLOW_PROTECTED",
+              "DENY"
+            ],
+            "title": "Disposition"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "site_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Class"
+          },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "disposition",
+          "reason_code",
+          "confidence",
+          "policy_version"
+        ],
+        "title": "ProtectedSessionPolicySummary"
+      },
+      "ProtectedSessionQuotaSummary": {
+        "properties": {
+          "budget_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          },
+          "max_concurrent_sessions_per_user": {
+            "type": "integer",
+            "title": "Max Concurrent Sessions Per User"
+          },
+          "max_session_starts_per_window": {
+            "type": "integer",
+            "title": "Max Session Starts Per Window"
+          },
+          "session_start_window_seconds": {
+            "type": "integer",
+            "title": "Session Start Window Seconds"
+          },
+          "max_actions_per_session": {
+            "type": "integer",
+            "title": "Max Actions Per Session"
+          }
+        },
+        "type": "object",
+        "required": [
+          "max_concurrent_sessions_per_user",
+          "max_session_starts_per_window",
+          "session_start_window_seconds",
+          "max_actions_per_session"
+        ],
+        "title": "ProtectedSessionQuotaSummary"
+      },
+      "ProtectedSessionState": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "creating",
+              "active",
+              "terminating",
+              "closed",
+              "expired",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "allowed_host": {
+            "type": "string",
+            "title": "Allowed Host"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Activity At"
+          },
+          "can_go_back": {
+            "type": "boolean",
+            "title": "Can Go Back"
+          },
+          "can_go_forward": {
+            "type": "boolean",
+            "title": "Can Go Forward"
+          },
+          "content_revision": {
+            "type": "integer",
+            "title": "Content Revision",
+            "default": 0
+          },
+          "runtime_kind": {
+            "type": "string",
+            "title": "Runtime Kind",
+            "default": "visual_stream_session"
+          },
+          "stream_transport": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "websocket"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stream Transport",
+            "default": "websocket"
+          },
+          "worker_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Id"
+          },
+          "worker_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Type"
+          },
+          "worker_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker State"
+          },
+          "worker_health": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Worker Health"
+          },
+          "current_frame": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProtectedSessionFrame"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_page": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProtectedSessionPage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "allowed_host",
+          "started_at",
+          "expires_at",
+          "last_activity_at",
+          "can_go_back",
+          "can_go_forward"
+        ],
+        "title": "ProtectedSessionState"
+      },
+      "ProtectedSessionWorkerView": {
+        "properties": {
+          "worker_id": {
+            "type": "string",
+            "title": "Worker Id"
+          },
+          "worker_type": {
+            "type": "string",
+            "title": "Worker Type"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "stream_capacity": {
+            "type": "integer",
+            "title": "Stream Capacity"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "health": {
+            "type": "string",
+            "title": "Health",
+            "default": "healthy"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "assigned_sessions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assigned Sessions"
+          },
+          "assigned_count": {
+            "type": "integer",
+            "title": "Assigned Count"
+          },
+          "active_streams": {
+            "type": "integer",
+            "title": "Active Streams",
+            "default": 0
+          },
+          "assignment_count": {
+            "type": "integer",
+            "title": "Assignment Count",
+            "default": 0
+          },
+          "release_count": {
+            "type": "integer",
+            "title": "Release Count",
+            "default": 0
+          },
+          "attach_count": {
+            "type": "integer",
+            "title": "Attach Count",
+            "default": 0
+          },
+          "detach_count": {
+            "type": "integer",
+            "title": "Detach Count",
+            "default": 0
+          },
+          "heartbeat_timeout_count": {
+            "type": "integer",
+            "title": "Heartbeat Timeout Count",
+            "default": 0
+          },
+          "protocol_error_count": {
+            "type": "integer",
+            "title": "Protocol Error Count",
+            "default": 0
+          },
+          "degraded_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degraded Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "worker_id",
+          "worker_type",
+          "capacity",
+          "stream_capacity",
+          "state",
+          "assigned_count"
+        ],
+        "title": "ProtectedSessionWorkerView"
       },
       "ProviderInfo": {
         "properties": {
@@ -801,6 +4281,321 @@
         ],
         "title": "RetrieveRequest"
       },
+      "RouteRelayValidationRequest": {
+        "properties": {
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "route_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Session Id"
+          },
+          "route_access_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Access Token"
+          },
+          "route_product_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Product Session Id"
+          },
+          "route_auth_session_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Auth Session Id"
+          },
+          "requested_path": {
+            "type": "string",
+            "const": "local_routed",
+            "title": "Requested Path",
+            "default": "local_routed"
+          },
+          "transport_kind": {
+            "type": "string",
+            "const": "packet_tunnel",
+            "title": "Transport Kind",
+            "default": "packet_tunnel"
+          },
+          "client_platform": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "ios"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Platform"
+          },
+          "app_bundle_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Bundle Id"
+          }
+        },
+        "type": "object",
+        "title": "RouteRelayValidationRequest"
+      },
+      "RouteRelayValidationResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "product_session_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product Session Id"
+          },
+          "route_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "local_routed"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route Kind"
+          },
+          "transport_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "packet_tunnel"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transport Kind"
+          },
+          "control_plane_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "control_only"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Control Plane Kind"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "validated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Validated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "code",
+          "message",
+          "validated_at"
+        ],
+        "title": "RouteRelayValidationResponse"
+      },
+      "RouteSessionRevokeResponse": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "const": "revoked",
+            "title": "Status",
+            "default": "revoked"
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Revoked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "revoked_at"
+        ],
+        "title": "RouteSessionRevokeResponse"
+      },
+      "RouteSessionState": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "revoked",
+              "expired"
+            ],
+            "title": "Status"
+          },
+          "route_kind": {
+            "type": "string",
+            "const": "local_routed",
+            "title": "Route Kind",
+            "default": "local_routed"
+          },
+          "transport_kind": {
+            "type": "string",
+            "const": "packet_tunnel",
+            "title": "Transport Kind",
+            "default": "packet_tunnel"
+          },
+          "control_plane_kind": {
+            "type": "string",
+            "const": "control_only",
+            "title": "Control Plane Kind",
+            "default": "control_only"
+          },
+          "product_session_id": {
+            "type": "string",
+            "title": "Product Session Id"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Issued At"
+          },
+          "refresh_after": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Refresh After"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id",
+          "access_token",
+          "status",
+          "product_session_id",
+          "issued_at",
+          "refresh_after",
+          "expires_at"
+        ],
+        "title": "RouteSessionState"
+      },
       "SearchRequest": {
         "properties": {
           "query": {
@@ -907,6 +4702,90 @@
           "provider"
         ],
         "title": "SearchResult"
+      },
+      "ServeDecisionRequest": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "open",
+              "protected_session"
+            ],
+            "title": "Intent",
+            "default": "open"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "ServeDecisionRequest"
+      },
+      "ServeDecisionResponse": {
+        "properties": {
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "ALLOW_LOCAL",
+              "ALLOW_CLEAN_VIEW",
+              "RECOMMEND_PROTECTED",
+              "ALLOW_PROTECTED",
+              "DENY"
+            ],
+            "title": "Disposition"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "site_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Class"
+          },
+          "budget_tier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Tier"
+          }
+        },
+        "type": "object",
+        "required": [
+          "disposition",
+          "reason_code",
+          "confidence",
+          "policy_version"
+        ],
+        "title": "ServeDecisionResponse"
       },
       "StructuredRetrievalResponse": {
         "properties": {
@@ -1017,6 +4896,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",

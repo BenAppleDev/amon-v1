@@ -60,8 +60,10 @@ struct RootTabView: View {
                         .progressViewStyle(.circular)
                     Text("Checking your local session")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(AmonTheme.canvas.ignoresSafeArea())
             } else if searchViewModel.isAuthenticated {
                 TabView(selection: $selectedTab) {
                     SearchView(
@@ -98,6 +100,7 @@ struct RootTabView: View {
             }
         }
         .tint(AmonTheme.accent)
+        .preferredColorScheme(.dark)
         .task {
             tunnelManager.recordExternalEvent("RootTabView startup task began")
             await tunnelManager.refreshFromPreferences(using: transportSettingsStore.settings)
@@ -322,7 +325,7 @@ private struct AmonPrimaryTabBar: View {
                     .font(.footnote.weight(.semibold))
                     .lineLimit(1)
             }
-            .foregroundStyle(selectedTab == tab ? Color.white : Color.secondary)
+            .foregroundStyle(selectedTab == tab ? AmonTheme.canvas : AmonTheme.muted)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background(selectedTab == tab ? AmonTheme.accent : Color.clear, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))

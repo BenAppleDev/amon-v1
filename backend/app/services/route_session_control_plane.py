@@ -152,7 +152,11 @@ class RouteSessionControlPlane:
                 validated_at=validated_at,
             )
 
-        if request.route_auth_session_id and request.route_auth_session_id != record.auth_session_id:
+        if (
+            request.route_auth_session_id
+            and request.route_product_session_id is None
+            and request.route_auth_session_id != record.auth_session_id
+        ):
             return self._rejected_validation(
                 request=request,
                 code='route_session_context_mismatch',
@@ -174,9 +178,7 @@ class RouteSessionControlPlane:
             message='The routed-local session is valid for relay bootstrap.',
             request_id=request.request_id,
             session_id=record.id,
-            product_session_id=record.product_session_id,
-            user_id=record.user_id,
-            auth_session_id=record.auth_session_id,
+            product_session_id=self._require_product_session_id(record),
             route_kind='local_routed',
             transport_kind='packet_tunnel',
             control_plane_kind='control_only',
@@ -197,21 +199,7 @@ class RouteSessionControlPlane:
             self._expire_record(record, db)
             raise RouteSessionError(401, 'route_session_expired', 'That routed-local access token expired.')
         now = utcnow()
-        if record.product_session_id:
-            product_session = db.get(ProductSessionRecord, record.product_session_id)
-            if (
-                product_session is None
-                or product_session.account_id != record.user_id
-                or product_session.auth_session_id != record.auth_session_id
-                or product_session.revoked_at is not None
-                or product_session.expires_at <= now
-            ):
-                self._revoke_record(record, db, reason='product_session_invalid')
-                raise RouteSessionError(
-                    401,
-                    'route_product_session_invalid',
-                    'The product session tied to that routed-local access token is no longer valid.',
-                )
+        self._validated_product_session_for_record(record=record, db=db, now=now)
 
         auth_session = db.get(SessionRecord, record.auth_session_id)
         if (
@@ -233,18 +221,69 @@ class RouteSessionControlPlane:
         if record is None:
             raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
 
-        if (
-            current.product_session is not None
-            and record.product_session_id is not None
-            and record.product_session_id != current.product_session.id
-        ):
+        if current.product_session is None:
             raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
 
-        if record.product_session_id is None and (
-            record.user_id != current.user.id or record.auth_session_id != current.session.id
-        ):
+        if record.product_session_id is not None and record.product_session_id != current.product_session.id:
             raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
+
+        if record.product_session_id is None:
+            if record.user_id != current.user.id or record.auth_session_id != current.session.id:
+                raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
+            record.product_session_id = current.product_session.id
+            db.add(record)
+            db.commit()
+            db.refresh(record)
         return record
+
+    def _validated_product_session_for_record(
+        self,
+        *,
+        record: RouteSessionRecord,
+        db: Session,
+        now,
+    ) -> ProductSessionRecord:
+        if record.product_session_id is not None:
+            product_session = db.get(ProductSessionRecord, record.product_session_id)
+            if (
+                product_session is None
+                or product_session.account_id != record.user_id
+                or product_session.auth_session_id != record.auth_session_id
+                or product_session.revoked_at is not None
+                or product_session.expires_at <= now
+            ):
+                self._revoke_record(record, db, reason='product_session_invalid')
+                raise RouteSessionError(
+                    401,
+                    'route_product_session_invalid',
+                    'The product session tied to that routed-local access token is no longer valid.',
+                )
+            return product_session
+
+        product_session = (
+            db.query(ProductSessionRecord)
+            .filter(
+                ProductSessionRecord.account_id == record.user_id,
+                ProductSessionRecord.auth_session_id == record.auth_session_id,
+                ProductSessionRecord.revoked_at.is_(None),
+                ProductSessionRecord.expires_at > now,
+            )
+            .order_by(ProductSessionRecord.last_seen_at.desc(), ProductSessionRecord.issued_at.desc())
+            .first()
+        )
+        if product_session is None:
+            self._revoke_record(record, db, reason='product_session_missing')
+            raise RouteSessionError(
+                401,
+                'route_product_session_missing',
+                'That routed-local session no longer has a valid product-session parent.',
+            )
+
+        record.product_session_id = product_session.id
+        db.add(record)
+        db.commit()
+        db.refresh(record)
+        return product_session
 
     def _expire_stale_sessions(self, db: Session) -> None:
         now = utcnow()
@@ -326,12 +365,21 @@ class RouteSessionControlPlane:
             route_kind='local_routed',
             transport_kind=record.transport_kind,
             control_plane_kind=record.control_plane_kind,
-            product_session_id=record.product_session_id,
-            auth_session_id=record.auth_session_id,
+            product_session_id=self._require_product_session_id(record),
             issued_at=record.issued_at,
             refresh_after=refresh_after,
             expires_at=record.expires_at,
         )
+
+    def _require_product_session_id(self, record: RouteSessionRecord) -> str:
+        if record.product_session_id is None:
+            raise RouteSessionError(
+                500,
+                'route_product_session_missing',
+                'The routed-local session is missing its product-session parent.',
+            )
+        return record.product_session_id
+
 
 def get_route_session_control_plane() -> RouteSessionControlPlane:
     return RouteSessionControlPlane()

@@ -20,6 +20,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/SQLiteWorkspaceStore.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/Schema.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Storage/WorkspaceStore.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonBrandTypography.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonHaptics.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/AmonTheme.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Utilities/Coders.swift
@@ -27,6 +28,7 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/SearchViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceDetailViewModel.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/ViewModels/WorkspaceListViewModel.swift
+/Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonBrowseModeSheet.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonSettingsView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/AmonUIComponents.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/ComparePreviewView.swift
@@ -41,3 +43,4 @@
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WebViewContainer.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WorkspaceDetailView.swift
 /Users/ben/amon-v1/ios/AmonKit/Sources/AmonKit/Views/WorkspaceListView.swift
+/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-macosx/debug/AmonKit.build/DerivedSources/resource_bundle_accessor.swift

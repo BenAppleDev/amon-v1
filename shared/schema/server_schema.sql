@@ -53,6 +53,7 @@ CREATE TABLE product_sessions (
 
 CREATE TABLE route_sessions (
     id TEXT PRIMARY KEY,
+    product_session_id TEXT,
     user_id TEXT NOT NULL,
     auth_session_id TEXT NOT NULL,
     route_kind TEXT NOT NULL,
@@ -66,6 +67,7 @@ CREATE TABLE route_sessions (
     revoke_reason TEXT,
     refresh_count INTEGER NOT NULL DEFAULT 0,
     UNIQUE (access_token),
+    FOREIGN KEY (product_session_id) REFERENCES product_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (auth_session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
@@ -138,11 +140,28 @@ CREATE INDEX idx_product_sessions_auth_session_id ON product_sessions(auth_sessi
 CREATE INDEX idx_product_sessions_entitlement_id ON product_sessions(entitlement_id);
 CREATE INDEX idx_product_sessions_expires_at ON product_sessions(expires_at);
 CREATE INDEX idx_product_sessions_revoked_at ON product_sessions(revoked_at);
+CREATE INDEX idx_route_sessions_product_session_id ON route_sessions(product_session_id);
 CREATE INDEX idx_route_sessions_user_id ON route_sessions(user_id);
 CREATE INDEX idx_route_sessions_auth_session_id ON route_sessions(auth_session_id);
 CREATE INDEX idx_route_sessions_access_token ON route_sessions(access_token);
 CREATE INDEX idx_route_sessions_expires_at ON route_sessions(expires_at);
 CREATE INDEX idx_route_sessions_revoked_at ON route_sessions(revoked_at);
+
+CREATE TRIGGER trg_route_sessions_require_product_session_insert
+BEFORE INSERT ON route_sessions
+FOR EACH ROW
+WHEN NEW.product_session_id IS NULL
+BEGIN
+    SELECT RAISE(ABORT, 'route_sessions.product_session_id is required');
+END;
+
+CREATE TRIGGER trg_route_sessions_require_product_session_update
+BEFORE UPDATE OF product_session_id ON route_sessions
+FOR EACH ROW
+WHEN NEW.product_session_id IS NULL
+BEGIN
+    SELECT RAISE(ABORT, 'route_sessions.product_session_id is required');
+END;
 CREATE INDEX idx_rate_limit_windows_user_id ON rate_limit_windows(user_id);
 CREATE INDEX idx_rate_limit_windows_window_start ON rate_limit_windows(window_start);
 CREATE INDEX idx_ops_operator_sessions_operator_id ON ops_operator_sessions(operator_id);

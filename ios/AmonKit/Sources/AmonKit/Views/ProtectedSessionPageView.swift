@@ -16,6 +16,13 @@ public struct ProtectedSessionPageView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                AmonBrandHeroCard(
+                    eyebrow: "Mode / Protected",
+                    title: "Protected Session",
+                    message: "Live browsing through Amon's remote mediated session. This mode stays clearly separate from local and clean opens.",
+                    badges: ["Local", "Clean View", "Protected Session"]
+                )
+
                 AmonTrustStripView(
                     items: [
                         "Protected Session",
@@ -109,7 +116,8 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
+                .tint(AmonTheme.danger)
                 .controlSize(.large)
                 .disabled(viewModel.isEndingSession)
             }
@@ -136,7 +144,8 @@ public struct ProtectedSessionPageView: View {
     private var sessionStatusCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Remote session status")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             HStack(alignment: .top, spacing: 12) {
                 Circle()
@@ -147,21 +156,22 @@ public struct ProtectedSessionPageView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(viewModel.sessionStatusTitle)
                         .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AmonTheme.ink)
                     Text(viewModel.sessionStatusMessage)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                     Text("Worker: \(viewModel.state?.worker_type ?? "visual_stream_session") · Stream: \(viewModel.streamStatusLabel)")
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AmonTheme.muted)
                     if let actionMessage = viewModel.actionStatusMessage {
                         Text(actionMessage)
                             .font(.footnote.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AmonTheme.muted)
                     }
                     if let state = viewModel.state {
                         Text("Expires \(AmonFormatters.relativeTimestamp(for: state.expires_at))")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AmonTheme.muted)
                     }
                 }
             }
@@ -172,20 +182,21 @@ public struct ProtectedSessionPageView: View {
     private var statusColor: Color {
         switch viewModel.clientState {
         case .live:
-            return Color(uiColor: .systemGreen)
+            return AmonTheme.accent
         case .reconnecting, .degradedPolling, .connecting:
-            return Color(uiColor: .systemOrange)
+            return AmonTheme.danger.opacity(0.82)
         case .ended, .expired:
-            return Color(uiColor: .systemGray)
+            return AmonTheme.muted
         case .failed:
-            return Color(uiColor: .systemRed)
+            return AmonTheme.danger
         }
     }
 
     private var remoteControls: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Remote controls")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
@@ -196,6 +207,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .tint(AmonTheme.ink)
                     .disabled(!(viewModel.state?.can_go_back ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
@@ -205,6 +217,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .tint(AmonTheme.ink)
                     .disabled(!(viewModel.state?.can_go_forward ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
@@ -214,6 +227,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(AmonTheme.accent)
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
 
@@ -233,6 +247,7 @@ public struct ProtectedSessionPageView: View {
                         Task { await viewModel.navigate(to: navigationAddress) }
                     }
                     .buttonStyle(.bordered)
+                    .tint(AmonTheme.ink)
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract || navigationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -243,7 +258,8 @@ public struct ProtectedSessionPageView: View {
     private var snapshotPlaceholderCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Remote visual snapshot")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             AmonEmptyStateView(
                 title: "Preparing first snapshot",
@@ -257,13 +273,14 @@ public struct ProtectedSessionPageView: View {
     private func pageSummary(_ page: ProtectedSessionPageDTO) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(page.title)
-                .font(.title3.weight(.semibold))
+                .font(AmonBrandTypography.brandDisplay(size: 28, relativeTo: .title3))
+                .foregroundStyle(AmonTheme.ink)
             Text(page.domain)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AmonTheme.muted)
             Text(page.url)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AmonTheme.muted)
                 .textSelection(.enabled)
         }
         .amonCardStyle()
@@ -272,9 +289,11 @@ public struct ProtectedSessionPageView: View {
     private func detailCard(title: String, body: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
             Text(body)
                 .font(.body)
+                .foregroundStyle(AmonTheme.ink)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .amonCardStyle()
@@ -283,7 +302,8 @@ public struct ProtectedSessionPageView: View {
     private func snapshotCard(_ frame: ProtectedSessionFrameDTO) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Remote visual snapshot")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             ProtectedSessionSnapshotView(svgDocument: frame.document)
                 .frame(maxWidth: .infinity)
@@ -292,7 +312,7 @@ public struct ProtectedSessionPageView: View {
 
             Text("Frame \(frame.revision) · \(AmonFormatters.relativeTimestamp(for: frame.generated_at))")
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AmonTheme.muted)
         }
         .amonCardStyle()
     }
@@ -300,7 +320,8 @@ public struct ProtectedSessionPageView: View {
     private func textBlocksCard(_ blocks: [String]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Visible remote text")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 Text(block)
@@ -314,7 +335,8 @@ public struct ProtectedSessionPageView: View {
     private func linksCard(_ links: [ProtectedSessionLinkDTO]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Remote action targets")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             ForEach(links, id: \.id) { link in
                 Button {
@@ -323,10 +345,10 @@ public struct ProtectedSessionPageView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(link.label)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(AmonTheme.ink)
                         Text(link.url)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AmonTheme.muted)
                             .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -342,18 +364,20 @@ public struct ProtectedSessionPageView: View {
     private func formsCard(_ forms: [ProtectedSessionFormDTO]) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Remote forms")
-                .font(.headline)
+                .font(AmonBrandTypography.brandDisplay(size: 25, relativeTo: .headline))
+                .foregroundStyle(AmonTheme.ink)
 
             ForEach(forms, id: \.id) { form in
                 VStack(alignment: .leading, spacing: 12) {
                     Text(form.submit_label)
                         .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AmonTheme.ink)
 
                     ForEach(form.fields, id: \.name) { field in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(field.label)
                                 .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(AmonTheme.muted)
                             fieldInput(field, formID: form.id)
                         }
                     }
@@ -365,6 +389,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(AmonTheme.accent)
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
                 .padding(16)

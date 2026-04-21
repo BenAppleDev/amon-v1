@@ -100,13 +100,23 @@ public struct TransportSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Text("Route readiness: \(capability.readinessState.title)")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    statusRow(label: "Tunnel profile", value: tunnelProfileState)
+                    statusRow(label: "Tunnel state", value: status.state.title)
+                    statusRow(label: "Route readiness", value: capability.readinessState.title)
+                    statusRow(label: "Relay auth", value: capability.relayStatus.state.title)
 
-                Text("Relay auth: \(capability.relayStatus.state.title)")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    if let relayCode = capability.relayStatus.code, !relayCode.isEmpty {
+                        statusRow(label: "Relay code", value: relayCode)
+                    }
+                }
+
+                if let debugHint = debugHint {
+                    Text(debugHint)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
                 HStack(spacing: 10) {
                     Button {
@@ -302,6 +312,21 @@ public struct TransportSettingsView: View {
         }
     }
 
+    private func statusRow(label: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(label)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 108, alignment: .leading)
+
+            Text(value)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private func numericField(title: String, value: Int, update: @escaping (Int) -> Void, prompt: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
@@ -332,5 +357,38 @@ public struct TransportSettingsView: View {
         case .failed:
             return Color(uiColor: .systemRed)
         }
+    }
+
+    private var tunnelProfileState: String {
+        if !store.settings.endpoint.isConfigured {
+            return "Not configured"
+        }
+
+        if status.state == .connecting {
+            return "Configured and activating"
+        }
+
+        return "Configured for packet tunnel"
+    }
+
+    private var debugHint: String? {
+        let detail = capability.detail ?? status.detail
+        guard let detail, !detail.isEmpty else {
+            return "Use Recent Activity to confirm whether the next failure is in profile setup, tunnel activation, or relay bootstrap."
+        }
+
+        if detail.localizedCaseInsensitiveContains("shared secret") {
+            return "This points to iOS treating the saved profile like a shared-secret VPN. Amon now recreates the profile instead of retrying a generic VPN start path."
+        }
+
+        if capability.relayStatus.state == .unavailable || capability.relayStatus.state == .rejected {
+            return "The packet tunnel profile may be installed correctly, but the routed-local relay/bootstrap step is still failing."
+        }
+
+        if status.state == .failed {
+            return "The tunnel failed before reaching a healthy connected state. Check Recent Activity for the saved profile shape and last disconnect error."
+        }
+
+        return nil
     }
 }

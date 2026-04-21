@@ -23,6 +23,7 @@ final class TunnelManager: ObservableObject {
         static let routeSessionID = "routeSessionID"
         static let routeAccessToken = "routeAccessToken"
         static let routeExpiresAt = "routeExpiresAt"
+        static let routeProductSessionID = "routeProductSessionID"
         static let routeAuthSessionID = "routeAuthSessionID"
     }
 
@@ -114,26 +115,22 @@ final class TunnelManager: ObservableObject {
             try validateProviderConfiguration()
 
             let manager = try await loadOrCreateManager()
-            log("Using tunnel manager object \(String(describing: ObjectIdentifier(manager)))")
+            let preparedManager = try await ensureUsablePacketTunnelManager(manager)
+            log("Using tunnel manager object \(String(describing: ObjectIdentifier(preparedManager)))")
 
-            try await installConfigurationIfNeeded(using: settings, routeSession: routeSession, on: manager)
-            self.manager = manager
+            try await installConfigurationIfNeeded(using: settings, routeSession: routeSession, on: preparedManager)
+            self.manager = preparedManager
             attachStatusObserver()
 
             let startOptions = makeStartOptions(from: settings, routeSession: routeSession)
-            if let session = manager.connection as? NETunnelProviderSession {
-                log("Starting NETunnelProviderSession with options \(startOptions)")
-                try session.startTunnel(options: startOptions)
-                log("NETunnelProviderSession.startTunnel returned without throwing; immediate status \(describe(manager.connection.status))")
-            } else {
-                log("Tunnel connection is \(String(describing: type(of: manager.connection))); falling back to startVPNTunnel()", level: .error)
-                try manager.connection.startVPNTunnel()
-                log("startVPNTunnel returned without throwing; immediate status \(describe(manager.connection.status))")
-            }
+            let session = try packetTunnelSession(for: preparedManager)
+            log("Starting NETunnelProviderSession with options \(startOptions)")
+            try session.startTunnel(options: startOptions)
+            log("NETunnelProviderSession.startTunnel returned without throwing; immediate status \(describe(preparedManager.connection.status))")
 
-            updateStatusFromConnection(for: manager)
-            await monitorStartTransition(for: manager)
-            await refreshRouteRelayStatus(for: manager)
+            updateStatusFromConnection(for: preparedManager)
+            await monitorStartTransition(for: preparedManager)
+            await refreshRouteRelayStatus(for: preparedManager)
         } catch {
             log("Connect failed: \(errorDescription(for: error))", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
@@ -265,6 +262,63 @@ final class TunnelManager: ObservableObject {
         return created
     }
 
+    private func ensureUsablePacketTunnelManager(_ manager: NETunnelProviderManager) async throws -> NETunnelProviderManager {
+        let connectionType = String(describing: type(of: manager.connection))
+        let protocolConfiguration = manager.protocolConfiguration as? NETunnelProviderProtocol
+        let configuredBundleIdentifier = protocolConfiguration?.providerBundleIdentifier ?? "<nil>"
+        log(
+            "Validating saved tunnel manager connectionType=\(connectionType) bundle=\(configuredBundleIdentifier) serverAddress=\(protocolConfiguration?.serverAddress ?? "<nil>")"
+        )
+
+        guard let protocolConfiguration = protocolConfiguration else {
+            return try await recreateManager(
+                replacing: manager,
+                reason: "Saved Amon tunnel preferences were missing a packet-tunnel protocol configuration."
+            )
+        }
+
+        guard protocolConfiguration.providerBundleIdentifier == providerBundleIdentifier else {
+            return try await recreateManager(
+                replacing: manager,
+                reason: "Saved Amon tunnel preferences pointed at \(configuredBundleIdentifier) instead of \(providerBundleIdentifier)."
+            )
+        }
+
+        guard manager.connection is NETunnelProviderSession else {
+            return try await recreateManager(
+                replacing: manager,
+                reason: "Saved Amon tunnel preferences exposed \(connectionType) instead of NETunnelProviderSession."
+            )
+        }
+
+        return manager
+    }
+
+    private func recreateManager(
+        replacing manager: NETunnelProviderManager,
+        reason: String
+    ) async throws -> NETunnelProviderManager {
+        log(reason, level: .error)
+        log("Removing stale Amon tunnel preferences so the app can recreate a clean packet-tunnel profile")
+        try await removeFromPreferences(manager)
+
+        let created = NETunnelProviderManager()
+        created.localizedDescription = Self.tunnelDisplayName
+        created.isEnabled = false
+        self.manager = created
+        log("Created replacement NETunnelProviderManager after removing stale preferences")
+        return created
+    }
+
+    private func packetTunnelSession(for manager: NETunnelProviderManager) throws -> NETunnelProviderSession {
+        guard let session = manager.connection as? NETunnelProviderSession else {
+            throw TunnelConfigurationError.invalidManagerSessionType(
+                actualType: String(describing: type(of: manager.connection))
+            )
+        }
+        return session
+    }
+
     private func validateSettings(_ settings: TransportPrivacySettings) throws {
         let host = settings.endpoint.serverHost.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedHost = host.lowercased()
@@ -303,6 +357,9 @@ final class TunnelManager: ObservableObject {
 
     private func validateRouteSession(_ routeSession: RouteSessionStateDTO?) throws {
         guard let routeSession else {
+            throw TunnelConfigurationError.routeSessionMissing
+        }
+        guard !routeSession.product_session_id.isEmpty else {
             throw TunnelConfigurationError.routeSessionMissing
         }
         guard routeSession.status == .active else {
@@ -365,7 +422,7 @@ final class TunnelManager: ObservableObject {
             throw TunnelConfigurationError.routeSessionMissing
         }
 
-        let providerConfiguration: [String: Any] = [
+        var providerConfiguration: [String: Any] = [
             ConfigurationKey.serverHost: settings.endpoint.serverHost,
             ConfigurationKey.serverPort: settings.endpoint.serverPort,
             ConfigurationKey.clientAddress: settings.endpoint.clientAddress,
@@ -376,12 +433,15 @@ final class TunnelManager: ObservableObject {
             ConfigurationKey.routeSessionID: routeSession.session_id,
             ConfigurationKey.routeAccessToken: routeSession.access_token,
             ConfigurationKey.routeExpiresAt: ISO8601DateFormatter().string(from: routeSession.expires_at),
-            ConfigurationKey.routeAuthSessionID: routeSession.auth_session_id,
+            ConfigurationKey.routeProductSessionID: routeSession.product_session_id,
         ]
+        if let authSessionID = routeSession.auth_session_id {
+            providerConfiguration[ConfigurationKey.routeAuthSessionID] = authSessionID
+        }
 
         let protocolConfiguration = NETunnelProviderProtocol()
         protocolConfiguration.providerBundleIdentifier = providerBundleIdentifier
-        protocolConfiguration.serverAddress = settings.endpoint.displayAddress
+        protocolConfiguration.serverAddress = settings.endpoint.serverHost
         protocolConfiguration.disconnectOnSleep = false
         protocolConfiguration.providerConfiguration = providerConfiguration
 
@@ -418,11 +478,12 @@ final class TunnelManager: ObservableObject {
         let storedDNS = stringArrayValue(providerConfiguration[ConfigurationKey.dnsServers])
         let storedRouteSessionID = providerConfiguration[ConfigurationKey.routeSessionID] as? String
         let storedRouteExpiresAt = providerConfiguration[ConfigurationKey.routeExpiresAt] as? String
+        let storedRouteProductSessionID = providerConfiguration[ConfigurationKey.routeProductSessionID] as? String
         let storedRouteAuthSessionID = providerConfiguration[ConfigurationKey.routeAuthSessionID] as? String
 
         let endpoint = settings.endpoint
         return configuration.providerBundleIdentifier == providerBundleIdentifier
-            && configuration.serverAddress == endpoint.displayAddress
+            && configuration.serverAddress == endpoint.serverHost
             && manager.isEnabled == endpoint.isConfigured
             && storedHost == endpoint.serverHost
             && storedPort == endpoint.serverPort
@@ -433,11 +494,22 @@ final class TunnelManager: ObservableObject {
             && storedDNS == endpoint.dnsServers
             && storedRouteSessionID == routeSession?.session_id
             && storedRouteExpiresAt == routeSession.map { ISO8601DateFormatter().string(from: $0.expires_at) }
+            && storedRouteProductSessionID == routeSession?.product_session_id
             && storedRouteAuthSessionID == routeSession?.auth_session_id
     }
 
     private func endpointSummary(from manager: NETunnelProviderManager) -> String? {
-        (manager.protocolConfiguration as? NETunnelProviderProtocol)?.serverAddress
+        guard let configuration = manager.protocolConfiguration as? NETunnelProviderProtocol else {
+            return nil
+        }
+
+        let providerConfiguration = configuration.providerConfiguration ?? [:]
+        if let host = providerConfiguration[ConfigurationKey.serverHost] as? String,
+           let port = intValue(providerConfiguration[ConfigurationKey.serverPort]) {
+            return "\(host):\(port)"
+        }
+
+        return configuration.serverAddress
     }
 
     private func refreshRouteRelayStatusFromCurrentManager() async {
@@ -590,8 +662,20 @@ final class TunnelManager: ObservableObject {
 
         let finalStatus = manager.connection.status
         if finalStatus == .invalid || finalStatus == .disconnected {
+            let disconnectError = await fetchLastDisconnectError(for: manager.connection)
             await refreshRouteRelayStatus(for: manager)
-            let message = "iOS accepted the start request but the provider never reached a connecting state. Check PacketTunnelProvider logs in the device console."
+            let message: String
+            if let disconnectError {
+                message = humanReadableMessage(for: disconnectError)
+            } else {
+                message = "iOS accepted the start request but the provider never reached a connecting state. Check PacketTunnelProvider logs in the device console."
+            }
+            if let disconnectError {
+                log(
+                    "Provider never reached connecting; last disconnect error was \(errorDescription(for: disconnectError))",
+                    level: .error
+                )
+            }
             log(message, level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
@@ -622,6 +706,11 @@ final class TunnelManager: ObservableObject {
     private func humanReadableMessage(for error: Error) -> String {
         if let routeRelayStatus = parsedRouteRelayStatus(from: error) {
             return routeRelayStatus.detail ?? "Amon could not complete the routed-local relay bootstrap."
+        }
+
+        let localizedDescription = error.localizedDescription
+        if localizedDescription.localizedCaseInsensitiveContains("shared secret") {
+            return "iOS is treating the saved Amon VPN profile like a shared-secret VPN instead of a packet tunnel. The app will rebuild the saved Amon tunnel profile on the next connect attempt."
         }
 
         if let tunnelError = error as? TunnelConfigurationError {
@@ -717,6 +806,7 @@ final class TunnelManager: ObservableObject {
 private enum TunnelConfigurationError: LocalizedError {
     case providerMissing(expectedBundleIdentifier: String)
     case invalidEndpointHost(String)
+    case invalidManagerSessionType(actualType: String)
     case invalidPort
     case routeSessionMissing
     case routeSessionInactive
@@ -728,6 +818,8 @@ private enum TunnelConfigurationError: LocalizedError {
             return "The Amon Tunnel extension (\(expectedBundleIdentifier)) is not embedded in this build. Rebuild the app with the Packet Tunnel extension target included."
         case .invalidEndpointHost(let message):
             return message
+        case .invalidManagerSessionType(let actualType):
+            return "The saved Amon VPN configuration is not exposing a packet-tunnel session (\(actualType)). Remove and recreate the Amon tunnel profile."
         case .invalidPort:
             return "Use a valid tunnel port between 1 and 65535."
         case .routeSessionMissing:
@@ -745,6 +837,7 @@ private struct RouteRelayStatusResponse: Decodable {
     let code: String?
     let detail: String?
     let session_id: String?
+    let product_session_id: String?
     let auth_session_id: String?
     let expires_at: String?
     let packet_plane_ready: Bool?
@@ -757,6 +850,7 @@ private struct RouteRelayStatusResponse: Decodable {
             code: code,
             detail: detail,
             sessionID: session_id,
+            productSessionID: product_session_id,
             authSessionID: auth_session_id,
             expiresAt: expires_at.flatMap { ISO8601DateFormatter().date(from: $0) },
             packetPlaneReady: packet_plane_ready,
@@ -793,6 +887,18 @@ private func saveToPreferences(_ manager: NETunnelProviderManager) async throws 
 private func loadFromPreferences(_ manager: NETunnelProviderManager) async throws {
     try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
         manager.loadFromPreferences { error in
+            if let error {
+                continuation.resume(throwing: error)
+            } else {
+                continuation.resume(returning: ())
+            }
+        }
+    }
+}
+
+private func removeFromPreferences(_ manager: NETunnelProviderManager) async throws {
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+        manager.removeFromPreferences { error in
             if let error {
                 continuation.resume(throwing: error)
             } else {

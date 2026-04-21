@@ -79,7 +79,7 @@ public struct BrowseOpenChoicePresentation: Identifiable {
             return .decisionFetchFailed(message: decisionErrorMessage)
         }
 
-        guard let decision else {
+        guard decision != nil else {
             return .decisionFetchFailed(
                 message: "Amon couldn't check a recommendation right now."
             )
@@ -100,13 +100,13 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     public var dialogTitle: String {
         switch recommendationState {
         case .protectedRecommended:
-            return "Protected Session Recommended"
+            return "Protected recommended"
         case .protectedAvailable:
-            return "Choose Browse Path"
+            return "Choose a mode"
         case .localRoutedPreferred, .localRoutedOnly:
-            return "Local Browsing"
+            return "Choose a mode"
         case .decisionFetchFailed:
-            return "Choose Browse Path"
+            return "Choose a mode"
         }
     }
 
@@ -121,11 +121,11 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     public var localRoutedTitle: String {
         switch localRouteCapability.state {
         case .connected:
-            return "Open Local (Privacy Route)"
+            return "Open Local"
         case .connecting:
-            return "Open Local (Route Connecting)"
+            return "Open Local"
         case .unsupported, .disconnected, .degraded, .unavailable:
-            return "Open Local (Falls Back to Direct)"
+            return "Open Local"
         }
     }
 
@@ -139,23 +139,89 @@ public struct BrowseOpenChoicePresentation: Identifiable {
 
     public var protectedSessionTitle: String {
         recommendationState == .protectedRecommended
-            ? "Open Protected Session (Recommended)"
+            ? "Open Protected Session"
             : "Open Protected Session"
     }
 
     public var message: String? {
         switch recommendationState {
         case .protectedRecommended:
-            return "Amon recommends Protected Session for this page. Local browsing is still available if you prefer to render on this device. \(localRouteMessage)"
+            return "Protected Session is recommended for this page. Local and Clean View are still available if you want a lighter-weight open path."
         case .protectedAvailable:
-            return "Protected Session is available if you want stronger mediated isolation, but it is not required. \(localRouteMessage)"
+            return "Choose how this page should open: local on this device, a clean readable fetch, or a protected remote session."
         case .localRoutedPreferred:
-            return "Amon recommends local rendering for this page, with Clean View as the retrieval-first option. \(localRouteMessage)"
+            return "Local is the default fit for this page, with Clean View available if you want readable retrieval first."
         case .localRoutedOnly:
-            return "Protected Session is not offered for this page right now. \(localRouteMessage)"
+            return "Local and Clean View are available here. Protected Session is not currently offered for this page."
         case .decisionFetchFailed(let message):
-            return "\(message) \(localRouteMessage)"
+            return "\(message) You can still choose a local or clean open path."
         }
+    }
+
+    public var browseSheetTitle: String {
+        target.title
+    }
+
+    public var browseSheetDomain: String {
+        target.url.host() ?? target.url.absoluteString
+    }
+
+    public var browseSheetMessage: String {
+        message ?? "Choose how this page should open in Amon."
+    }
+
+    public var localModeStatusLabel: String {
+        switch localRouteCapability.state {
+        case .connected:
+            return "Privacy route"
+        case .connecting:
+            return "Route connecting"
+        case .unsupported, .disconnected, .degraded, .unavailable:
+            return "Falls back direct"
+        }
+    }
+
+    public var localModeDescription: String {
+        switch localRouteCapability.state {
+        case .connected:
+            return "Open the live site on this device through Amon's privacy route."
+        case .connecting:
+            return "Open locally while the route finishes connecting. A temporary direct fallback may still happen."
+        case .unsupported, .disconnected, .degraded, .unavailable:
+            return "Open the live site on this device. This build currently falls back to a direct load."
+        }
+    }
+
+    public var cleanModeDescription: String {
+        "Fetch a readable version first and avoid loading the live site unless you choose to go deeper."
+    }
+
+    public var protectedModeStatusLabel: String {
+        switch recommendationState {
+        case .protectedRecommended:
+            return "Recommended"
+        case .protectedAvailable:
+            return "Remote session"
+        case .localRoutedPreferred, .localRoutedOnly:
+            return "Unavailable here"
+        case .decisionFetchFailed:
+            return "Check unavailable"
+        }
+    }
+
+    public var protectedModeDescription: String {
+        switch recommendationState {
+        case .protectedRecommended, .protectedAvailable:
+            return "Open the live site in a mediated remote session instead of directly on this device."
+        case .localRoutedPreferred, .localRoutedOnly:
+            return "Protected Session is still a product mode, but it is not offered for this page right now."
+        case .decisionFetchFailed:
+            return "Amon could not confirm Protected Session availability for this page right now."
+        }
+    }
+
+    public var isProtectedSessionSelectable: Bool {
+        showsProtectedSession
     }
 
     private var preferredPath: BrowsePath? {
@@ -169,26 +235,6 @@ public struct BrowseOpenChoicePresentation: Identifiable {
         return [.localRouted, .cleanView, .directFallback]
     }
 
-    private var localRouteMessage: String {
-        if let detail = localRouteCapability.detail, !detail.isEmpty {
-            return detail
-        }
-
-        switch localRouteCapability.state {
-        case .unsupported:
-            return "Amon privacy route is unsupported in this build, so local browsing currently uses direct fallback."
-        case .disconnected:
-            return "Amon privacy route is disconnected, so local browsing currently uses direct fallback."
-        case .connecting:
-            return "Amon privacy route is connecting, so local browsing may temporarily degrade to direct fallback."
-        case .connected:
-            return "Amon privacy route is connected for local browsing."
-        case .degraded:
-            return "Amon privacy route is degraded, so local browsing currently uses direct fallback."
-        case .unavailable:
-            return "Amon privacy route is unavailable, so local browsing currently uses direct fallback."
-        }
-    }
 }
 
 private extension ServeDecisionResponseDTO {

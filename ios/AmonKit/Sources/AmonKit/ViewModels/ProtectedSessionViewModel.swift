@@ -24,7 +24,7 @@ public final class ProtectedSessionViewModel: ObservableObject {
     private var lastStreamSequence = 0
     private var reconnectAttempts = 0
 
-    public init(url: URL, apiClient: any AmonAPIClienting) {
+    public convenience init(url: URL, apiClient: any AmonAPIClienting) {
         self.init(
             url: url,
             apiClient: apiClient,

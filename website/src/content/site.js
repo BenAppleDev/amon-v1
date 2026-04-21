@@ -2,6 +2,7 @@ export const navLinks = [
   { to: "/", label: "Home" },
   { to: "/product", label: "Product" },
   { to: "/privacy", label: "Privacy" },
+  { to: "/security", label: "Security" },
   { to: "/faq", label: "FAQ" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" }
@@ -236,4 +237,129 @@ export const faqItems = [
     answer:
       "Amon is focused on public-web search, browsing, text extraction, protected sessions, comparison, research, and local saved work. It is not trying to cover every identity-based workflow on day one."
   }
+];
+
+export const securityLaunchFeatures = [
+  {
+    title: "Secure account access",
+    text: "Access to Amon is authenticated with Sign in with Apple. Billing authorizes access, but it is separated from the internal browsing and request identity used inside the product."
+  },
+  {
+    title: "Encrypted transport",
+    text: "Traffic between the app and Amon is encrypted in transit using modern HTTPS and TLS 1.3. On iOS, App Transport Security is enforced so insecure network connections are not the default."
+  },
+  {
+    title: "Local encrypted workspace",
+    text: "Saved work stays locally encrypted on your device. Amon cannot decrypt your local workspace files. Workspace access can be protected with Face ID, Touch ID, or device passcode."
+  },
+  {
+    title: "Minimal server retention",
+    text: "Amon is designed not to keep durable server-side history of what you searched, opened, extracted, or saved. Operational systems are limited to metadata needed for health, quotas, abuse prevention, and policy enforcement."
+  },
+  {
+    title: "Isolated handling paths",
+    text: "Different product paths have different protections. Search is brokered, Clean View is retrieved and extracted through Amon, Protected Session runs through a controlled remote environment, and Workspace remains local."
+  }
+];
+
+export const securityLayers = [
+  {
+    number: "01",
+    title: "Access",
+    text: "Amon uses Sign in with Apple for account access at launch. After authentication, the product uses separate internal session handling so billing identity does not become browsing identity."
+  },
+  {
+    number: "02",
+    title: "Transport",
+    text: "App traffic moves through encrypted transport channels protected by TLS 1.3 and platform-level transport controls on iOS."
+  },
+  {
+    number: "03",
+    title: "Request handling",
+    text: "Search, Clean View, and Protected Session are handled through scoped product paths rather than one universal trust path. Protected Session is isolated and ephemeral, not a broad permanent browsing context."
+  },
+  {
+    number: "04",
+    title: "Workspace",
+    text: "Workspace is where saved results, notes, and comparisons live. That data remains locally encrypted on device, with optional biometric or passcode gating on top of workspace encryption."
+  },
+  {
+    number: "05",
+    title: "Operations",
+    text: "Operational systems are designed around metadata rather than readable content. Least privilege and limited observability are part of the architecture, not just the policy language."
+  }
+];
+
+export const securityRetentionList = [
+  "No durable server-side records of query text.",
+  "No durable server-side search result sets.",
+  "No durable server-side records of destination URLs tied to inquiry history.",
+  "No durable server-side Clean View page bodies.",
+  "No durable server-side Protected Session content.",
+  "No workspace contents stored on Amon servers."
+];
+
+export const securityFoundations = [
+  {
+    label: "Transport",
+    title: "TLS 1.3",
+    text: "Used to encrypt traffic in transit between the app and Amon services.",
+    emphasis: true
+  },
+  {
+    label: "iOS",
+    title: "App Transport Security",
+    text: "Used on iOS to require secure network connections by default."
+  },
+  {
+    label: "Local secrets",
+    title: "iOS Keychain",
+    text: "Used to protect sensitive local key material."
+  },
+  {
+    label: "Local unlock",
+    title: "Face ID / Touch ID / Passcode",
+    text: "Used to gate access to local encrypted workspace data on device."
+  },
+  {
+    label: "Mobile",
+    title: "OWASP MASVS",
+    text: "Used as a guide for mobile application security controls."
+  },
+  {
+    label: "Backend",
+    title: "OWASP ASVS",
+    text: "Used as a guide for backend and service-side security controls."
+  },
+  {
+    label: "Access",
+    title: "Least privilege",
+    text: "Internal systems and operator tooling should only have the minimum access necessary to perform operational tasks."
+  },
+  {
+    label: "Operations",
+    title: "Metadata-only observability",
+    text: "Operational visibility is designed around metadata rather than readable user content.",
+    emphasis: true
+  },
+  {
+    label: "Architecture",
+    title: "NIST SP 800-207 alignment",
+    text: "Used as a reference point for zero-trust architecture principles and terminology."
+  }
+];
+
+export const securityRoadmapSoon = [
+  "Encrypted export and import for workspace data.",
+  "Independent penetration testing.",
+  "Public vulnerability reporting channel.",
+  "Expanded technical security documentation.",
+  "Access audit logging for internal tools and stronger operator controls."
+];
+
+export const securityRoadmapLater = [
+  "SOC 2 Type I.",
+  "SOC 2 Type II.",
+  "Additional formal trust and compliance work as the product matures.",
+  "More explicit external mapping of the architecture to zero-trust guidance over time."
 ];

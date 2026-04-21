@@ -16,6 +16,13 @@
     "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.swiftdeps",
     "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowseOpenOrchestratorTests.dia"
   },
+  "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/BrowsePathContractTests.swift": {
+    "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowsePathContractTests.d",
+    "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowsePathContractTests.swift.o",
+    "swiftmodule": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowsePathContractTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowsePathContractTests.swiftdeps",
+    "diagnostics": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/BrowsePathContractTests.dia"
+  },
   "/Users/ben/amon-v1/ios/AmonKit/Tests/AmonKitTests/LocalRouteCapabilityControllerTests.swift": {
     "dependencies": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.d",
     "object": "/Users/ben/amon-v1/ios/AmonKit/.build/arm64-apple-ios-simulator/debug/AmonKitTests.build/LocalRouteCapabilityControllerTests.swift.o",

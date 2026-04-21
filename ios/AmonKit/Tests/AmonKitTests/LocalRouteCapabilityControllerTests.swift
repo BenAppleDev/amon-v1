@@ -227,7 +227,8 @@ private final class LocalRouteCapabilityMockAPIClient: @unchecked Sendable, Amon
             route_kind: .localRouted,
             transport_kind: "packet_tunnel",
             control_plane_kind: "control_only",
-            auth_session_id: "session_1",
+            product_session_id: "product_1",
+            auth_session_id: nil,
             issued_at: now,
             refresh_after: now.addingTimeInterval(refreshOffset),
             expires_at: now.addingTimeInterval(expiryOffset)

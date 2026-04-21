@@ -108,6 +108,7 @@ public struct LocalRouteRelayStatusSnapshot: Equatable, Hashable, Sendable {
     public let code: String?
     public let detail: String?
     public let sessionID: String?
+    public let productSessionID: String?
     public let authSessionID: String?
     public let expiresAt: Date?
     public let packetPlaneReady: Bool?
@@ -120,6 +121,7 @@ public struct LocalRouteRelayStatusSnapshot: Equatable, Hashable, Sendable {
         code: String? = nil,
         detail: String? = nil,
         sessionID: String? = nil,
+        productSessionID: String? = nil,
         authSessionID: String? = nil,
         expiresAt: Date? = nil,
         packetPlaneReady: Bool? = nil,
@@ -131,6 +133,7 @@ public struct LocalRouteRelayStatusSnapshot: Equatable, Hashable, Sendable {
         self.code = code
         self.detail = detail
         self.sessionID = sessionID
+        self.productSessionID = productSessionID
         self.authSessionID = authSessionID
         self.expiresAt = expiresAt
         self.packetPlaneReady = packetPlaneReady
