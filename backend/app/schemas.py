@@ -507,6 +507,32 @@ class RouteSessionRevokeResponse(BaseModel):
     revoked_at: datetime
 
 
+class RouteRelayValidationRequest(BaseModel):
+    request_id: str | None = Field(default=None, min_length=1, max_length=120)
+    route_session_id: str | None = Field(default=None, min_length=1, max_length=120)
+    route_access_token: str | None = Field(default=None, min_length=1, max_length=512)
+    route_auth_session_id: str | None = Field(default=None, min_length=1, max_length=120)
+    requested_path: Literal['local_routed'] = 'local_routed'
+    transport_kind: Literal['packet_tunnel'] = 'packet_tunnel'
+    client_platform: Literal['ios'] | None = None
+    app_bundle_id: str | None = Field(default=None, max_length=255)
+
+
+class RouteRelayValidationResponse(BaseModel):
+    status: Literal['accepted', 'rejected']
+    code: str
+    message: str
+    request_id: str | None = None
+    session_id: str | None = None
+    user_id: str | None = None
+    auth_session_id: str | None = None
+    route_kind: Literal['local_routed'] | None = None
+    transport_kind: Literal['packet_tunnel'] | None = None
+    control_plane_kind: Literal['control_only'] | None = None
+    expires_at: datetime | None = None
+    validated_at: datetime
+
+
 class HealthResponse(BaseModel):
     status: Literal['ok'] = 'ok'
     app_name: str

@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { BoundaryGraphic } from "../components/BoundaryGraphic";
 import { PageHero } from "../components/PageHero";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
+import { VisibilityMatrixDiagram } from "../components/VisibilityMatrixDiagram";
 import { nonClaims, privacyModeMap } from "../content/site";
 
 export function PrivacyPage() {
@@ -22,7 +22,7 @@ export function PrivacyPage() {
       <section className="page-section">
         <div className="frame trust-grid">
           <Reveal>
-            <BoundaryGraphic />
+            <VisibilityMatrixDiagram />
           </Reveal>
 
           <div className="stack">

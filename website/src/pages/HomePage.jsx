@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { HeroField } from "../components/HeroField";
-import { ModeRail } from "../components/ModeRail";
+import { ModeComparisonDiagram } from "../components/ModeComparisonDiagram";
+import { RequestFlowDiagram } from "../components/RequestFlowDiagram";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { homeBelief, modeSteps, spaceLines } from "../content/site";
+import { homeBelief, spaceLines } from "../content/site";
 
 export function HomePage() {
   return (
@@ -29,23 +29,23 @@ export function HomePage() {
           </Reveal>
 
           <Reveal className="hero-stage" delay={120}>
-            <HeroField />
+            <RequestFlowDiagram compact />
           </Reveal>
         </div>
       </section>
 
       <section className="page-section response-section">
-        <div className="frame response-grid">
+        <div className="frame">
           <Reveal className="section-heading">
             <span className="eyebrow">How Amon works</span>
-            <h2>Every request goes through Amon.</h2>
+            <h2>One request. Three privacy paths.</h2>
             <p>
-              What changes is how the request is handled. Amon can open the live site through its privacy route, retrieve the information cleanly, or mediate the session remotely when the task needs deeper protection.
+              Every request goes through Amon. What changes is how it is handled: live through the privacy route, cleanly as retrieved information, or through a protected remote session.
             </p>
           </Reveal>
 
           <Reveal delay={100}>
-            <ModeRail steps={modeSteps} />
+            <ModeComparisonDiagram />
           </Reveal>
         </div>
       </section>

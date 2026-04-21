@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     session_ttl_hours: int = Field(default=24, alias='SESSION_TTL_HOURS')
     route_session_ttl_seconds: int = Field(default=300, alias='ROUTE_SESSION_TTL_SECONDS')
     route_session_refresh_leeway_seconds: int = Field(default=90, alias='ROUTE_SESSION_REFRESH_LEEWAY_SECONDS')
+    route_relay_shared_secret: str | None = Field(default=None, alias='ROUTE_RELAY_SHARED_SECRET')
     protected_session_allowed_hosts: Annotated[List[str], NoDecode] = Field(
         default_factory=lambda: ['example.com', 'books.toscrape.com', 'quotes.toscrape.com', 'httpbin.org'],
         alias='PROTECTED_SESSION_ALLOWED_HOSTS',

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import { ModeComparisonDiagram } from "../components/ModeComparisonDiagram";
 import { PageHero } from "../components/PageHero";
+import { RequestFlowDiagram } from "../components/RequestFlowDiagram";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { WorkflowGraphic } from "../components/WorkflowGraphic";
 import { modeDeepDives } from "../content/site";
 
 export function ProductPage() {
@@ -28,7 +29,7 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame feature-split">
           <Reveal>
-            <WorkflowGraphic compact />
+            <RequestFlowDiagram compact />
           </Reveal>
 
           <div className="stack">
@@ -46,6 +47,22 @@ export function ProductPage() {
               </p>
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="frame">
+          <Reveal className="section-heading">
+            <span className="eyebrow">Modes</span>
+            <h2>One request. Three privacy paths.</h2>
+            <p>
+              Each path changes what happens between you, Amon, and the web.
+            </p>
+          </Reveal>
+
+          <Reveal delay={100}>
+            <ModeComparisonDiagram />
+          </Reveal>
         </div>
       </section>
 

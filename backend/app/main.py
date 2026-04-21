@@ -12,6 +12,7 @@ from app.routers.auth import router as auth_router
 from app.routers.compare import router as compare_router
 from app.routers.health import router as health_router
 from app.routers.internal_protected_sessions import router as internal_protected_sessions_router
+from app.routers.internal_route_sessions import router as internal_route_sessions_router
 from app.routers.me import router as me_router
 from app.routers.ops_auth import router as ops_auth_router
 from app.routers.ops_protected_sessions import router as ops_protected_sessions_router
@@ -71,6 +72,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(route_sessions_router)
     app.include_router(protected_sessions_router)
     app.include_router(internal_protected_sessions_router)
+    app.include_router(internal_route_sessions_router)
     app.include_router(ops_auth_router)
     app.include_router(ops_protected_sessions_router)
     app.include_router(ops_surface_router)
