@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from app.models import RouteSessionRecord, SessionRecord
+from app.models import ProductSessionRecord, RouteSessionRecord, SessionRecord
 from app.security import utcnow
 from app.services.route_session_control_plane import RouteSessionControlPlane, RouteSessionError
 
@@ -28,6 +28,7 @@ def test_route_session_mint_refresh_and_revoke(client):
     assert minted['transport_kind'] == 'packet_tunnel'
     assert minted['control_plane_kind'] == 'control_only'
     assert minted['access_token']
+    assert minted['product_session_id'] == token
     assert minted['auth_session_id'] != token
     assert minted['refresh_after'] <= minted['expires_at']
 
@@ -106,6 +107,7 @@ def test_internal_route_session_validation_accepts_matching_context(client):
             'request_id': 'req_accept',
             'route_session_id': minted['session_id'],
             'route_access_token': minted['access_token'],
+            'route_product_session_id': minted['product_session_id'],
             'route_auth_session_id': minted['auth_session_id'],
             'requested_path': 'local_routed',
             'transport_kind': 'packet_tunnel',
@@ -119,6 +121,7 @@ def test_internal_route_session_validation_accepts_matching_context(client):
     assert payload['status'] == 'accepted'
     assert payload['code'] == 'route_session_valid'
     assert payload['session_id'] == minted['session_id']
+    assert payload['product_session_id'] == minted['product_session_id']
     assert payload['auth_session_id'] == minted['auth_session_id']
 
 
@@ -158,6 +161,7 @@ def test_internal_route_session_validation_rejects_mismatched_context(client):
             'request_id': 'req_mismatch',
             'route_session_id': 'route_other',
             'route_access_token': minted['access_token'],
+            'route_product_session_id': minted['product_session_id'],
             'route_auth_session_id': minted['auth_session_id'],
         },
     )
@@ -190,6 +194,7 @@ def test_internal_route_session_validation_rejects_when_parent_auth_session_expi
             'request_id': 'req_auth_expired',
             'route_session_id': minted['session_id'],
             'route_access_token': minted['access_token'],
+            'route_product_session_id': minted['product_session_id'],
             'route_auth_session_id': minted['auth_session_id'],
         },
     )
@@ -198,3 +203,37 @@ def test_internal_route_session_validation_rejects_when_parent_auth_session_expi
     payload = validate_response.json()
     assert payload['status'] == 'rejected'
     assert payload['code'] == 'route_auth_session_invalid'
+
+
+def test_internal_route_session_validation_rejects_when_parent_product_session_expires(client, db_session_factory):
+    token = _login(client)
+    headers = {'Authorization': f'Bearer {token}'}
+    mint_response = client.post('/v1/route-sessions', headers=headers)
+    minted = mint_response.json()
+
+    db = db_session_factory()
+    try:
+        product_session = db.get(ProductSessionRecord, minted['product_session_id'])
+        assert product_session is not None
+        product_session.expires_at = utcnow() - timedelta(seconds=1)
+        db.add(product_session)
+        db.commit()
+    finally:
+        db.close()
+
+    validate_response = client.post(
+        '/internal/route-sessions/validate',
+        headers=_relay_headers(),
+        json={
+            'request_id': 'req_product_expired',
+            'route_session_id': minted['session_id'],
+            'route_access_token': minted['access_token'],
+            'route_product_session_id': minted['product_session_id'],
+            'route_auth_session_id': minted['auth_session_id'],
+        },
+    )
+
+    assert validate_response.status_code == 200
+    payload = validate_response.json()
+    assert payload['status'] == 'rejected'
+    assert payload['code'] == 'route_product_session_invalid'

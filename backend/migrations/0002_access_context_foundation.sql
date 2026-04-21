@@ -20,6 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_product_sessions_revoked_at ON product_sessions(r
 
 CREATE TABLE IF NOT EXISTS route_sessions (
     id TEXT PRIMARY KEY,
+    product_session_id TEXT,
     user_id TEXT NOT NULL,
     auth_session_id TEXT NOT NULL,
     route_kind TEXT NOT NULL,
@@ -33,10 +34,12 @@ CREATE TABLE IF NOT EXISTS route_sessions (
     revoke_reason TEXT,
     refresh_count INTEGER NOT NULL DEFAULT 0,
     UNIQUE (access_token),
+    FOREIGN KEY (product_session_id) REFERENCES product_sessions(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (auth_session_id) REFERENCES sessions(id) ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS idx_route_sessions_product_session_id ON route_sessions(product_session_id);
 CREATE INDEX IF NOT EXISTS idx_route_sessions_user_id ON route_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_route_sessions_auth_session_id ON route_sessions(auth_session_id);
 CREATE INDEX IF NOT EXISTS idx_route_sessions_access_token ON route_sessions(access_token);

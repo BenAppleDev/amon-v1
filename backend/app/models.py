@@ -106,6 +106,11 @@ class RouteSessionRecord(Base):
     __table_args__ = (UniqueConstraint('access_token', name='uq_route_sessions_access_token'),)
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
+    product_session_id: Mapped[str | None] = mapped_column(
+        ForeignKey('product_sessions.id', ondelete='CASCADE'),
+        nullable=True,
+        index=True,
+    )
     user_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     auth_session_id: Mapped[str] = mapped_column(ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False, index=True)
     route_kind: Mapped[str] = mapped_column(String(64), nullable=False, default='local_routed')

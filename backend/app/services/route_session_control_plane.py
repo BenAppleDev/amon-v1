@@ -6,7 +6,7 @@ from datetime import timedelta
 from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
-from app.models import RouteSessionRecord, SessionRecord
+from app.models import ProductSessionRecord, RouteSessionRecord, SessionRecord
 from app.schemas import (
     RouteRelayValidationRequest,
     RouteRelayValidationResponse,
@@ -31,17 +31,23 @@ class RouteSessionControlPlane:
         self.settings = settings or get_settings()
 
     def mint_session(self, *, current: CurrentAccessContext, db: Session) -> RouteSessionState:
+        if current.product_session is None:
+            raise RouteSessionError(
+                401,
+                'product_session_missing',
+                'A valid product session is required to mint routed-local sessions.',
+            )
         self._expire_stale_sessions(db)
-        self._revoke_active_sessions_for_auth_session(
+        self._revoke_active_sessions_for_product_session(
             db,
-            user_id=current.user.id,
-            auth_session_id=current.session.id,
+            product_session_id=current.product_session.id,
             reason='replaced',
         )
 
         now = utcnow()
         record = RouteSessionRecord(
             id=create_record_id('route'),
+            product_session_id=current.product_session.id,
             user_id=current.user.id,
             auth_session_id=current.session.id,
             route_kind='local_routed',
@@ -138,6 +144,14 @@ class RouteSessionControlPlane:
                 validated_at=validated_at,
             )
 
+        if request.route_product_session_id and request.route_product_session_id != record.product_session_id:
+            return self._rejected_validation(
+                request=request,
+                code='route_session_context_mismatch',
+                message='The routed-local product session did not match the presented access token.',
+                validated_at=validated_at,
+            )
+
         if request.route_auth_session_id and request.route_auth_session_id != record.auth_session_id:
             return self._rejected_validation(
                 request=request,
@@ -160,6 +174,7 @@ class RouteSessionControlPlane:
             message='The routed-local session is valid for relay bootstrap.',
             request_id=request.request_id,
             session_id=record.id,
+            product_session_id=record.product_session_id,
             user_id=record.user_id,
             auth_session_id=record.auth_session_id,
             route_kind='local_routed',
@@ -181,8 +196,24 @@ class RouteSessionControlPlane:
         if record.expires_at <= utcnow():
             self._expire_record(record, db)
             raise RouteSessionError(401, 'route_session_expired', 'That routed-local access token expired.')
-        auth_session = db.get(SessionRecord, record.auth_session_id)
         now = utcnow()
+        if record.product_session_id:
+            product_session = db.get(ProductSessionRecord, record.product_session_id)
+            if (
+                product_session is None
+                or product_session.account_id != record.user_id
+                or product_session.auth_session_id != record.auth_session_id
+                or product_session.revoked_at is not None
+                or product_session.expires_at <= now
+            ):
+                self._revoke_record(record, db, reason='product_session_invalid')
+                raise RouteSessionError(
+                    401,
+                    'route_product_session_invalid',
+                    'The product session tied to that routed-local access token is no longer valid.',
+                )
+
+        auth_session = db.get(SessionRecord, record.auth_session_id)
         if (
             auth_session is None
             or auth_session.user_id != record.user_id
@@ -199,7 +230,19 @@ class RouteSessionControlPlane:
 
     def _owned_record_for(self, *, current: CurrentAccessContext, session_id: str, db: Session) -> RouteSessionRecord:
         record = db.get(RouteSessionRecord, session_id)
-        if record is None or record.user_id != current.user.id or record.auth_session_id != current.session.id:
+        if record is None:
+            raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
+
+        if (
+            current.product_session is not None
+            and record.product_session_id is not None
+            and record.product_session_id != current.product_session.id
+        ):
+            raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
+
+        if record.product_session_id is None and (
+            record.user_id != current.user.id or record.auth_session_id != current.session.id
+        ):
             raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')
         return record
 
@@ -218,19 +261,17 @@ class RouteSessionControlPlane:
             db.add(record)
         db.commit()
 
-    def _revoke_active_sessions_for_auth_session(
+    def _revoke_active_sessions_for_product_session(
         self,
         db: Session,
         *,
-        user_id: str,
-        auth_session_id: str,
+        product_session_id: str,
         reason: str,
     ) -> None:
         active_records = (
             db.query(RouteSessionRecord)
             .filter(
-                RouteSessionRecord.user_id == user_id,
-                RouteSessionRecord.auth_session_id == auth_session_id,
+                RouteSessionRecord.product_session_id == product_session_id,
                 RouteSessionRecord.revoked_at.is_(None),
             )
             .all()
@@ -285,6 +326,7 @@ class RouteSessionControlPlane:
             route_kind='local_routed',
             transport_kind=record.transport_kind,
             control_plane_kind=record.control_plane_kind,
+            product_session_id=record.product_session_id,
             auth_session_id=record.auth_session_id,
             issued_at=record.issued_at,
             refresh_after=refresh_after,

@@ -495,6 +495,7 @@ class RouteSessionState(BaseModel):
     route_kind: Literal['local_routed'] = 'local_routed'
     transport_kind: Literal['packet_tunnel'] = 'packet_tunnel'
     control_plane_kind: Literal['control_only'] = 'control_only'
+    product_session_id: str | None = None
     auth_session_id: str
     issued_at: datetime
     refresh_after: datetime
@@ -511,6 +512,7 @@ class RouteRelayValidationRequest(BaseModel):
     request_id: str | None = Field(default=None, min_length=1, max_length=120)
     route_session_id: str | None = Field(default=None, min_length=1, max_length=120)
     route_access_token: str | None = Field(default=None, min_length=1, max_length=512)
+    route_product_session_id: str | None = Field(default=None, min_length=1, max_length=120)
     route_auth_session_id: str | None = Field(default=None, min_length=1, max_length=120)
     requested_path: Literal['local_routed'] = 'local_routed'
     transport_kind: Literal['packet_tunnel'] = 'packet_tunnel'
@@ -524,6 +526,7 @@ class RouteRelayValidationResponse(BaseModel):
     message: str
     request_id: str | None = None
     session_id: str | None = None
+    product_session_id: str | None = None
     user_id: str | None = None
     auth_session_id: str | None = None
     route_kind: Literal['local_routed'] | None = None

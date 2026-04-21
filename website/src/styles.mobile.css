@@ -1,0 +1,631 @@
+/* Mobile and small-screen diagram optimization.
+   Import this after styles.css. */
+
+@media (max-width: 900px) {
+  .frame {
+    width: min(calc(100% - 28px), var(--content));
+  }
+
+  .hero-grid-with-diagram {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 34px;
+  }
+
+  .hero-grid-with-diagram .hero-copy {
+    max-width: min(100%, 760px);
+    justify-self: center;
+    text-align: center;
+  }
+
+  .hero-grid-with-diagram .hero-copy .eyebrow {
+    justify-content: center;
+  }
+
+  .hero-grid-with-diagram .hero-copy h1 {
+    max-width: 10.5ch;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: clamp(3.35rem, 13vw, 5rem);
+  }
+
+  .hero-grid-with-diagram .hero-copy .hero-lede {
+    max-width: 34ch;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.04rem;
+  }
+
+  .hero-grid-with-diagram .button-row {
+    justify-content: center;
+  }
+
+  .hero-stage-wide {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .request-router {
+    padding: 18px 14px;
+    border-radius: 26px;
+  }
+
+  .request-router-header {
+    text-align: center;
+  }
+
+  .request-router-header .diagram-kicker {
+    justify-content: center;
+  }
+
+  .request-router-header strong {
+    font-size: 0.96rem;
+  }
+
+  .request-router-stage {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .router-object,
+  .router-core,
+  .router-workspace {
+    width: 100%;
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .router-object {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .router-object span,
+  .router-core-object span,
+  .router-workspace span {
+    margin-top: 10px;
+  }
+
+  .router-object p,
+  .router-core-object p,
+  .router-workspace p {
+    max-width: 24ch;
+    font-size: 0.8rem;
+  }
+
+  .router-connector {
+    width: 2px !important;
+    height: 28px !important;
+    justify-self: center;
+  }
+
+  .router-connector span {
+    transform-origin: top center;
+  }
+
+  .router-core-object {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .mode-switcher {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .mode-switcher-option {
+    min-height: 33px;
+    padding: 0 8px;
+    font-size: 0.78rem;
+  }
+
+  .workspace-route {
+    margin-top: 12px;
+  }
+
+  .workspace-route-line {
+    height: 22px;
+  }
+
+  .router-workspace {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+  }
+
+  .workspace-files {
+    width: 54px;
+    height: 48px;
+  }
+
+  .workspace-files span {
+    width: 32px;
+    height: 40px;
+  }
+
+  .workspace-files span:nth-child(2) {
+    left: 12px;
+  }
+
+  .workspace-files span:nth-child(3) {
+    left: 24px;
+  }
+
+  .request-router-footer {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .request-router-footer span {
+    max-width: 30ch;
+    font-size: 0.9rem;
+  }
+
+  .object-phone,
+  .object-amon-machine,
+  .object-browser-window,
+  .object-clean-view,
+  .object-remote-session {
+    min-height: auto;
+  }
+
+  .object-phone {
+    width: 76px;
+    height: 118px;
+    padding: 12px 10px;
+    border-radius: 21px;
+  }
+
+  .object-phone-bar {
+    width: 24px;
+    height: 4px;
+    margin-bottom: 14px;
+  }
+
+  .object-phone-search {
+    height: 17px;
+    margin-bottom: 14px;
+  }
+
+  .object-phone-result {
+    height: 7px;
+    margin-bottom: 8px;
+  }
+
+  .object-amon-machine {
+    width: 104px;
+    height: 108px;
+    border-radius: 22px;
+  }
+
+  .object-amon-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 15px;
+    font-size: 1.72rem;
+  }
+
+  .object-machine-lines {
+    width: 58px;
+    gap: 5px;
+  }
+
+  .object-machine-lines span {
+    height: 4px;
+  }
+
+  .object-browser-window,
+  .object-clean-view,
+  .object-remote-session {
+    width: 118px;
+    height: 108px;
+  }
+
+  .object-browser-window,
+  .clean-page-card,
+  .remote-screen {
+    border-radius: 17px;
+    padding: 11px;
+  }
+
+  .browser-chrome {
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .browser-chrome span,
+  .browser-chrome i {
+    width: 5px;
+    height: 5px;
+  }
+
+  .browser-line,
+  .clean-line,
+  .mini-remote-line {
+    height: 5px;
+    margin-bottom: 7px;
+  }
+
+  .source-page-shadow {
+    width: 86px;
+    height: 70px;
+    right: 8px;
+    top: 4px;
+    border-radius: 14px;
+  }
+
+  .clean-page-card {
+    width: 102px;
+    height: 88px;
+    left: 4px;
+    bottom: 4px;
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+
+  .clean-kicker {
+    margin-bottom: 8px;
+    font-size: 0.62rem;
+  }
+
+  .remote-server {
+    display: none !important;
+  }
+
+  .object-remote-session {
+    display: grid;
+    place-items: center;
+  }
+
+  .remote-screen {
+    position: static;
+    width: 104px;
+    height: 92px;
+  }
+
+  .remote-dot {
+    width: 7px;
+    height: 7px;
+    margin-bottom: 10px;
+  }
+
+  .mode-comparison-diagram {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 26px;
+  }
+
+  .mode-card {
+    min-height: auto;
+    padding: 16px;
+    gap: 14px;
+    border-radius: 24px;
+  }
+
+  .mode-card-top {
+    align-items: center;
+  }
+
+  .mode-card-top strong {
+    font-size: 0.92rem;
+  }
+
+  .mode-card-copy h3 {
+    max-width: 13ch;
+    font-size: clamp(2rem, 8vw, 2.65rem);
+  }
+
+  .mode-card-copy p {
+    max-width: 100%;
+    font-size: 0.95rem;
+  }
+
+  .mode-card-handling {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .mode-card-handling strong {
+    font-size: 0.88rem;
+  }
+
+  .mode-card-best {
+    padding-top: 14px;
+  }
+
+  .mode-scene-object {
+    grid-template-columns:
+      minmax(0, 1fr)
+      16px
+      minmax(0, 1fr)
+      16px
+      minmax(0, 1fr) !important;
+    gap: 6px;
+    min-height: 124px;
+    padding: 12px;
+    border-radius: 19px;
+  }
+
+  .scene-arrow {
+    width: auto !important;
+    height: 2px !important;
+    justify-self: stretch;
+  }
+
+  .mini-phone {
+    height: 72px;
+    padding: 10px 8px;
+    border-radius: 14px;
+  }
+
+  .mini-phone div,
+  .mini-phone span,
+  .mini-site span,
+  .mini-document span {
+    height: 5px;
+    margin-bottom: 7px;
+  }
+
+  .mini-phone div {
+    width: 24px;
+  }
+
+  .mini-amon {
+    height: 76px;
+    border-radius: 14px;
+  }
+
+  .mini-amon strong {
+    font-size: 1.5rem;
+  }
+
+  .mini-amon span {
+    width: 34px;
+    height: 3px;
+  }
+
+  .mini-site {
+    min-height: 72px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .mini-chrome {
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+
+  .mini-chrome i {
+    width: 4px;
+    height: 4px;
+  }
+
+  .mini-text-extract {
+    min-height: 82px;
+    display: grid;
+    place-items: center;
+  }
+
+  .mini-source-shadow {
+    width: 50px;
+    height: 60px;
+    right: 6px;
+    top: 4px;
+    border-radius: 12px;
+  }
+
+  .mini-document {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    z-index: 1;
+    width: 64px;
+    height: 72px;
+    padding: 10px 8px;
+    border-radius: 13px;
+    overflow: hidden;
+  }
+
+  .mini-document .document-title-line {
+    width: 74%;
+  }
+
+  .mini-remote {
+    min-height: 82px;
+    display: grid;
+    place-items: center;
+  }
+
+  .mini-server {
+    display: none !important;
+  }
+
+  .mini-remote-screen {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 66px;
+    height: 72px;
+    padding: 12px 10px;
+    border-radius: 13px;
+  }
+
+  .mini-remote-dot {
+    width: 7px;
+    height: 7px;
+    margin-bottom: 10px;
+  }
+
+  .mini-remote-line {
+    height: 5px;
+    margin-bottom: 7px;
+  }
+
+  .visibility-map {
+    padding: 12px;
+    border-radius: 24px;
+  }
+
+  .visibility-map-header {
+    display: none !important;
+  }
+
+  .visibility-map-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(255, 255, 255, 0.055);
+  }
+
+  .visibility-map-row + .visibility-map-row {
+    margin-top: 10px;
+  }
+
+  .visibility-map-mode {
+    grid-column: 1 / -1;
+    min-height: 44px !important;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .visibility-map-cell,
+  .visibility-map-row > div,
+  .visibility-map-header > div {
+    text-align: center;
+  }
+
+  .visibility-map-row > div:not(.visibility-map-mode),
+  .visibility-map-cell:not(.visibility-map-mode) {
+    min-height: 84px;
+    padding: 12px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.78rem;
+  }
+
+  .visibility-map-row > div:not(.visibility-map-mode)::before {
+    content: attr(data-column);
+    display: block;
+    min-width: 0;
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .visibility-map-note {
+    text-align: center;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .frame {
+    width: min(calc(100% - 24px), var(--content));
+  }
+
+  .hero {
+    padding-top: 58px;
+  }
+
+  .hero-grid-with-diagram .hero-copy h1 {
+    font-size: clamp(3rem, 15vw, 4.25rem);
+  }
+
+  .hero-grid-with-diagram .hero-copy .hero-lede {
+    font-size: 0.98rem;
+  }
+
+  .button-row {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .button-row .button {
+    flex: 1 1 100%;
+  }
+
+  .request-router {
+    padding: 15px 12px;
+  }
+
+  .request-router-header strong {
+    font-size: 0.92rem;
+  }
+
+  .router-object,
+  .router-core,
+  .router-workspace {
+    padding: 13px;
+  }
+
+  .mode-switcher {
+    gap: 6px;
+  }
+
+  .mode-switcher-option {
+    min-height: 32px;
+    padding: 0 6px;
+    font-size: 0.74rem;
+  }
+
+  .router-workspace {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .request-router-footer span {
+    font-size: 0.84rem;
+  }
+
+  .mode-card {
+    padding: 15px;
+  }
+
+  .mode-scene-object {
+    padding: 10px;
+    gap: 5px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      12px
+      minmax(0, 1fr)
+      12px
+      minmax(0, 1fr) !important;
+  }
+
+  .mode-card-copy h3 {
+    font-size: clamp(1.85rem, 8.5vw, 2.35rem);
+  }
+
+  .mode-card-copy p {
+    font-size: 0.9rem;
+  }
+
+  .visibility-map-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .visibility-map-row > div:not(.visibility-map-mode),
+  .visibility-map-cell:not(.visibility-map-mode) {
+    min-height: 68px;
+  }
+}
