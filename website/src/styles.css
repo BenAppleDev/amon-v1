@@ -2499,3 +2499,218 @@ h3 {
     justify-self: center;
   }
 }
+
+/* Refinements: homepage thesis hero + diagram containment */
+
+.hero-home-thesis {
+  padding-top: 96px;
+}
+
+.hero-home-thesis .hero-grid-with-diagram {
+  grid-template-columns: 1fr;
+  min-height: auto;
+  align-items: center;
+}
+
+.hero-copy-thesis {
+  max-width: min(100%, 1040px);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero-copy-thesis .eyebrow {
+  justify-content: center;
+}
+
+.hero-copy-thesis h1 {
+  max-width: 12.5ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-copy-thesis .hero-lede {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-copy-thesis .button-row {
+  justify-content: center;
+}
+
+.hero-stage-wide {
+  grid-column: auto;
+  width: 100%;
+  margin-top: 56px;
+}
+
+/* Request router sizing */
+
+.request-router-stage {
+  grid-template-columns:
+    minmax(190px, 0.95fr)
+    76px
+    minmax(280px, 1.14fr)
+    76px
+    minmax(250px, 1fr);
+}
+
+.router-object-outcome {
+  min-width: 0;
+}
+
+.request-router-footer strong {
+  white-space: normal;
+}
+
+/* Clean text objects: keep lines inside card */
+
+.clean-page-card,
+.mini-document {
+  overflow: hidden;
+}
+
+.clean-page-card {
+  padding: 12px 14px;
+}
+
+.clean-kicker {
+  margin-bottom: 10px;
+}
+
+.clean-line {
+  height: 6px;
+  margin-bottom: 8px;
+}
+
+.mini-text-extract {
+  display: grid;
+  place-items: center;
+  min-height: 106px;
+}
+
+.mini-source-shadow {
+  right: 4px;
+  top: 6px;
+  width: 58px;
+  height: 68px;
+}
+
+.mini-document {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: 1;
+  width: 78px;
+  height: 86px;
+  padding: 12px 10px;
+}
+
+.mini-document span {
+  height: 5px;
+  margin-bottom: 7px;
+}
+
+/* Protected session: remove secondary red boxes and center the remote window */
+
+.remote-server,
+.mini-server {
+  display: none !important;
+}
+
+.object-remote-session {
+  display: grid;
+  place-items: center;
+}
+
+.remote-screen {
+  position: static;
+  width: 116px;
+  height: 112px;
+}
+
+.mini-remote {
+  display: grid;
+  place-items: center;
+  min-height: 106px;
+}
+
+.mini-remote-screen {
+  position: static;
+  width: 78px;
+  height: 86px;
+  padding: 14px 12px;
+}
+
+.mini-remote-dot {
+  margin-bottom: 13px;
+}
+
+.mini-remote-line {
+  height: 6px;
+  margin-bottom: 8px;
+}
+
+/* Keep mode mini-scenes clean */
+
+.mode-scene-object {
+  overflow: hidden;
+}
+
+.mode-scene-object-protected {
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr) 22px minmax(0, 1fr);
+}
+
+/* Optional: page heroes without side notes can center more cleanly */
+
+.page-hero-grid-centered {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  text-align: center;
+}
+
+.page-hero-grid-centered .page-hero-copy {
+  max-width: min(100%, 900px);
+}
+
+.page-hero-grid-centered .page-title {
+  max-width: 12ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-hero-grid-centered .page-lede {
+  max-width: 760px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.page-hero-grid-centered .eyebrow {
+  justify-content: center;
+}
+
+@media (max-width: 1120px) {
+  .request-router-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .router-connector {
+    width: 2px;
+    height: 32px;
+    justify-self: center;
+  }
+
+  .router-connector span {
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero-copy-thesis h1 {
+    max-width: 9.5ch;
+  }
+
+  .hero-stage-wide {
+    margin-top: 38px;
+  }
+}

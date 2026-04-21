@@ -182,9 +182,7 @@ export const policyBoundaries = [
 
 export const nonClaims = [
   "Not total anonymity.",
-  "Not a way to make third-party accounts forget who you are.",
-  "Not every identity-based workflow.",
-  "Not support for every task on day one."
+  "Not a way to make third-party accounts forget who you are."
 ];
 
 export const faqItems = [

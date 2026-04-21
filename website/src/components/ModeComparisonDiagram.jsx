@@ -69,7 +69,6 @@ function TextMini() {
       <div className="mini-document">
         <span className="document-title-line" />
         <span />
-        <span />
         <span className="short" />
       </div>
     </div>
@@ -79,10 +78,6 @@ function TextMini() {
 function RemoteMini() {
   return (
     <div className="mini-remote">
-      <div className="mini-server">
-        <span />
-        <span />
-      </div>
       <div className="mini-remote-screen">
         <div className="mini-remote-dot" />
         <span className="mini-remote-line strong" />

@@ -10,9 +10,9 @@ export function HomePage() {
     <>
       <Seo description="Amon routes every request through its own privacy layer, then lets you browse live, extract text, remote into protected sessions, or save work locally." />
 
-      <section className="hero hero-home">
+      <section className="hero hero-home hero-home-thesis">
         <div className="frame hero-grid hero-grid-with-diagram">
-          <Reveal className="hero-copy">
+          <Reveal className="hero-copy hero-copy-thesis">
             <span className="eyebrow">Private by default. Deeper when needed.</span>
             <h1>Search, browse, and think through decisions — privately.</h1>
             <p className="hero-lede">

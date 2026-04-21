@@ -2,13 +2,14 @@ import { Reveal } from "./Reveal";
 
 export function PageHero({ eyebrow, title, lede, aside }) {
   return (
-    <section className="page-hero">
-      <div className="frame page-hero-grid">
+    <section className={`page-hero${aside ? "" : " page-hero-centered"}`}>
+      <div className={`frame page-hero-grid${aside ? "" : " page-hero-grid-centered"}`}>
         <Reveal className="page-hero-copy">
           <span className="eyebrow">{eyebrow}</span>
           <h1 className="page-title">{title}</h1>
           <p className="page-lede">{lede}</p>
         </Reveal>
+
         {aside ? (
           <Reveal className="page-hero-note" delay={120}>
             {aside}

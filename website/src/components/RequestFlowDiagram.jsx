@@ -74,7 +74,6 @@ function CleanTextObject() {
         <span className="clean-kicker">Text</span>
         <div className="clean-line strong" />
         <div className="clean-line" />
-        <div className="clean-line" />
         <div className="clean-line short" />
       </div>
     </div>
@@ -84,10 +83,6 @@ function CleanTextObject() {
 function RemoteObject() {
   return (
     <div className="object-remote-session" aria-hidden="true">
-      <div className="remote-server">
-        <span />
-        <span />
-      </div>
       <div className="remote-screen">
         <div className="browser-chrome">
           <span />
