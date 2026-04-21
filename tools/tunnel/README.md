@@ -11,7 +11,7 @@ It is separate from the FastAPI backend on purpose.
 It proves that:
 
 - the iPhone Packet Tunnel extension can connect to your laptop
-- the handshake succeeds
+- the authenticated route bootstrap succeeds or fails with explicit machine-readable reasons
 - framed IP packets are arriving from the device
 - packet summaries can be inspected from your laptop logs
 
@@ -21,8 +21,9 @@ The daemon:
 
 - listens on a configurable host and port
 - accepts inbound TCP connections from the iPhone tunnel extension
-- reads the expected handshake request: `AMON/1`
-- sends the expected handshake response: `AMON/1 OK`
+- reads a newline-delimited JSON bootstrap request using protocol `AMON/2`
+- validates the presented routed-local route session against the backend control plane
+- sends a newline-delimited JSON bootstrap result indicating `accepted`, `rejected`, or `unavailable`
 - reads framed packets:
   - 2-byte big-endian packet length
   - raw IP packet bytes
@@ -41,6 +42,7 @@ It does not:
 - return packet frames back to the iPhone
 - replace the FastAPI backend
 - provide production-grade VPN security or routing
+- validate live traffic forwarding end to end
 
 For this stage, it is only a local proof-of-concept endpoint.
 
@@ -55,13 +57,20 @@ python3 tools/tunnel/amon_tunnel_daemon.py
 Optional flags:
 
 ```bash
-python3 tools/tunnel/amon_tunnel_daemon.py --host 0.0.0.0 --port 9443 --verbose
+python3 tools/tunnel/amon_tunnel_daemon.py \
+  --host 0.0.0.0 \
+  --port 9443 \
+  --api-origin http://127.0.0.1:8000 \
+  --relay-shared-secret amon-route-relay-dev \
+  --verbose
 ```
 
 Defaults:
 
 - host: `0.0.0.0`
 - port: `9443`
+- API origin: `http://127.0.0.1:8000`
+- relay shared secret: `amon-route-relay-dev`
 
 ## How To Use It With Amon
 
@@ -74,7 +83,10 @@ uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 Run the tunnel daemon separately:
 
 ```bash
-python3 tools/tunnel/amon_tunnel_daemon.py --port 9443
+python3 tools/tunnel/amon_tunnel_daemon.py \
+  --port 9443 \
+  --api-origin http://127.0.0.1:8000 \
+  --relay-shared-secret amon-route-relay-dev
 ```
 
 Then in the iPhone app:
@@ -87,7 +99,7 @@ Then in the iPhone app:
 If the Packet Tunnel extension is correctly signed and provisioned, the daemon should log:
 
 - client connection
-- handshake acceptance
+- bootstrap acceptance or rejection with a route-session reason code
 - incoming packet frames
 
 ## Example Checks
@@ -104,25 +116,65 @@ Basic port check:
 nc -vz 127.0.0.1 9443
 ```
 
-## Manual Handshake Test
+## Manual Bootstrap Test
 
-You can test the daemon without the iPhone:
+The daemon now expects a structured bootstrap request instead of the old `AMON/1` line handshake.
+
+### 1. Mint a route session
+
+From the repo root, use the backend dev flow:
 
 ```bash
-python3 - <<'PY'
-import socket
+ACCESS_TOKEN=$(curl -s http://127.0.0.1:8000/v1/auth/dev-login \
+  -H 'content-type: application/json' \
+  -d '{"apple_subject":"tunnel-smoke"}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
 
-with socket.create_connection(("127.0.0.1", 9443), timeout=5) as sock:
-    sock.sendall(b"AMON/1\n")
-    print(sock.recv(64))
-PY
+curl -s http://127.0.0.1:8000/v1/route-sessions \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
-Expected response:
+That response includes:
 
-```text
-b'AMON/1 OK\n'
+- `session_id`
+- `access_token`
+- `auth_session_id`
+
+### 2. Send the bootstrap request to the daemon
+
+Use the repo helper:
+
+```bash
+python3 tools/tunnel/route_handshake_smoke.py \
+  --host 127.0.0.1 \
+  --port 9443 \
+  --route-session-id route_... \
+  --route-access-token ... \
+  --route-auth-session-id ...
 ```
+
+Expected success shape:
+
+```json
+{
+  "code": "route_session_valid",
+  "forwarding_mode": "packet_log_only",
+  "forwarding_ready": false,
+  "packet_plane_ready": true,
+  "relay_auth_state": "accepted",
+  "status": "accepted"
+}
+```
+
+Common failure codes:
+
+- `route_session_missing_token`
+- `route_session_malformed_token`
+- `route_session_expired`
+- `route_session_revoked`
+- `route_session_context_mismatch`
+- `route_auth_session_invalid`
+- `relay_validation_unavailable`
+- `relay_validation_malformed_response`
 
 ## Packet Logging
 

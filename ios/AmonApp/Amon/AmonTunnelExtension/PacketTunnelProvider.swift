@@ -18,17 +18,27 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         static let routeAuthSessionID = "routeAuthSessionID"
     }
 
+    fileprivate enum ProviderMessageKey {
+        static let routeBootstrapStatus = "route_bootstrap_status"
+    }
+
     fileprivate enum TunnelProviderError: LocalizedError {
         case invalidConfiguration(String)
-        case handshakeFailed
+        case handshakeRejected(code: String, message: String)
+        case handshakeUnavailable(code: String, message: String)
+        case malformedHandshakeResponse(String)
         case connectionClosed
 
         var errorDescription: String? {
             switch self {
             case .invalidConfiguration(let message):
                 return message
-            case .handshakeFailed:
-                return "The laptop endpoint did not accept the Amon tunnel handshake."
+            case .handshakeRejected(let code, let message):
+                return "AMON_ROUTE_BOOTSTRAP|rejected|\(code)|\(message)"
+            case .handshakeUnavailable(let code, let message):
+                return "AMON_ROUTE_BOOTSTRAP|unavailable|\(code)|\(message)"
+            case .malformedHandshakeResponse(let message):
+                return "AMON_ROUTE_BOOTSTRAP|unavailable|malformed_bootstrap_response|\(message)"
             case .connectionClosed:
                 return "The laptop endpoint closed the tunnel connection."
             }
@@ -41,6 +51,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private var receiveBuffer = Data()
     private var didCompleteStart = false
     private var isTunnelRunning = false
+    private var routeBootstrapStatus = RouteBootstrapStatusResponse.notStarted
 
     override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
         resetForNewStartAttempt()
@@ -98,7 +109,17 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)? = nil) {
         log("Received app message of \(messageData.count) bytes")
-        completionHandler?(messageData)
+        guard let request = String(data: messageData, encoding: .utf8) else {
+            completionHandler?(nil)
+            return
+        }
+
+        switch request {
+        case ProviderMessageKey.routeBootstrapStatus:
+            completionHandler?(try? JSONEncoder().encode(routeBootstrapStatus))
+        default:
+            completionHandler?(messageData)
+        }
     }
 
     private func beginTunnelSession(
@@ -106,8 +127,13 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         completionHandler: @escaping (Error?) -> Void
     ) {
         log("Beginning tunnel session using configuration \(configuration.summary)")
+        updateRouteBootstrapStatus(
+            state: .pending,
+            detail: "Amon is authenticating the routed-local tunnel with the relay.",
+            configuration: configuration
+        )
 
-        performHandshake { [weak self] result in
+        performHandshake(using: configuration) { [weak self] result in
             guard let self else { return }
 
             switch result {
@@ -158,41 +184,185 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         )
     }
 
-    private func performHandshake(completion: @escaping (Result<Void, Error>) -> Void) {
+    private func performHandshake(
+        using configuration: DevTunnelConfiguration,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
         guard let tunnelConnection else {
             completion(.failure(TunnelProviderError.connectionClosed))
             return
         }
 
-        let greeting = Data("AMON/1\n".utf8)
-        log("Sending handshake request AMON/1")
+        let request = RelayBootstrapHandshakeRequest(configuration: configuration)
+        guard let greeting = request.encodedLine else {
+            completion(.failure(TunnelProviderError.invalidConfiguration("Amon couldn't encode the routed-local bootstrap request.")))
+            return
+        }
+
+        log("Sending routed-local bootstrap request requestID=\(request.request_id) routeSession=\(configuration.routeSessionID)")
         tunnelConnection.send(content: greeting, completion: .contentProcessed { sendError in
             if let sendError {
+                self.updateRouteBootstrapStatus(
+                    state: .unavailable,
+                    code: "relay_send_failed",
+                    detail: sendError.localizedDescription,
+                    configuration: configuration
+                )
                 completion(.failure(sendError))
                 return
             }
 
-            tunnelConnection.receive(minimumIncompleteLength: 1, maximumLength: 64) { data, _, isComplete, error in
-                if let error {
+            self.receiveHandshakeLine { result in
+                switch result {
+                case .failure(let error):
                     completion(.failure(error))
-                    return
+                case .success(let data):
+                    self.handleHandshakeResponseData(data, configuration: configuration, completion: completion)
                 }
-
-                self.log("Received handshake response bytes=\(data?.count ?? 0) isComplete=\(isComplete)")
-
-                guard !isComplete,
-                      let data,
-                      let reply = String(data: data, encoding: .utf8)?
-                        .trimmingCharacters(in: .whitespacesAndNewlines),
-                      reply == "AMON/1 OK"
-                else {
-                    completion(.failure(TunnelProviderError.handshakeFailed))
-                    return
-                }
-
-                completion(.success(()))
             }
         })
+    }
+
+    private func receiveHandshakeLine(
+        accumulated: Data = Data(),
+        completion: @escaping (Result<Data, Error>) -> Void
+    ) {
+        guard let tunnelConnection else {
+            completion(.failure(TunnelProviderError.connectionClosed))
+            return
+        }
+
+        tunnelConnection.receive(minimumIncompleteLength: 1, maximumLength: 1024) { [weak self] data, _, isComplete, error in
+            guard let self else { return }
+
+            if let error {
+                completion(.failure(error))
+                return
+            }
+
+            var buffer = accumulated
+            if let data {
+                buffer.append(data)
+            }
+
+            if let newlineRange = buffer.range(of: Data([0x0A])) {
+                let line = buffer.subdata(in: buffer.startIndex..<newlineRange.lowerBound)
+                let remainingIndex = newlineRange.upperBound
+                if remainingIndex < buffer.endIndex {
+                    self.receiveBuffer.append(buffer.subdata(in: remainingIndex..<buffer.endIndex))
+                }
+                completion(.success(line))
+                return
+            }
+
+            if buffer.count > 8_192 {
+                completion(.failure(TunnelProviderError.malformedHandshakeResponse("The relay bootstrap response exceeded the maximum allowed size.")))
+                return
+            }
+
+            if isComplete {
+                completion(.failure(TunnelProviderError.malformedHandshakeResponse("The relay closed the connection before completing the bootstrap response.")))
+                return
+            }
+
+            self.receiveHandshakeLine(accumulated: buffer, completion: completion)
+        }
+    }
+
+    private func handleHandshakeResponseData(
+        _ data: Data,
+        configuration: DevTunnelConfiguration,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
+        do {
+            let response = try JSONDecoder().decode(RelayBootstrapHandshakeResponse.self, from: data)
+            log(
+                "Received routed-local bootstrap response status=\(response.status) code=\(response.code) relayAuthState=\(response.relay_auth_state) packetPlaneReady=\(response.packet_plane_ready)"
+            )
+
+            guard response.protocol == "AMON/2", response.type == "bootstrap_result" else {
+                let message = "The relay returned an unexpected bootstrap response envelope."
+                updateRouteBootstrapStatus(
+                    state: .unavailable,
+                    code: "malformed_bootstrap_response",
+                    detail: message,
+                    configuration: configuration
+                )
+                completion(.failure(TunnelProviderError.malformedHandshakeResponse(message)))
+                return
+            }
+
+            let relayState = RouteRelayAuthState(rawValue: response.relay_auth_state) ?? .unavailable
+            updateRouteBootstrapStatus(
+                state: relayState,
+                code: response.code,
+                detail: response.message,
+                configuration: configuration,
+                sessionID: response.session_id,
+                authSessionID: response.auth_session_id,
+                expiresAt: response.expires_at,
+                packetPlaneReady: response.packet_plane_ready,
+                forwardingMode: response.forwarding_mode,
+                forwardingReady: response.forwarding_ready
+            )
+
+            switch response.status {
+            case "accepted":
+                guard response.packet_plane_ready else {
+                    completion(
+                        .failure(
+                            TunnelProviderError.handshakeUnavailable(
+                                code: "relay_transport_not_ready",
+                                message: "The relay authenticated the routed-local session but did not mark the packet plane as ready."
+                            )
+                        )
+                    )
+                    return
+                }
+                completion(.success(()))
+            case "rejected":
+                completion(.failure(TunnelProviderError.handshakeRejected(code: response.code, message: response.message)))
+            case "unavailable":
+                completion(.failure(TunnelProviderError.handshakeUnavailable(code: response.code, message: response.message)))
+            default:
+                let message = "The relay returned an unknown bootstrap status."
+                completion(.failure(TunnelProviderError.malformedHandshakeResponse(message)))
+            }
+        } catch {
+            let message = "Amon couldn't decode the relay bootstrap response."
+            updateRouteBootstrapStatus(
+                state: .unavailable,
+                code: "malformed_bootstrap_response",
+                detail: message,
+                configuration: configuration
+            )
+            completion(.failure(TunnelProviderError.malformedHandshakeResponse(message)))
+        }
+    }
+
+    private func updateRouteBootstrapStatus(
+        state: RouteRelayAuthState,
+        code: String? = nil,
+        detail: String? = nil,
+        configuration: DevTunnelConfiguration? = nil,
+        sessionID: String? = nil,
+        authSessionID: String? = nil,
+        expiresAt: String? = nil,
+        packetPlaneReady: Bool? = nil,
+        forwardingMode: String? = nil,
+        forwardingReady: Bool? = nil
+    ) {
+        routeBootstrapStatus = RouteBootstrapStatusResponse(
+            state: state.rawValue,
+            code: code,
+            detail: detail,
+            session_id: sessionID ?? configuration?.routeSessionID,
+            auth_session_id: authSessionID ?? configuration?.routeAuthSessionID,
+            expires_at: expiresAt ?? configuration?.routeExpiresAt,
+            packet_plane_ready: packetPlaneReady,
+            forwarding_mode: forwardingMode,
+            forwarding_ready: forwardingReady
+        )
     }
 
     private func applyTunnelNetworkSettings(using configuration: DevTunnelConfiguration) async throws {
@@ -336,6 +506,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         receiveBuffer.removeAll(keepingCapacity: false)
         tunnelConnection?.cancel()
         tunnelConnection = nil
+        routeBootstrapStatus = .notStarted
     }
 
     private func log(_ message: String) {
@@ -436,4 +607,78 @@ private struct DevTunnelConfiguration {
         }
         throw PacketTunnelProvider.TunnelProviderError.invalidConfiguration("Missing tunnel setting for \(key).")
     }
+}
+
+private enum RouteRelayAuthState: String, Codable {
+    case notStarted
+    case pending
+    case accepted
+    case rejected
+    case unavailable
+}
+
+private struct RelayBootstrapHandshakeRequest: Encodable {
+    let request_id: String
+    let route_session_id: String
+    let route_access_token: String
+    let route_auth_session_id: String
+    let requested_path: String = "local_routed"
+    let transport_kind: String = "packet_tunnel"
+    let client_platform: String = "ios"
+    let app_bundle_id: String?
+    let `protocol`: String = "AMON/2"
+    let type: String = "bootstrap"
+
+    init(configuration: DevTunnelConfiguration) {
+        request_id = UUID().uuidString
+        route_session_id = configuration.routeSessionID
+        route_access_token = configuration.routeAccessToken
+        route_auth_session_id = configuration.routeAuthSessionID
+        app_bundle_id = Bundle.main.bundleIdentifier
+    }
+
+    var encodedLine: Data? {
+        guard let encoded = try? JSONEncoder().encode(self) else { return nil }
+        return encoded + Data([0x0A])
+    }
+}
+
+private struct RelayBootstrapHandshakeResponse: Decodable {
+    let status: String
+    let code: String
+    let message: String
+    let relay_auth_state: String
+    let packet_plane_ready: Bool
+    let forwarding_mode: String?
+    let forwarding_ready: Bool?
+    let request_id: String?
+    let session_id: String?
+    let auth_session_id: String?
+    let expires_at: String?
+    let `protocol`: String
+    let type: String
+}
+
+private struct RouteBootstrapStatusResponse: Codable {
+    let state: String
+    let code: String?
+    let detail: String?
+    let session_id: String?
+    let auth_session_id: String?
+    let expires_at: String?
+    let packet_plane_ready: Bool?
+    let forwarding_mode: String?
+    let forwarding_ready: Bool?
+
+    static let notStarted = RouteBootstrapStatusResponse(
+        state: RouteRelayAuthState.notStarted.rawValue,
+        code: nil,
+        detail: nil,
+        session_id: nil,
+        auth_session_id: nil,
+        expires_at: nil,
+        packet_plane_ready: nil,
+        forwarding_mode: nil,
+        forwarding_ready: nil
+    )
 }

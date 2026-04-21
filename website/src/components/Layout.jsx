@@ -78,7 +78,7 @@ export function SiteLayout() {
                 <span className="brand-word">Amon</span>
               </Link>
               <p className="footer-copy">
-                A place to think through things online.
+                Use the web through different privacy paths.
               </p>
             </div>
 

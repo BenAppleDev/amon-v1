@@ -53,8 +53,10 @@ public struct PrivacyAwarePageView: View {
                 localRouteCapabilityProvider: {
                     LocalRouteCapabilitySnapshot(
                         state: openResolution.localRouteState,
+                        readinessState: openResolution.localRouteReadinessState,
                         reason: openResolution.localRouteReason,
                         detail: openResolution.localRouteDetail,
+                        relayStatus: LocalRouteRelayStatusSnapshot(state: openResolution.localRouteRelayAuthState),
                         tunnelStatus: .disconnected
                     )
                 }

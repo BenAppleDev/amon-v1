@@ -33,7 +33,12 @@ final class TunnelManager: ObservableObject {
         static let providerBundleIdentifier = "providerBundleIdentifier"
     }
 
+    private enum ProviderMessageKey {
+        static let routeBootstrapStatus = "route_bootstrap_status"
+    }
+
     @Published private(set) var statusSnapshot: TransportTunnelStatusSnapshot = .disconnected
+    @Published private(set) var routeRelayStatus: LocalRouteRelayStatusSnapshot = .notStarted
     @Published private(set) var diagnostics: [String] = []
 
     private var manager: NETunnelProviderManager?
@@ -57,16 +62,23 @@ final class TunnelManager: ObservableObject {
             guard let manager else {
                 log("No saved tunnel manager found")
                 statusSnapshot = .disconnected
+                routeRelayStatus = .notStarted
                 return
             }
 
             log("Loaded saved manager with status \(describe(manager.connection.status)) and config \(configurationSummary(from: manager))")
             attachStatusObserver()
             updateStatusFromConnection(for: manager)
+            await refreshRouteRelayStatus(for: manager)
         } catch {
             log("Refresh failed: \(errorDescription(for: error))", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
+                detail: humanReadableMessage(for: error)
+            )
+            routeRelayStatus = LocalRouteRelayStatusSnapshot(
+                state: .unavailable,
+                code: "relay_status_refresh_failed",
                 detail: humanReadableMessage(for: error)
             )
         }
@@ -87,6 +99,10 @@ final class TunnelManager: ObservableObject {
         statusSnapshot = TransportTunnelStatusSnapshot(
             state: .connecting,
             detail: "Connecting to \(settings.endpoint.displayAddress)"
+        )
+        routeRelayStatus = LocalRouteRelayStatusSnapshot(
+            state: .pending,
+            detail: "Amon is authenticating the routed-local tunnel with the relay."
         )
 
         resolvedProviderBundleIdentifier = resolveProviderBundleIdentifier()
@@ -117,18 +133,26 @@ final class TunnelManager: ObservableObject {
 
             updateStatusFromConnection(for: manager)
             await monitorStartTransition(for: manager)
+            await refreshRouteRelayStatus(for: manager)
         } catch {
             log("Connect failed: \(errorDescription(for: error))", level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
                 state: .failed,
                 detail: humanReadableMessage(for: error)
             )
+            routeRelayStatus = parsedRouteRelayStatus(from: error)
+                ?? LocalRouteRelayStatusSnapshot(
+                    state: .unavailable,
+                    code: "relay_connect_failed",
+                    detail: humanReadableMessage(for: error)
+                )
         }
     }
 
     func disconnect() {
         log("Disconnect requested")
         manager?.connection.stopVPNTunnel()
+        routeRelayStatus = .notStarted
         updateStatusFromConnection()
     }
 
@@ -156,6 +180,7 @@ final class TunnelManager: ObservableObject {
             Task { @MainActor in
                 self.log("Observed NEVPNStatusDidChange notification")
                 self.updateStatusFromConnection()
+                await self.refreshRouteRelayStatusFromCurrentManager()
             }
         }
     }
@@ -415,6 +440,122 @@ final class TunnelManager: ObservableObject {
         (manager.protocolConfiguration as? NETunnelProviderProtocol)?.serverAddress
     }
 
+    private func refreshRouteRelayStatusFromCurrentManager() async {
+        guard let manager else {
+            routeRelayStatus = .notStarted
+            return
+        }
+        await refreshRouteRelayStatus(for: manager)
+    }
+
+    private func refreshRouteRelayStatus(for manager: NETunnelProviderManager) async {
+        switch manager.connection.status {
+        case .connected:
+            routeRelayStatus = await queryRouteRelayStatusFromProvider(for: manager)
+        case .connecting, .reasserting:
+            if routeRelayStatus.state != .accepted {
+                routeRelayStatus = LocalRouteRelayStatusSnapshot(
+                    state: .pending,
+                    detail: "Amon is authenticating the routed-local tunnel with the relay."
+                )
+            }
+        case .disconnecting:
+            routeRelayStatus = LocalRouteRelayStatusSnapshot(
+                state: .unavailable,
+                code: "relay_disconnect_in_progress",
+                detail: "The routed-local tunnel is disconnecting."
+            )
+        case .disconnected, .invalid:
+            if let disconnectError = await fetchLastDisconnectError(for: manager.connection),
+               let parsedStatus = parsedRouteRelayStatus(from: disconnectError) {
+                routeRelayStatus = parsedStatus
+            } else {
+                routeRelayStatus = .notStarted
+            }
+        @unknown default:
+            routeRelayStatus = LocalRouteRelayStatusSnapshot(
+                state: .unavailable,
+                code: "relay_status_unknown",
+                detail: "Amon couldn't determine the routed-local relay auth state."
+            )
+        }
+    }
+
+    private func queryRouteRelayStatusFromProvider(for manager: NETunnelProviderManager) async -> LocalRouteRelayStatusSnapshot {
+        guard let session = manager.connection as? NETunnelProviderSession else {
+            return LocalRouteRelayStatusSnapshot(
+                state: .unavailable,
+                code: "relay_status_unavailable",
+                detail: "Amon couldn't talk to the tunnel provider session."
+            )
+        }
+
+        do {
+            let responseData = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data?, Error>) in
+                do {
+                    try session.sendProviderMessage(Data(ProviderMessageKey.routeBootstrapStatus.utf8)) { responseData in
+                        continuation.resume(returning: responseData)
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+
+            guard let responseData else {
+                return LocalRouteRelayStatusSnapshot(
+                    state: .unavailable,
+                    code: "relay_status_empty",
+                    detail: "The tunnel provider did not return a routed-local relay status."
+                )
+            }
+
+            let response = try JSONDecoder().decode(RouteRelayStatusResponse.self, from: responseData)
+            return response.snapshot
+        } catch {
+            return parsedRouteRelayStatus(from: error)
+                ?? LocalRouteRelayStatusSnapshot(
+                    state: .unavailable,
+                    code: "relay_status_query_failed",
+                    detail: humanReadableMessage(for: error)
+                )
+        }
+    }
+
+    private func fetchLastDisconnectError(for connection: NEVPNConnection) async -> Error? {
+        await withCheckedContinuation { continuation in
+            connection.fetchLastDisconnectError { error in
+                continuation.resume(returning: error)
+            }
+        }
+    }
+
+    private func parsedRouteRelayStatus(from error: Error) -> LocalRouteRelayStatusSnapshot? {
+        let rawMessage = error.localizedDescription
+        let prefix = "AMON_ROUTE_BOOTSTRAP|"
+        guard rawMessage.hasPrefix(prefix) else {
+            return nil
+        }
+
+        let payload = rawMessage.dropFirst(prefix.count)
+        let parts = payload.split(separator: "|", maxSplits: 2, omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 3 else {
+            return LocalRouteRelayStatusSnapshot(
+                state: .unavailable,
+                code: "relay_status_parse_failed",
+                detail: "Amon received a malformed routed-local bootstrap error from the tunnel provider."
+            )
+        }
+
+        let state = LocalRouteRelayAuthState(rawValue: parts[0]) ?? .unavailable
+        let code = parts[1].isEmpty ? nil : parts[1]
+        let detail = parts[2].isEmpty ? nil : parts[2]
+        return LocalRouteRelayStatusSnapshot(
+            state: state,
+            code: code,
+            detail: detail
+        )
+    }
+
     private func configurationSummary(for settings: TransportPrivacySettings) -> String {
         let endpoint = settings.endpoint
         return "host=\(endpoint.serverHost.isEmpty ? "<empty>" : endpoint.serverHost) port=\(endpoint.serverPort) client=\(endpoint.clientAddress) remote=\(endpoint.remoteAddress) mtu=\(endpoint.mtu) dns=\(endpoint.dnsServers.joined(separator: ","))"
@@ -449,6 +590,7 @@ final class TunnelManager: ObservableObject {
 
         let finalStatus = manager.connection.status
         if finalStatus == .invalid || finalStatus == .disconnected {
+            await refreshRouteRelayStatus(for: manager)
             let message = "iOS accepted the start request but the provider never reached a connecting state. Check PacketTunnelProvider logs in the device console."
             log(message, level: .error)
             statusSnapshot = TransportTunnelStatusSnapshot(
@@ -478,6 +620,10 @@ final class TunnelManager: ObservableObject {
     }
 
     private func humanReadableMessage(for error: Error) -> String {
+        if let routeRelayStatus = parsedRouteRelayStatus(from: error) {
+            return routeRelayStatus.detail ?? "Amon could not complete the routed-local relay bootstrap."
+        }
+
         if let tunnelError = error as? TunnelConfigurationError {
             return tunnelError.localizedDescription
         }
@@ -591,6 +737,32 @@ private enum TunnelConfigurationError: LocalizedError {
         case .routeSessionExpired:
             return "The routed-local session expired before the tunnel could start."
         }
+    }
+}
+
+private struct RouteRelayStatusResponse: Decodable {
+    let state: String
+    let code: String?
+    let detail: String?
+    let session_id: String?
+    let auth_session_id: String?
+    let expires_at: String?
+    let packet_plane_ready: Bool?
+    let forwarding_mode: String?
+    let forwarding_ready: Bool?
+
+    var snapshot: LocalRouteRelayStatusSnapshot {
+        LocalRouteRelayStatusSnapshot(
+            state: LocalRouteRelayAuthState(rawValue: state) ?? .unavailable,
+            code: code,
+            detail: detail,
+            sessionID: session_id,
+            authSessionID: auth_session_id,
+            expiresAt: expires_at.flatMap { ISO8601DateFormatter().date(from: $0) },
+            packetPlaneReady: packet_plane_ready,
+            forwardingMode: forwarding_mode,
+            forwardingReady: forwarding_ready
+        )
     }
 }
 

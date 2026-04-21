@@ -24,6 +24,8 @@ public struct BrowsePathResolution: Equatable, Hashable, Sendable {
     public let requestedPath: BrowsePath
     public let effectivePath: BrowsePath
     public let localRouteState: LocalPrivacyRouteState
+    public let localRouteReadinessState: LocalRouteReadinessState
+    public let localRouteRelayAuthState: LocalRouteRelayAuthState
     public let localRouteReason: LocalRouteCapabilityReason?
     public let localRouteDetail: String?
     public let fallbackReason: String?
@@ -32,6 +34,8 @@ public struct BrowsePathResolution: Equatable, Hashable, Sendable {
         requestedPath: BrowsePath,
         effectivePath: BrowsePath,
         localRouteState: LocalPrivacyRouteState,
+        localRouteReadinessState: LocalRouteReadinessState = .routeUnavailable,
+        localRouteRelayAuthState: LocalRouteRelayAuthState = .notStarted,
         localRouteReason: LocalRouteCapabilityReason? = nil,
         localRouteDetail: String? = nil,
         fallbackReason: String? = nil
@@ -39,6 +43,8 @@ public struct BrowsePathResolution: Equatable, Hashable, Sendable {
         self.requestedPath = requestedPath
         self.effectivePath = effectivePath
         self.localRouteState = localRouteState
+        self.localRouteReadinessState = localRouteReadinessState
+        self.localRouteRelayAuthState = localRouteRelayAuthState
         self.localRouteReason = localRouteReason
         self.localRouteDetail = localRouteDetail
         self.fallbackReason = fallbackReason
@@ -55,6 +61,8 @@ public enum BrowsePathResolver {
                 requestedPath: requestedPath,
                 effectivePath: requestedPath,
                 localRouteState: localRouteCapability.state,
+                localRouteReadinessState: localRouteCapability.readinessState,
+                localRouteRelayAuthState: localRouteCapability.relayStatus.state,
                 localRouteReason: localRouteCapability.reason,
                 localRouteDetail: localRouteCapability.detail
             )
@@ -65,6 +73,8 @@ public enum BrowsePathResolver {
                 requestedPath: .localRouted,
                 effectivePath: .localRouted,
                 localRouteState: localRouteCapability.state,
+                localRouteReadinessState: localRouteCapability.readinessState,
+                localRouteRelayAuthState: localRouteCapability.relayStatus.state,
                 localRouteReason: localRouteCapability.reason,
                 localRouteDetail: localRouteCapability.detail
             )
@@ -74,6 +84,8 @@ public enum BrowsePathResolver {
             requestedPath: .localRouted,
             effectivePath: .directFallback,
             localRouteState: localRouteCapability.state,
+            localRouteReadinessState: localRouteCapability.readinessState,
+            localRouteRelayAuthState: localRouteCapability.relayStatus.state,
             localRouteReason: localRouteCapability.reason,
             localRouteDetail: localRouteCapability.detail,
             fallbackReason: localRouteCapability.fallbackReason

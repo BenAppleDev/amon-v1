@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 const defaultTitle = "Amon | Private by default. Deeper when needed.";
 const defaultDescription =
-  "Amon is a private decision environment for searching, browsing, and thinking through meaningful questions online.";
+  "Amon routes search and browsing through different privacy paths so no single system sees everything you search, open, and keep.";
 
 export function Seo({ title, description = defaultDescription }) {
   useEffect(() => {

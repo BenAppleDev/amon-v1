@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Local development tunnel daemon for the Amon iOS Packet Tunnel extension.
 
-This is a proof-of-concept endpoint for local testing only. It accepts the
-current extension handshake, logs incoming IP packets, and keeps the tunnel
-socket open. It does not forward traffic to the internet.
+This daemon now terminates an authenticated bootstrap handshake before it begins
+reading framed packets. It still does not forward traffic to the internet.
 """
 
 from __future__ import annotations
@@ -12,8 +11,14 @@ import argparse
 import asyncio
 import contextlib
 import ipaddress
+import json
 import logging
+import os
 import signal
+import urllib.error
+import urllib.parse
+import urllib.request
+from dataclasses import asdict, dataclass
 from itertools import count
 from typing import Final
 
@@ -21,16 +26,238 @@ LOGGER = logging.getLogger("amon_tunnel_daemon")
 
 DEFAULT_HOST: Final[str] = "0.0.0.0"
 DEFAULT_PORT: Final[int] = 9443
-HANDSHAKE_REQUEST: Final[bytes] = b"AMON/1"
-HANDSHAKE_RESPONSE: Final[bytes] = b"AMON/1 OK\n"
+DEFAULT_API_ORIGIN: Final[str] = "http://127.0.0.1:8000"
+DEFAULT_ROUTE_RELAY_SECRET: Final[str] = "amon-route-relay-dev"
+DEFAULT_ROUTE_RELAY_SECRET_HEADER: Final[str] = "X-Amon-Route-Relay-Secret"
+VALIDATION_ENDPOINT_PATH: Final[str] = "/internal/route-sessions/validate"
+HANDSHAKE_PROTOCOL: Final[str] = "AMON/2"
+HANDSHAKE_REQUEST_TYPE: Final[str] = "bootstrap"
+HANDSHAKE_RESPONSE_TYPE: Final[str] = "bootstrap_result"
 HANDSHAKE_TIMEOUT_SECONDS: Final[float] = 5.0
-MAX_HANDSHAKE_LINE_BYTES: Final[int] = 64
+MAX_HANDSHAKE_LINE_BYTES: Final[int] = 8_192
+DEFAULT_VALIDATION_TIMEOUT_SECONDS: Final[float] = 5.0
+
+
+@dataclass
+class RelayBootstrapRequest:
+    request_id: str | None
+    route_session_id: str | None
+    route_access_token: str | None
+    route_auth_session_id: str | None
+    requested_path: str
+    transport_kind: str
+    client_platform: str | None
+    app_bundle_id: str | None
+
+    @classmethod
+    def from_line(cls, line: bytes) -> "RelayBootstrapRequest":
+        try:
+            payload = json.loads(line.decode("utf-8"))
+        except UnicodeDecodeError as exc:
+            raise BootstrapProtocolError(
+                code="malformed_bootstrap_request",
+                message="The tunnel bootstrap request was not valid UTF-8.",
+            ) from exc
+        except json.JSONDecodeError as exc:
+            raise BootstrapProtocolError(
+                code="malformed_bootstrap_request",
+                message="The tunnel bootstrap request was not valid JSON.",
+            ) from exc
+
+        if not isinstance(payload, dict):
+            raise BootstrapProtocolError(
+                code="malformed_bootstrap_request",
+                message="The tunnel bootstrap request must be a JSON object.",
+            )
+
+        if payload.get("protocol") != HANDSHAKE_PROTOCOL:
+            raise BootstrapProtocolError(
+                code="unsupported_bootstrap_protocol",
+                message=f"The tunnel bootstrap request must declare protocol {HANDSHAKE_PROTOCOL}.",
+            )
+
+        if payload.get("type") != HANDSHAKE_REQUEST_TYPE:
+            raise BootstrapProtocolError(
+                code="unsupported_bootstrap_type",
+                message=f"The tunnel bootstrap request type must be {HANDSHAKE_REQUEST_TYPE}.",
+            )
+
+        return cls(
+            request_id=_optional_string(payload.get("request_id")),
+            route_session_id=_optional_string(payload.get("route_session_id")),
+            route_access_token=_optional_string(payload.get("route_access_token")),
+            route_auth_session_id=_optional_string(payload.get("route_auth_session_id")),
+            requested_path=_string_or_default(payload.get("requested_path"), default="local_routed"),
+            transport_kind=_string_or_default(payload.get("transport_kind"), default="packet_tunnel"),
+            client_platform=_optional_string(payload.get("client_platform")),
+            app_bundle_id=_optional_string(payload.get("app_bundle_id")),
+        )
+
+    @property
+    def safe_summary(self) -> str:
+        return (
+            f"request_id={self.request_id or '<missing>'} "
+            f"route_session_id={self.route_session_id or '<missing>'} "
+            f"route_auth_session_id={self.route_auth_session_id or '<missing>'} "
+            f"requested_path={self.requested_path} transport_kind={self.transport_kind} "
+            f"client_platform={self.client_platform or '<missing>'}"
+        )
+
+    def validation_payload(self) -> dict[str, object]:
+        return {
+            "request_id": self.request_id,
+            "route_session_id": self.route_session_id,
+            "route_access_token": self.route_access_token,
+            "route_auth_session_id": self.route_auth_session_id,
+            "requested_path": self.requested_path,
+            "transport_kind": self.transport_kind,
+            "client_platform": self.client_platform,
+            "app_bundle_id": self.app_bundle_id,
+        }
+
+
+@dataclass
+class RelayValidationResult:
+    status: str
+    code: str
+    message: str
+    request_id: str | None = None
+    session_id: str | None = None
+    user_id: str | None = None
+    auth_session_id: str | None = None
+    route_kind: str | None = None
+    transport_kind: str | None = None
+    control_plane_kind: str | None = None
+    expires_at: str | None = None
+
+    @classmethod
+    def from_payload(cls, payload: object) -> "RelayValidationResult":
+        if not isinstance(payload, dict):
+            raise RelayValidationUnavailableError(
+                code="relay_validation_malformed_response",
+                message="The backend relay validation response was not a JSON object.",
+            )
+
+        status = _string_or_default(payload.get("status"), default="")
+        code = _string_or_default(payload.get("code"), default="")
+        message = _string_or_default(payload.get("message"), default="")
+        if status not in {"accepted", "rejected"} or not code or not message:
+            raise RelayValidationUnavailableError(
+                code="relay_validation_malformed_response",
+                message="The backend relay validation response was missing required fields.",
+            )
+
+        return cls(
+            status=status,
+            code=code,
+            message=message,
+            request_id=_optional_string(payload.get("request_id")),
+            session_id=_optional_string(payload.get("session_id")),
+            user_id=_optional_string(payload.get("user_id")),
+            auth_session_id=_optional_string(payload.get("auth_session_id")),
+            route_kind=_optional_string(payload.get("route_kind")),
+            transport_kind=_optional_string(payload.get("transport_kind")),
+            control_plane_kind=_optional_string(payload.get("control_plane_kind")),
+            expires_at=_optional_string(payload.get("expires_at")),
+        )
+
+
+@dataclass
+class RelayBootstrapResponse:
+    status: str
+    code: str
+    message: str
+    relay_auth_state: str
+    packet_plane_ready: bool
+    forwarding_mode: str = "packet_log_only"
+    forwarding_ready: bool = False
+    request_id: str | None = None
+    session_id: str | None = None
+    user_id: str | None = None
+    auth_session_id: str | None = None
+    expires_at: str | None = None
+    protocol: str = HANDSHAKE_PROTOCOL
+    type: str = HANDSHAKE_RESPONSE_TYPE
+
+    def to_bytes(self) -> bytes:
+        payload = asdict(self)
+        return json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8") + b"\n"
+
+
+class BootstrapProtocolError(Exception):
+    def __init__(self, *, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+class RelayValidationUnavailableError(Exception):
+    def __init__(self, *, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+class BackendRouteRelayValidator:
+    def __init__(
+        self,
+        *,
+        api_origin: str,
+        shared_secret: str,
+        shared_secret_header: str = DEFAULT_ROUTE_RELAY_SECRET_HEADER,
+        timeout_seconds: float = DEFAULT_VALIDATION_TIMEOUT_SECONDS,
+    ) -> None:
+        self.validation_url = urllib.parse.urljoin(api_origin.rstrip("/") + "/", VALIDATION_ENDPOINT_PATH.lstrip("/"))
+        self.shared_secret = shared_secret
+        self.shared_secret_header = shared_secret_header
+        self.timeout_seconds = timeout_seconds
+
+    async def validate(self, request: RelayBootstrapRequest) -> RelayValidationResult:
+        return await asyncio.to_thread(self._validate_sync, request)
+
+    def _validate_sync(self, request: RelayBootstrapRequest) -> RelayValidationResult:
+        encoded_request = json.dumps(request.validation_payload(), separators=(",", ":"), sort_keys=True).encode("utf-8")
+        http_request = urllib.request.Request(
+            self.validation_url,
+            data=encoded_request,
+            method="POST",
+            headers={
+                "Content-Type": "application/json",
+                self.shared_secret_header: self.shared_secret,
+            },
+        )
+
+        try:
+            with urllib.request.urlopen(http_request, timeout=self.timeout_seconds) as response:
+                body = response.read()
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RelayValidationUnavailableError(
+                code="relay_validation_http_error",
+                message=f"Relay validation returned HTTP {exc.code}: {detail[:200]}",
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise RelayValidationUnavailableError(
+                code="relay_validation_unavailable",
+                message=f"Relay validation could not reach the backend: {exc.reason}",
+            ) from exc
+
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RelayValidationUnavailableError(
+                code="relay_validation_malformed_response",
+                message="Relay validation returned a malformed response.",
+            ) from exc
+
+        return RelayValidationResult.from_payload(payload)
 
 
 class AmonTunnelDaemon:
-    def __init__(self, host: str, port: int) -> None:
+    def __init__(self, host: str, port: int, *, validator: BackendRouteRelayValidator) -> None:
         self.host = host
         self.port = port
+        self.validator = validator
         self._shutdown_event = asyncio.Event()
         self._next_client_id = count(1)
         self._client_writers: dict[int, asyncio.StreamWriter] = {}
@@ -105,26 +332,136 @@ class AmonTunnelDaemon:
         try:
             line = await asyncio.wait_for(reader.readuntil(b"\n"), timeout=HANDSHAKE_TIMEOUT_SECONDS)
         except asyncio.TimeoutError:
-            LOGGER.warning("Client %s timed out waiting for handshake", client_id)
+            LOGGER.warning("Client %s timed out waiting for bootstrap handshake", client_id)
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="unavailable",
+                    code="bootstrap_timeout",
+                    message="The relay timed out waiting for the tunnel bootstrap request.",
+                    relay_auth_state="unavailable",
+                    packet_plane_ready=False,
+                ),
+            )
             return False
         except asyncio.LimitOverrunError:
-            discarded = await reader.read(MAX_HANDSHAKE_LINE_BYTES)
-            LOGGER.warning("Client %s sent oversized handshake %r", client_id, discarded)
+            LOGGER.warning("Client %s sent oversized bootstrap handshake", client_id)
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="rejected",
+                    code="malformed_bootstrap_request",
+                    message="The tunnel bootstrap request exceeded the maximum allowed size.",
+                    relay_auth_state="rejected",
+                    packet_plane_ready=False,
+                ),
+            )
             return False
         except asyncio.IncompleteReadError as error:
             received = error.partial.rstrip(b"\r\n")
-            LOGGER.warning("Client %s disconnected during handshake with %r", client_id, received)
+            LOGGER.warning("Client %s disconnected during bootstrap with %r", client_id, received)
             return False
 
-        request = line.rstrip(b"\r\n")
-        if request != HANDSHAKE_REQUEST:
-            LOGGER.warning("Client %s rejected invalid handshake %r", client_id, request)
+        if len(line) > MAX_HANDSHAKE_LINE_BYTES:
+            LOGGER.warning("Client %s sent bootstrap larger than %d bytes", client_id, MAX_HANDSHAKE_LINE_BYTES)
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="rejected",
+                    code="malformed_bootstrap_request",
+                    message="The tunnel bootstrap request exceeded the maximum allowed size.",
+                    relay_auth_state="rejected",
+                    packet_plane_ready=False,
+                ),
+            )
             return False
 
-        writer.write(HANDSHAKE_RESPONSE)
-        await writer.drain()
-        LOGGER.info("Client %s handshake accepted", client_id)
+        request_line = line.rstrip(b"\r\n")
+        try:
+            bootstrap_request = RelayBootstrapRequest.from_line(request_line)
+        except BootstrapProtocolError as exc:
+            LOGGER.warning("Client %s rejected malformed bootstrap: %s", client_id, exc.message)
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="rejected",
+                    code=exc.code,
+                    message=exc.message,
+                    relay_auth_state="rejected",
+                    packet_plane_ready=False,
+                ),
+            )
+            return False
+
+        LOGGER.info("Client %s bootstrap request %s", client_id, bootstrap_request.safe_summary)
+
+        try:
+            validation = await self.validator.validate(bootstrap_request)
+        except RelayValidationUnavailableError as exc:
+            LOGGER.warning("Client %s relay validation unavailable: %s", client_id, exc.message)
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="unavailable",
+                    code=exc.code,
+                    message=exc.message,
+                    relay_auth_state="unavailable",
+                    packet_plane_ready=False,
+                    request_id=bootstrap_request.request_id,
+                ),
+            )
+            return False
+
+        if validation.status != "accepted":
+            LOGGER.warning(
+                "Client %s relay validation rejected code=%s request_id=%s",
+                client_id,
+                validation.code,
+                bootstrap_request.request_id or "<missing>",
+            )
+            await self._send_bootstrap_response(
+                writer,
+                RelayBootstrapResponse(
+                    status="rejected",
+                    code=validation.code,
+                    message=validation.message,
+                    relay_auth_state="rejected",
+                    packet_plane_ready=False,
+                    request_id=validation.request_id,
+                ),
+            )
+            return False
+
+        response = RelayBootstrapResponse(
+            status="accepted",
+            code=validation.code,
+            message=validation.message,
+            relay_auth_state="accepted",
+            packet_plane_ready=True,
+            request_id=validation.request_id,
+            session_id=validation.session_id,
+            user_id=validation.user_id,
+            auth_session_id=validation.auth_session_id,
+            expires_at=validation.expires_at,
+        )
+        await self._send_bootstrap_response(writer, response)
+        LOGGER.info(
+            "Client %s bootstrap accepted session_id=%s auth_session_id=%s user_id=%s forwarding_mode=%s",
+            client_id,
+            validation.session_id or "<missing>",
+            validation.auth_session_id or "<missing>",
+            validation.user_id or "<missing>",
+            response.forwarding_mode,
+        )
         return True
+
+    async def _send_bootstrap_response(
+        self,
+        writer: asyncio.StreamWriter,
+        response: RelayBootstrapResponse,
+    ) -> None:
+        writer.write(response.to_bytes())
+        await writer.drain()
 
     async def _read_packets(self, client_id: int, reader: asyncio.StreamReader) -> None:
         while not self._shutdown_event.is_set():
@@ -219,6 +556,23 @@ def _summarize_ipv6_packet(packet: bytes) -> str:
     )
 
 
+def _optional_string(value: object) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        cleaned = value.strip()
+        return cleaned or None
+    return None
+
+
+def _string_or_default(value: object, *, default: str) -> str:
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if cleaned:
+            return cleaned
+    return default
+
+
 def _format_peer(peer: object) -> str:
     if isinstance(peer, tuple):
         return ":".join(str(part) for part in peer)
@@ -237,6 +591,27 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"Host to bind to. Default: {DEFAULT_HOST}")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to listen on. Default: {DEFAULT_PORT}")
+    parser.add_argument(
+        "--api-origin",
+        default=os.environ.get("AMON_API_ORIGIN", DEFAULT_API_ORIGIN),
+        help=f"Backend origin used for route-session validation. Default: {DEFAULT_API_ORIGIN}",
+    )
+    parser.add_argument(
+        "--relay-shared-secret",
+        default=os.environ.get("ROUTE_RELAY_SHARED_SECRET", DEFAULT_ROUTE_RELAY_SECRET),
+        help="Shared secret presented to the backend relay-validation endpoint.",
+    )
+    parser.add_argument(
+        "--relay-shared-secret-header",
+        default=DEFAULT_ROUTE_RELAY_SECRET_HEADER,
+        help=f"Header used for relay validation auth. Default: {DEFAULT_ROUTE_RELAY_SECRET_HEADER}",
+    )
+    parser.add_argument(
+        "--validation-timeout-seconds",
+        type=float,
+        default=DEFAULT_VALIDATION_TIMEOUT_SECONDS,
+        help=f"Timeout for backend relay validation requests. Default: {DEFAULT_VALIDATION_TIMEOUT_SECONDS}",
+    )
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging.")
     return parser.parse_args()
 
@@ -252,7 +627,13 @@ async def _async_main() -> int:
     args = parse_args()
     configure_logging(args.verbose)
 
-    daemon = AmonTunnelDaemon(host=args.host, port=args.port)
+    validator = BackendRouteRelayValidator(
+        api_origin=args.api_origin,
+        shared_secret=args.relay_shared_secret,
+        shared_secret_header=args.relay_shared_secret_header,
+        timeout_seconds=args.validation_timeout_seconds,
+    )
+    daemon = AmonTunnelDaemon(host=args.host, port=args.port, validator=validator)
     await daemon.run()
     return 0
 

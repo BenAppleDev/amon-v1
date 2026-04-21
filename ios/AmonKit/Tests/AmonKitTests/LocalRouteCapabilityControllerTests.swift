@@ -10,7 +10,8 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         await controller.refresh(
             isAuthenticated: false,
             settings: .init(),
-            tunnelStatus: .disconnected
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
         )
 
         XCTAssertEqual(controller.capability.state, .disconnected)
@@ -25,13 +26,16 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         await controller.refresh(
             isAuthenticated: true,
             settings: configuredSettings(),
-            tunnelStatus: .disconnected
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
         )
 
         XCTAssertEqual(apiClient.mintRouteSessionCallCount, 1)
         XCTAssertEqual(controller.capability.state, .disconnected)
         XCTAssertEqual(controller.capability.reason, .tunnelDisconnected)
+        XCTAssertEqual(controller.capability.readinessState, .routeSessionAcquired)
         XCTAssertEqual(controller.capability.routeSessionStatus, .active)
+        XCTAssertEqual(controller.capability.relayStatus.state, .notStarted)
         XCTAssertNotNil(controller.routeSessionForTunnel())
     }
 
@@ -42,12 +46,16 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         await controller.refresh(
             isAuthenticated: true,
             settings: configuredSettings(),
-            tunnelStatus: TransportTunnelStatusSnapshot(state: .connecting)
+            tunnelStatus: TransportTunnelStatusSnapshot(state: .connecting),
+            relayStatus: LocalRouteRelayStatusSnapshot(state: .pending)
         )
         XCTAssertEqual(controller.capability.state, .connecting)
+        XCTAssertEqual(controller.capability.readinessState, .relayAuthPending)
 
+        controller.updateRelayStatus(LocalRouteRelayStatusSnapshot(state: .accepted))
         controller.updateTunnelStatus(TransportTunnelStatusSnapshot(state: .connected))
         XCTAssertEqual(controller.capability.state, .connected)
+        XCTAssertEqual(controller.capability.readinessState, .relayAuthAccepted)
         XCTAssertTrue(controller.capability.canRemainLocalRouted)
     }
 
@@ -65,7 +73,8 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         await controller.refresh(
             isAuthenticated: true,
             settings: configuredSettings(),
-            tunnelStatus: .disconnected
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
         )
 
         XCTAssertEqual(controller.capability.state, .unavailable)
@@ -81,18 +90,41 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         await controller.refresh(
             isAuthenticated: true,
             settings: configuredSettings(),
-            tunnelStatus: .disconnected
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
         )
 
         await controller.refresh(
             isAuthenticated: true,
             settings: configuredSettings(),
-            tunnelStatus: .disconnected
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
         )
 
         XCTAssertEqual(apiClient.mintRouteSessionCallCount, 1)
         XCTAssertEqual(apiClient.refreshRouteSessionCallCount, 1)
         XCTAssertEqual(controller.capability.routeSessionStatus, .active)
+    }
+
+    func testRefreshReportsRelayRejectionEvenWhenTunnelIsConnected() async {
+        let apiClient = LocalRouteCapabilityMockAPIClient()
+        let controller = LocalRouteCapabilityController(apiClient: apiClient)
+
+        await controller.refresh(
+            isAuthenticated: true,
+            settings: configuredSettings(),
+            tunnelStatus: TransportTunnelStatusSnapshot(state: .connected),
+            relayStatus: LocalRouteRelayStatusSnapshot(
+                state: .rejected,
+                code: "route_session_expired",
+                detail: "The relay rejected the routed-local session because it expired."
+            )
+        )
+
+        XCTAssertEqual(controller.capability.state, .degraded)
+        XCTAssertEqual(controller.capability.readinessState, .relayAuthRejected)
+        XCTAssertEqual(controller.capability.reason, .routeSessionExpired)
+        XCTAssertFalse(controller.capability.canRemainLocalRouted)
     }
 
     private func configuredSettings() -> TransportPrivacySettings {

@@ -1,99 +1,104 @@
 const modeCards = [
   {
     id: "local",
+    eyebrow: "Live",
     name: "Local",
-    kicker: "Fast",
-    title: "Live browsing through Amon",
-    path: "You → Amon → Site",
-    body: "Open the real site in-app while the request runs through Amon’s privacy route.",
-    bestFor: "Normal browsing",
-    tone: "lime"
+    title: "Open the real site through Amon.",
+    body: "Amon keeps the privacy route in the path while the site opens live in-app.",
+    route: "You → Amon privacy route → Site",
+    bestFor: "Normal browsing"
   },
   {
     id: "clean",
+    eyebrow: "Text",
     name: "Clean View",
-    kicker: "Cleaner",
-    title: "Information without the site visit",
-    path: "You → Amon → Clean page",
-    body: "Amon fetches the page, removes clutter, and presents the information directly.",
-    bestFor: "Reading and research",
-    tone: "lime"
+    title: "Extract the information.",
+    body: "Amon fetches the page and returns readable text when you mainly need the content.",
+    route: "You → Amon fetch → Extracted text",
+    bestFor: "Reading and research"
   },
   {
     id: "protected",
+    eyebrow: "Remote",
     name: "Protected Session",
-    kicker: "Most mediated",
-    title: "Fully mediated interaction",
-    path: "You → Amon → Remote session → Site",
-    body: "Amon runs the session remotely so the destination site does not interact with your device.",
-    bestFor: "Dynamic or sensitive tasks",
-    tone: "red"
+    title: "Remote into the real site.",
+    body: "Amon opens the site from an Amon-controlled machine and you interact through that session.",
+    route: "You → Amon machine → Site",
+    bestFor: "Dynamic or sensitive tasks"
   }
 ];
 
-function ModeScene({ id }) {
-  if (id === "clean") {
-    return (
-      <svg className="mode-scene" viewBox="0 0 320 170" role="img" aria-label="Clean View request path">
-        <rect x="8" y="48" width="74" height="72" rx="18" fill="rgba(255,255,255,0.035)" stroke="rgba(255,255,255,0.12)" />
-        <text x="45" y="88" textAnchor="middle" className="diagram-svg-mini">You</text>
-
-        <path d="M86 84 H132" stroke="rgba(255,255,255,0.28)" strokeWidth="2" />
-
-        <rect x="136" y="36" width="84" height="96" rx="22" fill="rgba(198,255,97,0.08)" stroke="rgba(198,255,97,0.36)" />
-        <text x="178" y="78" textAnchor="middle" className="diagram-svg-mini">Amon</text>
-        <text x="178" y="100" textAnchor="middle" className="diagram-svg-micro">fetches</text>
-
-        <path d="M222 84 H264" stroke="rgba(198,255,97,0.5)" strokeWidth="2" />
-
-        <rect x="242" y="38" width="66" height="72" rx="14" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.08)" opacity="0.55" />
-        <rect x="252" y="58" width="88" height="96" rx="18" fill="rgba(198,255,97,0.1)" stroke="rgba(198,255,97,0.36)" />
-        <rect x="270" y="82" width="50" height="7" rx="3.5" fill="rgba(244,239,232,0.7)" />
-        <rect x="270" y="102" width="62" height="6" rx="3" fill="rgba(244,239,232,0.28)" />
-        <rect x="270" y="118" width="44" height="6" rx="3" fill="rgba(244,239,232,0.2)" />
-      </svg>
-    );
-  }
-
-  if (id === "protected") {
-    return (
-      <svg className="mode-scene" viewBox="0 0 320 170" role="img" aria-label="Protected Session request path">
-        <rect x="2" y="48" width="62" height="72" rx="18" fill="rgba(255,255,255,0.035)" stroke="rgba(255,255,255,0.12)" />
-        <text x="33" y="88" textAnchor="middle" className="diagram-svg-mini">You</text>
-
-        <path d="M66 84 H104" stroke="rgba(255,255,255,0.28)" strokeWidth="2" />
-
-        <rect x="108" y="42" width="70" height="84" rx="20" fill="rgba(255,94,79,0.08)" stroke="rgba(255,94,79,0.34)" />
-        <text x="143" y="80" textAnchor="middle" className="diagram-svg-mini">Amon</text>
-
-        <path d="M180 84 H212" stroke="rgba(255,94,79,0.52)" strokeWidth="2" />
-
-        <rect x="216" y="34" width="78" height="100" rx="18" fill="rgba(255,94,79,0.08)" stroke="rgba(255,94,79,0.34)" />
-        <text x="255" y="72" textAnchor="middle" className="diagram-svg-mini">Remote</text>
-        <rect x="238" y="92" width="34" height="20" rx="5" fill="rgba(255,255,255,0.06)" />
-
-        <path d="M294 84 H314" stroke="rgba(255,94,79,0.42)" strokeWidth="2" />
-      </svg>
-    );
-  }
-
+function PhoneMini() {
   return (
-    <svg className="mode-scene" viewBox="0 0 320 170" role="img" aria-label="Local request path">
-      <rect x="10" y="48" width="74" height="72" rx="18" fill="rgba(255,255,255,0.035)" stroke="rgba(255,255,255,0.12)" />
-      <text x="47" y="88" textAnchor="middle" className="diagram-svg-mini">You</text>
+    <div className="mini-phone">
+      <div />
+      <span />
+      <span className="short" />
+    </div>
+  );
+}
 
-      <path d="M88 84 H132" stroke="rgba(255,255,255,0.28)" strokeWidth="2" />
+function AmonMini() {
+  return (
+    <div className="mini-amon">
+      <strong>A</strong>
+      <span />
+      <span />
+    </div>
+  );
+}
 
-      <rect x="136" y="42" width="84" height="84" rx="22" fill="rgba(198,255,97,0.07)" stroke="rgba(198,255,97,0.28)" />
-      <text x="178" y="80" textAnchor="middle" className="diagram-svg-mini">Amon</text>
-      <text x="178" y="100" textAnchor="middle" className="diagram-svg-micro">route</text>
+function SiteMini() {
+  return (
+    <div className="mini-site">
+      <div className="mini-chrome">
+        <i />
+        <i />
+        <i />
+      </div>
+      <span />
+      <span className="short" />
+    </div>
+  );
+}
 
-      <path d="M224 84 H262" stroke="rgba(198,255,97,0.42)" strokeWidth="2" />
+function TextMini() {
+  return (
+    <div className="mini-text-extract">
+      <div className="mini-source-shadow" />
+      <div className="mini-document">
+        <span />
+        <span />
+        <span className="short" />
+      </div>
+    </div>
+  );
+}
 
-      <rect x="266" y="46" width="88" height="78" rx="16" fill="rgba(255,255,255,0.035)" stroke="rgba(255,255,255,0.12)" />
-      <rect x="282" y="68" width="52" height="8" rx="4" fill="rgba(244,239,232,0.5)" />
-      <rect x="282" y="90" width="38" height="6" rx="3" fill="rgba(244,239,232,0.2)" />
-    </svg>
+function RemoteMini() {
+  return (
+    <div className="mini-remote">
+      <div className="mini-server">
+        <span />
+        <span />
+      </div>
+      <div className="mini-remote-screen">
+        <i />
+        <span />
+      </div>
+    </div>
+  );
+}
+
+function ModeScene({ id }) {
+  return (
+    <div className={`mode-scene-object mode-scene-object-${id}`} aria-hidden="true">
+      <PhoneMini />
+      <div className="scene-arrow" />
+      <AmonMini />
+      <div className="scene-arrow" />
+      {id === "clean" ? <TextMini /> : id === "protected" ? <RemoteMini /> : <SiteMini />}
+    </div>
   );
 }
 
@@ -103,7 +108,7 @@ export function ModeComparisonDiagram() {
       {modeCards.map((mode) => (
         <article className={`mode-card mode-card-${mode.id}`} key={mode.id}>
           <div className="mode-card-top">
-            <span>{mode.kicker}</span>
+            <span>{mode.eyebrow}</span>
             <strong>{mode.name}</strong>
           </div>
 
@@ -114,7 +119,7 @@ export function ModeComparisonDiagram() {
             <p>{mode.body}</p>
           </div>
 
-          <div className="mode-card-path">{mode.path}</div>
+          <div className="mode-card-path">{mode.route}</div>
 
           <div className="mode-card-best">
             <span>Best for</span>

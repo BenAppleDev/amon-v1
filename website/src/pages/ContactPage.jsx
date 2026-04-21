@@ -13,7 +13,7 @@ export function ContactPage() {
       <PageHero
         eyebrow="Contact / Waitlist"
         title="Request access."
-        lede="Amon is launching with controlled access while we refine the product, privacy model, and supported workflows."
+        lede="Amon is launching with controlled access while we refine supported workflows, request handling, and policy boundaries."
       />
 
       <section className="page-section contact-section">

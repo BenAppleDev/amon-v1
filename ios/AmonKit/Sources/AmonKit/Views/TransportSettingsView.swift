@@ -100,6 +100,14 @@ public struct TransportSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                Text("Route readiness: \(capability.readinessState.title)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
+                Text("Relay auth: \(capability.relayStatus.state.title)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
                 HStack(spacing: 10) {
                     Button {
                         connectAction()

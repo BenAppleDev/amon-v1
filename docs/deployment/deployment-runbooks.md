@@ -116,6 +116,76 @@ Use this when running everything on your machine.
    - `http://127.0.0.1:8000/ops/`
    - `python ../tools/deployment/track2_smoke.py --api-origin http://127.0.0.1:8000 --ops-origin http://127.0.0.1:8000 --ops-route-mode path-prefix`
 
+## Routed-Local Preflight
+
+Use this when you want to validate the routed-local auth/bootstrap seam before live forwarding.
+
+### Backend expectations
+
+- `ROUTE_RELAY_SHARED_SECRET`
+  - local/test default: `amon-route-relay-dev`
+  - non-local: set explicitly before exposing the internal relay-validation path
+- internal relay validator path:
+  - `POST /internal/route-sessions/validate`
+  - header: `X-Amon-Route-Relay-Secret`
+
+### Daemon expectations
+
+Run the laptop daemon with:
+
+```bash
+python3 /Users/ben/amon-v1/tools/tunnel/amon_tunnel_daemon.py \
+  --host 0.0.0.0 \
+  --port 9443 \
+  --api-origin http://127.0.0.1:8000 \
+  --relay-shared-secret amon-route-relay-dev
+```
+
+### Smoke flow
+
+1. Start the backend.
+2. Mint a dev auth session and a route session.
+3. Start the daemon.
+4. Run:
+
+```bash
+python3 /Users/ben/amon-v1/tools/tunnel/route_handshake_smoke.py \
+  --host 127.0.0.1 \
+  --port 9443 \
+  --route-session-id route_... \
+  --route-access-token ... \
+  --route-auth-session-id session_...
+```
+
+### Expected success signals
+
+- backend returns `status = accepted` with `code = route_session_valid`
+- daemon logs `bootstrap accepted`
+- smoke output includes:
+  - `status = accepted`
+  - `relay_auth_state = accepted`
+  - `packet_plane_ready = true`
+  - `forwarding_mode = packet_log_only`
+
+### Expected failure signals
+
+- missing token:
+  - `route_session_missing_token`
+- malformed token:
+  - `route_session_malformed_token`
+- expired token:
+  - `route_session_expired`
+- revoked token:
+  - `route_session_revoked`
+- mismatched route/auth session:
+  - `route_session_context_mismatch`
+- auth session no longer valid:
+  - `route_auth_session_invalid`
+- backend unavailable:
+  - `relay_validation_unavailable`
+- malformed backend response:
+  - `relay_validation_malformed_response`
+
 ## Staging-Like Checklist
 
 Use this before a real internet-facing deployment.

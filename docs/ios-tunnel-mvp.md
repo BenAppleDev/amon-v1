@@ -23,24 +23,51 @@ The FastAPI backend remains separate. This tunnel code does not replace or absor
 
 ## Current protocol between the iPhone extension and the laptop endpoint
 
-This MVP uses a simple development protocol so the iPhone-side integration is concrete.
+This stage now uses an authenticated bootstrap protocol so the iPhone-side integration reaches the relay-auth boundary.
 
 1. The extension opens a TCP connection to the configured laptop host and port.
-2. The extension sends:
+2. The extension sends one newline-delimited JSON bootstrap request:
 
-```text
-AMON/1
+```json
+{
+  "protocol": "AMON/2",
+  "type": "bootstrap",
+  "request_id": "...",
+  "route_session_id": "route_...",
+  "route_access_token": "...",
+  "route_auth_session_id": "session_...",
+  "requested_path": "local_routed",
+  "transport_kind": "packet_tunnel",
+  "client_platform": "ios",
+  "app_bundle_id": "com.benappledev.Amon"
+}
 ```
 
-3. The laptop endpoint must reply:
+3. The laptop endpoint validates the route session against the backend control plane at `POST /internal/route-sessions/validate`.
+4. The laptop endpoint replies with one newline-delimited JSON bootstrap result:
 
-```text
-AMON/1 OK
+```json
+{
+  "protocol": "AMON/2",
+  "type": "bootstrap_result",
+  "status": "accepted",
+  "code": "route_session_valid",
+  "message": "The routed-local session is valid for relay bootstrap.",
+  "relay_auth_state": "accepted",
+  "packet_plane_ready": true,
+  "forwarding_mode": "packet_log_only",
+  "forwarding_ready": false
+}
 ```
 
-4. After the handshake, packets are exchanged as:
+5. After an `accepted` bootstrap result, packets are exchanged as:
    - 2-byte big-endian packet length
    - raw IP packet bytes
+
+Rejection and availability failures use the same response envelope with:
+
+- `status = rejected` for auth/context failures such as expired, revoked, malformed, or mismatched route sessions
+- `status = unavailable` for backend/validation-path failures such as the control plane being offline or returning malformed data
 
 The extension currently installs:
 
@@ -60,10 +87,12 @@ The laptop needs a separate tunnel endpoint service. It is not part of the FastA
 For this MVP, that service must:
 
 1. Listen on the configured TCP port, for example `9443`
-2. Accept the `AMON/1` handshake and reply with `AMON/1 OK`
-3. Read the length-prefixed packet frames
-4. Log packet summaries safely
-5. Stay running while the device tunnel is connected
+2. Accept the `AMON/2` bootstrap request
+3. Validate the presented route session against the backend control/auth path
+4. Return `accepted`, `rejected`, or `unavailable` bootstrap results
+5. Read the length-prefixed packet frames after acceptance
+6. Log packet summaries safely
+7. Stay running while the device tunnel is connected
 
 The repo now includes a stage-1 daemon in `tools/tunnel/amon_tunnel_daemon.py` for this purpose. It is still separate from Amon's backend and it still does not provide real internet forwarding.
 
@@ -72,8 +101,8 @@ The repo now includes a stage-1 daemon in `tools/tunnel/amon_tunnel_daemon.py` f
 Keep the services separate on the laptop:
 
 - FastAPI backend: for auth, search, retrieval, compare, research
-- FastAPI backend: also now issues short-lived routed-local route sessions for control/auth only
-- Tunnel endpoint: for encrypted transport only
+- FastAPI backend: now issues short-lived routed-local route sessions and validates them for relay bootstrap
+- Tunnel endpoint: for routed-local bootstrap and packet carriage only
 
 Recommended local split:
 
@@ -126,7 +155,10 @@ uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
 2. Start the separate laptop tunnel endpoint on another port, such as `9443`:
 
 ```bash
-python3 tools/tunnel/amon_tunnel_daemon.py --port 9443
+python3 tools/tunnel/amon_tunnel_daemon.py \
+  --port 9443 \
+  --api-origin http://127.0.0.1:8000 \
+  --relay-shared-secret amon-route-relay-dev
 ```
 3. Install the iOS app on a physical iPhone signed with the same Apple team as the extension
 4. In Amon Settings > Amon Tunnel:
@@ -143,7 +175,8 @@ python3 tools/tunnel/amon_tunnel_daemon.py --port 9443
 
 - This is not a production VPN service
 - There is no kill switch
-- The backend now exposes a routed-local route-session control plane, but the tunnel endpoint does not validate or consume that credential yet
-- There is no relay fleet or server-side control plane
-- The repo now includes only a stage-1 laptop endpoint for handshake and packet logging
-- The current protocol is development-oriented, not hardened
+- The backend now exposes the route-session mint/refresh/revoke surface and an internal relay-validation endpoint, but this still stops at the auth/bootstrap boundary
+- There is no full forwarding relay or real internet carriage
+- There is no DNS privacy path yet
+- The repo still includes only a stage-2 laptop endpoint for relay auth and packet logging
+- `forwarding_mode` is currently `packet_log_only`, so live traffic forwarding is still intentionally unimplemented

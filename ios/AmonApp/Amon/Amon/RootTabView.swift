@@ -107,7 +107,8 @@ struct RootTabView: View {
             await localRouteController.refresh(
                 isAuthenticated: searchViewModel.isAuthenticated,
                 settings: transportSettingsStore.settings,
-                tunnelStatus: tunnelManager.statusSnapshot
+                tunnelStatus: tunnelManager.statusSnapshot,
+                relayStatus: tunnelManager.routeRelayStatus
             )
             await BrowserPrivacyController.clearWebsiteDataIfNeededOnLaunch(using: privacySettingsStore.settings)
             hasCompletedInitialSessionRestore = true
@@ -137,12 +138,16 @@ struct RootTabView: View {
                 await localRouteController.refresh(
                     isAuthenticated: searchViewModel.isAuthenticated,
                     settings: newValue,
-                    tunnelStatus: tunnelManager.statusSnapshot
+                    tunnelStatus: tunnelManager.statusSnapshot,
+                    relayStatus: tunnelManager.routeRelayStatus
                 )
             }
         }
         .onChange(of: tunnelManager.statusSnapshot) { _, newValue in
             localRouteController.updateTunnelStatus(newValue)
+        }
+        .onChange(of: tunnelManager.routeRelayStatus) { _, newValue in
+            localRouteController.updateRelayStatus(newValue)
         }
         .onChange(of: searchViewModel.isAuthenticated) { oldValue, newValue in
             guard hasCompletedInitialSessionRestore else { return }
@@ -160,7 +165,8 @@ struct RootTabView: View {
                     await localRouteController.refresh(
                         isAuthenticated: false,
                         settings: transportSettingsStore.settings,
-                        tunnelStatus: tunnelManager.statusSnapshot
+                        tunnelStatus: tunnelManager.statusSnapshot,
+                        relayStatus: tunnelManager.routeRelayStatus
                     )
                 }
             }
@@ -179,7 +185,8 @@ struct RootTabView: View {
                         let routeSession = await localRouteController.prepareForTunnelConnection(
                             isAuthenticated: searchViewModel.isAuthenticated,
                             settings: transportSettingsStore.settings,
-                            tunnelStatus: tunnelManager.statusSnapshot
+                            tunnelStatus: tunnelManager.statusSnapshot,
+                            relayStatus: tunnelManager.routeRelayStatus
                         )
                         await tunnelManager.connect(
                             using: transportSettingsStore.settings,
@@ -204,7 +211,8 @@ struct RootTabView: View {
                         let routeSession = await localRouteController.prepareForTunnelConnection(
                             isAuthenticated: searchViewModel.isAuthenticated,
                             settings: transportSettingsStore.settings,
-                            tunnelStatus: tunnelManager.statusSnapshot
+                            tunnelStatus: tunnelManager.statusSnapshot,
+                            relayStatus: tunnelManager.routeRelayStatus
                         )
                         await tunnelManager.connect(
                             using: transportSettingsStore.settings,
@@ -226,7 +234,8 @@ struct RootTabView: View {
         await localRouteController.refresh(
             isAuthenticated: searchViewModel.isAuthenticated,
             settings: settings,
-            tunnelStatus: tunnelManager.statusSnapshot
+            tunnelStatus: tunnelManager.statusSnapshot,
+            relayStatus: tunnelManager.routeRelayStatus
         )
 
         guard settings.endpoint.isConfigured else {
@@ -247,7 +256,8 @@ struct RootTabView: View {
             let routeSession = await localRouteController.prepareForTunnelConnection(
                 isAuthenticated: searchViewModel.isAuthenticated,
                 settings: settings,
-                tunnelStatus: tunnelManager.statusSnapshot
+                tunnelStatus: tunnelManager.statusSnapshot,
+                relayStatus: tunnelManager.routeRelayStatus
             )
             await tunnelManager.connect(using: settings, routeSession: routeSession)
         } else if tunnelManager.statusSnapshot.state == .disconnected {

@@ -32,16 +32,16 @@ export function AboutPage() {
       <section className="page-section">
         <div className="frame comparison-grid comparison-grid-equal">
           <Reveal className="comparison-panel">
-            <h3>What that does to inquiry</h3>
+            <h3>The default stack</h3>
             <p>
-              The default internet stack collapses search, browsing, comparison, and saved work into one visible behavioral record. That is useful for systems that predict people. It is not always good for the person trying to think clearly.
+              Search, browsing, comparison, and saved work often collapse into one visible behavioral record. That is useful for systems that predict people. It is not always good for the person trying to think clearly.
             </p>
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
             <h3>What Amon changes</h3>
             <p>
-              Amon routes requests through its own privacy layer, then handles them locally, cleanly, or through a protected session. The goal is not perfect invisibility. The goal is to stop one system from seeing the whole path from question to page to saved work.
+              Amon routes requests through a privacy layer, lets users choose how pages are handled, and keeps saved work local. The goal is not perfect invisibility. The goal is to stop one system from seeing the whole path.
             </p>
           </Reveal>
         </div>
@@ -52,14 +52,14 @@ export function AboutPage() {
           <Reveal className="comparison-panel comparison-panel-muted">
             <h3>For normal decisions</h3>
             <p>
-              Amon is not just for edge cases. It is for moving, jobs, purchases, personal research, and the everyday questions that become decisions. These moments are ordinary. They are also highly revealing.
+              Amon is not just for edge cases. It is for moving, jobs, purchases, personal research, and the everyday questions that become decisions.
             </p>
           </Reveal>
 
           <Reveal className="comparison-panel" delay={100}>
             <h3>What Amon is for</h3>
             <p>
-              Amon gives people a place to search, browse, compare, and decide with stronger boundaries: requests move through different privacy paths, and what you choose to keep stays with you locally.
+              Amon gives people a place to use the web through different privacy paths: live browsing, text extraction, protected remote sessions, and local saved work.
             </p>
           </Reveal>
         </div>

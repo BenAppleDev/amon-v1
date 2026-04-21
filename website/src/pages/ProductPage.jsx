@@ -4,24 +4,24 @@ import { PageHero } from "../components/PageHero";
 import { RequestFlowDiagram } from "../components/RequestFlowDiagram";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { modeDeepDives } from "../content/site";
+import { modeDeepDives, policyBoundaries } from "../content/site";
 
 export function ProductPage() {
   return (
     <>
       <Seo
         title="Product"
-        description="How Amon routes requests through Local, Clean View, Protected Session, and Workspace."
+        description="How Amon handles requests through live browsing, text extraction, protected remote sessions, and local workspace ownership."
       />
 
       <PageHero
         eyebrow="Product"
-        title="How Amon handles requests."
-        lede="Every request goes through Amon’s privacy layer. What changes is how it is handled: locally through the privacy route, cleanly as retrieved information, or through a protected remote session."
+        title="How Amon handles the web."
+        lede="Every request uses Amon’s privacy route. From there, the user can choose live browsing, text extraction, or remote-in browsing from an Amon-controlled machine."
         aside={
           <>
-            <span className="note-kicker">Privacy paths</span>
-            <p>Local → Clean View → Protected Session → Workspace</p>
+            <span className="note-kicker">Core model</span>
+            <p>Privacy route → live, text, or remote → local workspace</p>
           </>
         }
       />
@@ -34,16 +34,16 @@ export function ProductPage() {
 
           <div className="stack">
             <Reveal className="comparison-panel">
-              <h3>Same entry point. Different handling.</h3>
+              <h3>Not a linear flow.</h3>
               <p>
-                Amon looks like a normal search and browsing app, but it does not treat every request the same. The system can recommend the right path based on what the task needs.
+                Local, Clean View, and Protected Session are not steps. They are choices for how to handle a page after the request enters Amon.
               </p>
             </Reveal>
 
             <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
               <h3>The system recommends. You choose.</h3>
               <p>
-                Clean View is the default for reading and research. Protected Session is available when the real site is needed. Local browsing still runs through Amon’s privacy route.
+                Amon can recommend text extraction or protected remote browsing when a site needs it, but the user stays in control of the path.
               </p>
             </Reveal>
           </div>
@@ -53,10 +53,10 @@ export function ProductPage() {
       <section className="page-section">
         <div className="frame">
           <Reveal className="section-heading">
-            <span className="eyebrow">Modes</span>
-            <h2>One request. Three privacy paths.</h2>
+            <span className="eyebrow">Request paths</span>
+            <h2>Use the site live, extract the text, or remote in.</h2>
             <p>
-              Each path changes what happens between you, Amon, and the web.
+              The privacy route is the baseline. The handling path depends on what the task needs.
             </p>
           </Reveal>
 
@@ -92,6 +92,31 @@ export function ProductPage() {
       ))}
 
       <section className="page-section">
+        <div className="frame">
+          <Reveal className="section-heading">
+            <span className="eyebrow">Policy</span>
+            <h2>Privacy without an unlimited free-for-all.</h2>
+            <p>
+              Amon is designed to protect ordinary inquiry while keeping mediated access bounded, governed, and safe.
+            </p>
+          </Reveal>
+
+          <div className="policy-grid">
+            {policyBoundaries.map((item, index) => (
+              <Reveal
+                key={item.title}
+                className={`comparison-panel${index % 2 === 1 ? " comparison-panel-muted" : ""}`}
+                delay={index * 70}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
         <div className="frame comparison-grid comparison-grid-equal">
           <Reveal className="comparison-panel">
             <h3>Built for decisions, not surveillance</h3>
@@ -103,7 +128,7 @@ export function ProductPage() {
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
             <h3>Not every workflow is in scope</h3>
             <p>
-              Amon works best for public-web inquiry, comparison, research, and decision-making. Logging into third-party accounts, completing identity-based workflows, or using personal services can reveal identity to those services.
+              Amon works best for public-web inquiry, comparison, research, and decision-making. Logging into third-party accounts or completing identity-based workflows can reveal identity to those services.
             </p>
           </Reveal>
         </div>
