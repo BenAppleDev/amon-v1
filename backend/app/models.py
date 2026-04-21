@@ -24,6 +24,10 @@ class User(TimestampMixin, Base):
     auth_identities: Mapped[list['AuthIdentity']] = relationship(back_populates='user', cascade='all, delete-orphan')
     entitlements: Mapped[list['Entitlement']] = relationship(back_populates='user', cascade='all, delete-orphan')
     sessions: Mapped[list['SessionRecord']] = relationship(back_populates='user', cascade='all, delete-orphan')
+    product_sessions: Mapped[list['ProductSessionRecord']] = relationship(
+        back_populates='account',
+        cascade='all, delete-orphan',
+    )
     rate_limits: Mapped[list['RateLimitWindow']] = relationship(back_populates='user', cascade='all, delete-orphan')
 
 
@@ -50,6 +54,10 @@ class Entitlement(TimestampMixin, Base):
     ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped['User'] = relationship(back_populates='entitlements')
+    product_sessions: Mapped[list['ProductSessionRecord']] = relationship(
+        back_populates='entitlement',
+        cascade='all, delete-orphan',
+    )
 
 
 class SessionRecord(Base):
@@ -62,6 +70,35 @@ class SessionRecord(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped['User'] = relationship(back_populates='sessions')
+    product_sessions: Mapped[list['ProductSessionRecord']] = relationship(
+        back_populates='auth_session',
+        cascade='all, delete-orphan',
+    )
+
+
+class ProductSessionRecord(Base):
+    __tablename__ = 'product_sessions'
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    account_id: Mapped[str] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    auth_session_id: Mapped[str] = mapped_column(
+        ForeignKey('sessions.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    entitlement_id: Mapped[str] = mapped_column(
+        ForeignKey('entitlements.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+    account: Mapped['User'] = relationship(back_populates='product_sessions')
+    auth_session: Mapped['SessionRecord'] = relationship(back_populates='product_sessions')
+    entitlement: Mapped['Entitlement'] = relationship(back_populates='product_sessions')
 
 
 class RouteSessionRecord(Base):

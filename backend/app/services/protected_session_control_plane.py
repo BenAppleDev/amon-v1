@@ -25,7 +25,7 @@ from app.schemas import (
     ProtectedSessionWorkerView,
     ServeDecisionResponse,
 )
-from app.security import CurrentUser, create_record_id, utcnow
+from app.security import CurrentAccessContext, create_record_id, utcnow
 from app.services.protected_session_events import ProtectedSessionEventSink
 from app.services.protected_session_ops_history import ProtectedSessionOpsHistoryStore
 from app.services.protected_session_policy import ProtectedSessionPolicyEngine, ServeDecision, normalize_host
@@ -78,7 +78,7 @@ class ProtectedSessionControlPlane:
     async def decide_url_open(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         url: str,
         intent: str = 'open',
     ) -> ServeDecisionResponse:
@@ -86,7 +86,7 @@ class ProtectedSessionControlPlane:
         self._record_decision_event(current=current, decision=decision, domain=self._domain_for(url))
         return self._decision_response(decision)
 
-    async def create_session(self, *, current: CurrentUser, url: str) -> ProtectedSessionState:
+    async def create_session(self, *, current: CurrentAccessContext, url: str) -> ProtectedSessionState:
         decision = self.policy_engine.decide_url_open(url, intent='protected_session', current_user=current)
         domain = self._domain_for(url)
         self._record_decision_event(current=current, decision=decision, domain=domain)
@@ -179,7 +179,7 @@ class ProtectedSessionControlPlane:
             self._capture_history_snapshot_if_due(force=True)
             raise
 
-    async def get_state(self, *, current: CurrentUser, session_id: str) -> ProtectedSessionState:
+    async def get_state(self, *, current: CurrentAccessContext, session_id: str) -> ProtectedSessionState:
         self._assert_session_owned_by_user(session_id=session_id, user_id=current.user.id)
         state = await self.manager.get_state(user_id=current.user.id, session_id=session_id)
         self.registry.mark_state(session_id, state=state.status)
@@ -189,7 +189,7 @@ class ProtectedSessionControlPlane:
     async def apply_action(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         action: ProtectedSessionActionRequest,
         expected_content_revision: int | None = None,
@@ -226,7 +226,7 @@ class ProtectedSessionControlPlane:
         self._capture_history_snapshot_if_due()
         return state
 
-    async def end_session(self, *, current: CurrentUser, session_id: str) -> ProtectedSessionEndResponse:
+    async def end_session(self, *, current: CurrentAccessContext, session_id: str) -> ProtectedSessionEndResponse:
         self._assert_session_owned_by_user(session_id=session_id, user_id=current.user.id)
         self.registry.mark_state(session_id, state='terminating')
         result = await self.manager.end_session(user_id=current.user.id, session_id=session_id)
@@ -236,7 +236,7 @@ class ProtectedSessionControlPlane:
     async def subscribe_stream(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         last_stream_sequence: int | None = None,
     ):
@@ -323,7 +323,7 @@ class ProtectedSessionControlPlane:
     async def note_stream_detached(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         reason_code: str = 'stream_detached',
         heartbeat_timeout: bool = False,
@@ -366,7 +366,7 @@ class ProtectedSessionControlPlane:
     async def note_stream_dropped_events(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         count: int,
     ) -> None:
@@ -390,7 +390,7 @@ class ProtectedSessionControlPlane:
     async def note_stream_protocol_error(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         code: str,
     ) -> None:
@@ -414,7 +414,7 @@ class ProtectedSessionControlPlane:
     async def note_stream_action_ack(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         status: str,
         reason_code: str | None = None,
@@ -437,7 +437,7 @@ class ProtectedSessionControlPlane:
     async def note_stream_action_result(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         status: str,
         duration_ms: int,
@@ -726,7 +726,7 @@ class ProtectedSessionControlPlane:
     def _enforce_session_start_quotas(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         domain: str,
         decision: ServeDecision,
         quota: dict[str, int | str],
@@ -767,7 +767,7 @@ class ProtectedSessionControlPlane:
                 'Too many protected session starts were requested recently for this account.',
             )
 
-    def _enforce_live_stream_limits(self, *, current: CurrentUser, metadata) -> None:
+    def _enforce_live_stream_limits(self, *, current: CurrentAccessContext, metadata) -> None:
         user_live_streams = self.registry.active_streams_for_user(current.user.id)
         if user_live_streams >= self.settings.protected_session_max_live_streams_per_user:
             self.events.record(
@@ -818,7 +818,13 @@ class ProtectedSessionControlPlane:
             raise ProtectedSessionError(404, 'protected_session_missing', 'That protected session is no longer available.')
         return metadata
 
-    def _record_decision_event(self, *, current: CurrentUser, decision: ServeDecision, domain: str | None) -> None:
+    def _record_decision_event(
+        self,
+        *,
+        current: CurrentAccessContext,
+        decision: ServeDecision,
+        domain: str | None,
+    ) -> None:
         if decision.disposition == 'DENY':
             event_type = 'decision_deny'
         elif decision.disposition == 'RECOMMEND_PROTECTED':

@@ -16,7 +16,7 @@ This repository is a local-development starter for Amon v1.
 ## What is already functional
 
 - dev auth flow
-- user/session/entitlement/rate-limit persistence on the server
+- account/auth/access/session persistence on the server
 - transient search endpoint with mock provider and optional Brave provider
 - transient page retrieval and lightweight extraction
 - transient compare and research generation
@@ -52,7 +52,8 @@ uvicorn app.main:app --reload
 
 ## Notes on privacy boundaries
 
-- The backend persists only auth, entitlement, sessions, and rate-limit counters.
+- The backend persists durable account and access metadata, including auth identities, entitlements, auth sessions,
+  product sessions, route-session rows, rate-limit counters, and metadata-only protected-session ops records.
 - Queries, result sets, and page content are handled transiently.
 - Saved user work belongs in the local store and export bundle only.
 

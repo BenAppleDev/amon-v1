@@ -6,7 +6,7 @@ from typing import Literal
 from urllib.parse import urlparse, urlunparse
 
 from app.config import Settings, get_settings
-from app.security import CurrentUser
+from app.security import CurrentAccessContext
 
 AnyIPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
 ServeDisposition = Literal['ALLOW_LOCAL', 'ALLOW_CLEAN_VIEW', 'RECOMMEND_PROTECTED', 'ALLOW_PROTECTED', 'DENY']
@@ -58,7 +58,7 @@ class ProtectedSessionPolicyEngine:
         url: str,
         *,
         intent: ServeIntent = 'open',
-        current_user: CurrentUser | None = None,
+        current_user: CurrentAccessContext | None = None,
     ) -> ServeDecision:
         budget_tier = self._budget_tier_for(current_user)
         parsed, host, _port, _normalized_url, failure = self._parse_url(url)
@@ -149,7 +149,7 @@ class ProtectedSessionPolicyEngine:
             normalized_url,
         )
 
-    def quota_profile_for(self, current_user: CurrentUser | None) -> dict[str, int | str]:
+    def quota_profile_for(self, current_user: CurrentAccessContext | None) -> dict[str, int | str]:
         budget_tier = self._budget_tier_for(current_user)
         concurrent = self.settings.protected_session_max_concurrent_sessions_per_user
         starts = self.settings.protected_session_max_session_starts_per_window
@@ -168,7 +168,7 @@ class ProtectedSessionPolicyEngine:
             'max_actions_per_session': actions,
         }
 
-    def _budget_tier_for(self, current_user: CurrentUser | None) -> str:
+    def _budget_tier_for(self, current_user: CurrentAccessContext | None) -> str:
         if current_user is None:
             return 'standard'
 

@@ -18,10 +18,10 @@ from app.schemas import (
     ServeDecisionResponse,
 )
 from app.security import (
-    CurrentUser,
+    CurrentAccessContext,
     extract_bearer_token,
-    get_current_user,
-    resolve_current_user_from_token,
+    get_current_access_context,
+    resolve_current_access_context_from_token,
 )
 from app.services.protected_session_control_plane import get_protected_session_control_plane
 from app.services.protected_sessions import ProtectedSessionError
@@ -69,7 +69,7 @@ async def _state_forwarder(
 @router.post('/decision', response_model=ServeDecisionResponse)
 async def protected_session_decision(
     payload: ServeDecisionRequest,
-    current: CurrentUser = Depends(get_current_user),
+    current: CurrentAccessContext = Depends(get_current_access_context),
     db: Session = Depends(get_db),
 ) -> ServeDecisionResponse:
     RateLimiter(db).check_and_increment(current.user.id)
@@ -80,7 +80,7 @@ async def protected_session_decision(
 @router.post('', response_model=ProtectedSessionState)
 async def create_protected_session(
     payload: ProtectedSessionCreateRequest,
-    current: CurrentUser = Depends(get_current_user),
+    current: CurrentAccessContext = Depends(get_current_access_context),
     db: Session = Depends(get_db),
 ) -> ProtectedSessionState:
     RateLimiter(db).check_and_increment(current.user.id)
@@ -94,7 +94,7 @@ async def create_protected_session(
 @router.get('/{session_id}', response_model=ProtectedSessionState)
 async def get_protected_session(
     session_id: str,
-    current: CurrentUser = Depends(get_current_user),
+    current: CurrentAccessContext = Depends(get_current_access_context),
     db: Session = Depends(get_db),
 ) -> ProtectedSessionState:
     RateLimiter(db).check_and_increment(current.user.id)
@@ -109,7 +109,7 @@ async def get_protected_session(
 async def act_on_protected_session(
     session_id: str,
     payload: ProtectedSessionActionRequest,
-    current: CurrentUser = Depends(get_current_user),
+    current: CurrentAccessContext = Depends(get_current_access_context),
     db: Session = Depends(get_db),
 ) -> ProtectedSessionState:
     RateLimiter(db).check_and_increment(current.user.id)
@@ -123,7 +123,7 @@ async def act_on_protected_session(
 @router.delete('/{session_id}', response_model=ProtectedSessionEndResponse)
 async def end_protected_session(
     session_id: str,
-    current: CurrentUser = Depends(get_current_user),
+    current: CurrentAccessContext = Depends(get_current_access_context),
     db: Session = Depends(get_db),
 ) -> ProtectedSessionEndResponse:
     RateLimiter(db).check_and_increment(current.user.id)
@@ -151,7 +151,7 @@ async def stream_protected_session(
     stream_registered = False
     try:
         token = extract_bearer_token(websocket.headers.get('authorization'))
-        current = resolve_current_user_from_token(token, db)
+        current = resolve_current_access_context_from_token(token, db)
         RateLimiter(db).check_and_increment(current.user.id)
         control_plane = get_protected_session_control_plane()
         await websocket.accept()

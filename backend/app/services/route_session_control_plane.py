@@ -13,7 +13,7 @@ from app.schemas import (
     RouteSessionRevokeResponse,
     RouteSessionState,
 )
-from app.security import CurrentUser, create_record_id, create_session_token, utcnow
+from app.security import CurrentAccessContext, create_record_id, create_session_token, utcnow
 
 ROUTE_ACCESS_TOKEN_PATTERN = re.compile(r'^[A-Za-z0-9_-]{20,255}$')
 
@@ -30,7 +30,7 @@ class RouteSessionControlPlane:
     def __init__(self, *, settings: Settings | None = None) -> None:
         self.settings = settings or get_settings()
 
-    def mint_session(self, *, current: CurrentUser, db: Session) -> RouteSessionState:
+    def mint_session(self, *, current: CurrentAccessContext, db: Session) -> RouteSessionState:
         self._expire_stale_sessions(db)
         self._revoke_active_sessions_for_auth_session(
             db,
@@ -57,7 +57,7 @@ class RouteSessionControlPlane:
         db.refresh(record)
         return self._state_for(record)
 
-    def refresh_session(self, *, current: CurrentUser, session_id: str, db: Session) -> RouteSessionState:
+    def refresh_session(self, *, current: CurrentAccessContext, session_id: str, db: Session) -> RouteSessionState:
         self._expire_stale_sessions(db)
         record = self._owned_record_for(current=current, session_id=session_id, db=db)
         if record.revoked_at is not None:
@@ -79,7 +79,7 @@ class RouteSessionControlPlane:
     def revoke_session(
         self,
         *,
-        current: CurrentUser,
+        current: CurrentAccessContext,
         session_id: str,
         db: Session,
         reason: str = 'client_revoked',
@@ -197,7 +197,7 @@ class RouteSessionControlPlane:
             )
         return record
 
-    def _owned_record_for(self, *, current: CurrentUser, session_id: str, db: Session) -> RouteSessionRecord:
+    def _owned_record_for(self, *, current: CurrentAccessContext, session_id: str, db: Session) -> RouteSessionRecord:
         record = db.get(RouteSessionRecord, session_id)
         if record is None or record.user_id != current.user.id or record.auth_session_id != current.session.id:
             raise RouteSessionError(404, 'route_session_missing', 'That routed-local session is not available.')

@@ -5,7 +5,8 @@ FastAPI service for Amon v1.
 ## What this service does
 
 - authenticates users with a local-dev Sign in with Apple compatible flow
-- stores only auth, entitlement, session, and rate-limit metadata
+- stores durable account and access metadata, including auth identities, entitlements, auth sessions, product
+  sessions, route-session rows, rate-limit metadata, and metadata-only protected-session ops records
 - provides transient search, retrieval, compare, and research endpoints
 - avoids durable storage of query text, result sets, and page content
 
@@ -46,7 +47,8 @@ curl -X POST http://127.0.0.1:8000/v1/auth/dev-login \
   -d '{"apple_subject": "local-dev-user"}'
 ```
 
-Use the returned `access_token` as a Bearer token.
+Use the returned `access_token` as a Bearer token. In the current foundation model, that token is a short-lived
+product-session token layered on top of the durable account, its auth session, and the currently selected entitlement.
 
 ## Verify search with curl
 

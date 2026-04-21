@@ -28,6 +28,7 @@ def test_route_session_mint_refresh_and_revoke(client):
     assert minted['transport_kind'] == 'packet_tunnel'
     assert minted['control_plane_kind'] == 'control_only'
     assert minted['access_token']
+    assert minted['auth_session_id'] != token
     assert minted['refresh_after'] <= minted['expires_at']
 
     refresh_response = client.post(f"/v1/route-sessions/{minted['session_id']}/refresh", headers=headers)
