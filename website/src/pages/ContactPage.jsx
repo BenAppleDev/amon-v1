@@ -13,7 +13,7 @@ export function ContactPage() {
       <PageHero
         eyebrow="Contact / Waitlist"
         title="Request access."
-        lede="A controlled invitation, kept simple."
+        lede="Amon is launching with controlled access while we refine the product, privacy model, and supported workflows."
       />
 
       <section className="page-section contact-section">
@@ -28,7 +28,7 @@ export function ContactPage() {
                 hello@getamon.com
               </a>
               <p className="contact-note">
-                Tell us a little about the kinds of decisions you work through and why Amon seems relevant.
+                Tell us what kinds of online decisions you want better privacy for: moving, work, purchases, research, or anything else that feels too revealing in the default internet stack.
               </p>
             </div>
           </Reveal>

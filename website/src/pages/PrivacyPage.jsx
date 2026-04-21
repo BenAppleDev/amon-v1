@@ -10,13 +10,13 @@ export function PrivacyPage() {
     <>
       <Seo
         title="Privacy"
-        description="How Amon limits centralized visibility, what it does not store, what stays local, and what it does not claim."
+        description="How Amon limits visibility: every request goes through Amon, saved work stays local, and no single system sees the whole path."
       />
 
       <PageHero
         eyebrow="Privacy"
         title="How Amon limits visibility."
-        lede="Amon is designed so no single system sees everything you search, open, and keep. Search goes through Amon, some pages are fetched cleanly, some browsing is mediated, and what you save stays local."
+        lede="Amon is designed so no single system sees everything you search, open, and keep. Every request goes through Amon’s privacy layer; what changes is whether it is handled locally, cleanly, or through a protected session."
       />
 
       <section className="page-section">
@@ -27,21 +27,21 @@ export function PrivacyPage() {
 
           <div className="stack">
             <Reveal className="trust-block">
-              <h3>What Amon does not keep</h3>
+              <h3>What Amon minimizes</h3>
               <ul className="bullet-list">
-                <li>Browsing history.</li>
-                <li>A single server-side record of everything you searched, opened, and compared.</li>
-                <li>Saved work as centralized service-side history.</li>
+                <li>Centralized visibility across search, browsing, and saved work.</li>
+                <li>Durable server-side records of what you searched, opened, and compared.</li>
+                <li>Direct exposure of your device to websites during Amon browsing.</li>
               </ul>
             </Reveal>
 
             <Reveal className="trust-block" delay={80}>
-              <h3>What changes by mode</h3>
+              <h3>How requests are handled</h3>
               <ul className="bullet-list">
-                <li>Search starts through Amon.</li>
-                <li>Pages can be handled cleanly when you only need the information.</li>
-                <li>Live browsing can be mediated when you need the actual site.</li>
-                <li>Saved work stays local in Workspace.</li>
+                <li>Local opens the real site in-app through Amon’s privacy route.</li>
+                <li>Clean View retrieves and presents information without a conventional site visit from your device.</li>
+                <li>Protected Session mediates live browsing through a controlled remote environment.</li>
+                <li>Workspace keeps saved work local and encrypted on your device.</li>
               </ul>
             </Reveal>
 
@@ -62,7 +62,9 @@ export function PrivacyPage() {
           <Reveal className="section-heading">
             <span className="eyebrow">Mode by mode</span>
             <h2>How the boundary works in practice.</h2>
-            <p>The Product page explains each mode in full. This is the short privacy map.</p>
+            <p>
+              Amon does not treat every request the same. The goal is to limit what any one party can see while keeping the web usable.
+            </p>
           </Reveal>
 
           <div className="privacy-mode-grid">
@@ -77,6 +79,24 @@ export function PrivacyPage() {
               </Reveal>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="page-section">
+        <div className="frame comparison-grid comparison-grid-equal">
+          <Reveal className="comparison-panel">
+            <h3>Account access is not your browsing identity</h3>
+            <p>
+              Billing authorizes access to Amon. Inside the product, browsing and session handling use separate request paths so account access does not become a single durable activity spine.
+            </p>
+          </Reveal>
+
+          <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
+            <h3>Identity-based services are different</h3>
+            <p>
+              If you sign in to a third-party account, that service can know who you are. Amon can protect the path and local storage, but it cannot make account-based services forget your identity.
+            </p>
+          </Reveal>
         </div>
       </section>
 

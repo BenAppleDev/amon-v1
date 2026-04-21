@@ -10,17 +10,17 @@ export function ProductPage() {
     <>
       <Seo
         title="Product"
-        description="How Amon routes inquiry through Search and Browse, Clean View, Protected Session, and Workspace."
+        description="How Amon routes requests through Local, Clean View, Protected Session, and Workspace."
       />
 
       <PageHero
         eyebrow="Product"
-        title="How Amon handles inquiry."
-        lede="Amon does not treat every search, page open, and saved note as the same kind of request. It can keep a request in the familiar search layer, fetch information cleanly, mediate live browsing, and keep what matters in a local workspace."
+        title="How Amon handles requests."
+        lede="Every request goes through Amon’s privacy layer. What changes is how it is handled: locally through the privacy route, cleanly as retrieved information, or through a protected remote session."
         aside={
           <>
             <span className="note-kicker">Privacy paths</span>
-            <p>Search / Browse → Clean View → Protected Session → Workspace</p>
+            <p>Local → Clean View → Protected Session → Workspace</p>
           </>
         }
       />
@@ -33,13 +33,17 @@ export function ProductPage() {
 
           <div className="stack">
             <Reveal className="comparison-panel">
-              <h3>One workflow. Four modes.</h3>
-              <p>Amon starts in a familiar search layer, goes deeper when the task needs cleaner retrieval or mediated browsing, and keeps what matters in a local workspace.</p>
+              <h3>Same entry point. Different handling.</h3>
+              <p>
+                Amon looks like a normal search and browsing app, but it does not treat every request the same. The system can recommend the right path based on what the task needs.
+              </p>
             </Reveal>
 
             <Reveal className="comparison-panel comparison-panel-muted" delay={80}>
-              <h3>What changes when you click</h3>
-              <p>A page does not always have to open as a direct visit from your device. Amon can search, fetch, mediate, and save through different privacy paths.</p>
+              <h3>The system recommends. You choose.</h3>
+              <p>
+                Clean View is the default for reading and research. Protected Session is available when the real site is needed. Local browsing still runs through Amon’s privacy route.
+              </p>
             </Reveal>
           </div>
         </div>
@@ -69,6 +73,24 @@ export function ProductPage() {
           </div>
         </section>
       ))}
+
+      <section className="page-section">
+        <div className="frame comparison-grid comparison-grid-equal">
+          <Reveal className="comparison-panel">
+            <h3>Built for decisions, not surveillance</h3>
+            <p>
+              Search, browsing, comparison, and saved work do not have to collapse into one visible record. Amon separates the path so the whole inquiry is harder to centralize.
+            </p>
+          </Reveal>
+
+          <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
+            <h3>Not every workflow is in scope</h3>
+            <p>
+              Amon works best for public-web inquiry, comparison, research, and decision-making. Logging into third-party accounts, completing identity-based workflows, or using personal services can reveal identity to those services.
+            </p>
+          </Reveal>
+        </div>
+      </section>
 
       <section className="page-section page-section-cta">
         <div className="frame">

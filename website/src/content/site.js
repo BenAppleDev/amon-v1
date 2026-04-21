@@ -8,72 +8,72 @@ export const navLinks = [
 ];
 
 export const homeBelief =
-  "No single system should get to see everything someone searches, opens, and keeps.";
+  "No single system should see the whole path from what you search to what you open to what you keep.";
 
 export const spaceLines = [
-  "Space to explore.",
-  "Space to compare.",
-  "Space to think."
+  "Where to live.",
+  "What to buy.",
+  "What comes next."
 ];
 
 export const modeSteps = [
   {
-    id: "search",
+    id: "local",
     number: "01",
-    name: "Search / Browse",
-    line: "Start search through Amon.",
-    caption: "Begin from a familiar search and browsing layer."
+    name: "Local",
+    line: "Live browsing through Amon.",
+    caption: "Open the real site in-app through Amon’s privacy route."
   },
   {
     id: "clean",
     number: "02",
     name: "Clean View",
-    line: "Open pages as clean retrieval.",
-    caption: "Read what you need without a conventional direct visit."
+    line: "Information without the site visit.",
+    caption: "Amon fetches and presents the page when you mainly need the information."
   },
   {
     id: "protected",
     number: "03",
     name: "Protected Session",
-    line: "Use a mediated live session.",
-    caption: "Use the real site through a controlled remote session."
+    line: "A mediated live session.",
+    caption: "Use the real site through a controlled remote environment."
   },
   {
     id: "workspace",
     number: "04",
     name: "Workspace",
-    line: "Keep what matters locally.",
-    caption: "Save results and notes in a workspace that stays with you."
+    line: "What you keep stays local.",
+    caption: "Save results, notes, and comparisons in an encrypted local workspace."
   }
 ];
 
 export const modeDeepDives = [
   {
-    id: "search",
+    id: "local",
     number: "01",
-    name: "Search / Browse",
+    name: "Local",
     summary:
-      "This is the familiar starting layer. You search, open results, and begin inquiry the normal way, but the request starts with Amon instead of the default stack tied directly to your device.",
+      "Local is the fast, familiar browsing path. The live site opens in-app, but the request still runs through Amon’s privacy route instead of becoming a direct device-to-site connection.",
     facts: [
       {
         title: "What you do",
-        text: "Search, scan results, open sources, and orient around the question."
+        text: "Search, open results, scan pages, and browse normally inside Amon."
       },
       {
         title: "What changes",
-        text: "Queries go through Amon instead of going straight from your device into the default search stack."
+        text: "The page opens live, but the request moves through Amon’s privacy route."
       },
       {
         title: "Visibility boundary",
-        text: "The opening of the inquiry does not collapse immediately into one default stack tied directly to your device identity."
+        text: "The local network and destination site do not see a plain direct browsing path from your device in the way they would with ordinary browsing."
       },
       {
         title: "Why choose it",
-        text: "Use it when you want the familiar start of search and browsing with a better boundary from the first query."
+        text: "Use it when you want the fastest way to open the real site while keeping Amon’s baseline privacy layer in place."
       },
       {
         title: "What you control",
-        text: "Nothing has to be saved until you decide it belongs in Workspace."
+        text: "Nothing becomes saved work unless you choose to keep it in Workspace."
       }
     ]
   },
@@ -82,7 +82,7 @@ export const modeDeepDives = [
     number: "02",
     name: "Clean View",
     summary:
-      "Clean View is for pages where you mainly want the information. Amon fetches and presents the content directly instead of turning it into a conventional page visit from your own browser and device.",
+      "Clean View is for pages where you mainly need the information. Amon fetches and presents the content directly, instead of turning the read into a conventional site visit from your own browser and device.",
     facts: [
       {
         title: "What you do",
@@ -90,15 +90,15 @@ export const modeDeepDives = [
       },
       {
         title: "What changes",
-        text: "Amon retrieves the page and presents the information directly."
+        text: "Amon retrieves the page and presents the information in a cleaner view."
       },
       {
         title: "Visibility boundary",
-        text: "The destination site sees Amon retrieving the page, not a normal visit from your browser and device."
+        text: "The destination site sees Amon handling the retrieval, not your own device making a conventional page visit."
       },
       {
         title: "Why choose it",
-        text: "Use it when you want the information without exposing every read as a conventional site visit."
+        text: "Use it when you want the information without exposing every read as a live site interaction."
       },
       {
         title: "What you control",
@@ -111,23 +111,23 @@ export const modeDeepDives = [
     number: "03",
     name: "Protected Session",
     summary:
-      "Protected Session is for tasks that require the real site itself. Amon opens that site through a controlled remote environment, so you interact through Amon instead of exposing your own browser and device directly.",
+      "Protected Session is for tasks that need the real site. Amon opens that site through a controlled remote environment, so the destination interacts with Amon’s session instead of your own device directly.",
     facts: [
       {
         title: "What you do",
-        text: "Use the live site when the task needs clicking, navigating, or interacting with the real page."
+        text: "Use the live site when the task needs clicking, navigating, forms, or interaction with the real page."
       },
       {
         title: "What changes",
-        text: "The browsing session runs through a controlled remote host rather than directly from your device."
+        text: "The browsing session runs through a controlled remote environment rather than from your own device."
       },
       {
         title: "Visibility boundary",
-        text: "The destination site interacts with that remote environment, not your own browser and device."
+        text: "The destination site interacts with Amon’s remote session, not your own browser and device."
       },
       {
         title: "Why choose it",
-        text: "Use it when Clean View is not enough and the actual site matters."
+        text: "Use it when Clean View is not enough and the actual live site matters."
       },
       {
         title: "What it protects",
@@ -144,7 +144,7 @@ export const modeDeepDives = [
     facts: [
       {
         title: "What you do",
-        text: "Save results, notes, comparisons, and return to the work later."
+        text: "Save results, notes, comparisons, summaries, and sources you want to revisit."
       },
       {
         title: "What changes",
@@ -152,7 +152,7 @@ export const modeDeepDives = [
       },
       {
         title: "Visibility boundary",
-        text: "Saved work stays locally encrypted and does not become centralized service-side history."
+        text: "Saved work is locally encrypted and company-unreadable."
       },
       {
         title: "Why choose it",
@@ -160,7 +160,7 @@ export const modeDeepDives = [
       },
       {
         title: "What you control",
-        text: "Your saved work stays under your control, on your device."
+        text: "You decide what gets kept, and Amon cannot decrypt the local files you keep."
       }
     ]
   }
@@ -168,37 +168,37 @@ export const modeDeepDives = [
 
 export const privacyPillars = [
   {
-    label: "Service posture",
-    title: "No single system sees the whole inquiry.",
+    label: "Privacy layer",
+    title: "Every request goes through Amon.",
     tone: "default"
   },
   {
     label: "Protected path",
-    title: "Live site access can be mediated through a remote session.",
+    title: "Requests can be handled locally, cleanly, or remotely.",
     tone: "accent"
   },
   {
     label: "Workspace",
-    title: "Saved work stays local on your device.",
+    title: "Saved work stays local and encrypted.",
     tone: "strong"
   }
 ];
 
 export const privacyModeMap = [
   {
-    id: "search",
-    name: "Search / Browse",
-    detail: "Queries start through Amon, and we do not keep a server-side browsing history."
+    id: "local",
+    name: "Local",
+    detail: "The live site opens in-app through Amon’s privacy route, without mediated remote execution."
   },
   {
     id: "clean",
     name: "Clean View",
-    detail: "Pages are fetched and presented directly. The destination site sees Amon retrieving the page, not a normal visit from your device."
+    detail: "Amon fetches and presents the page when you mainly need the information, so the destination site sees Amon handling the retrieval."
   },
   {
     id: "protected",
     name: "Protected Session",
-    detail: "Live browsing runs through a controlled remote session. The site interacts with that remote environment instead of your browser and device."
+    detail: "Amon runs the interaction through a controlled remote session, so the site interacts with that session instead of your own device."
   },
   {
     id: "workspace",
@@ -209,40 +209,55 @@ export const privacyModeMap = [
 
 export const nonClaims = [
   "Not total anonymity.",
-  "Not every website or account-based workflow.",
-  "Not a browser replacement for everything.",
-  "Not support for every task today."
+  "Not a way to make third-party accounts forget who you are.",
+  "Not every identity-based workflow.",
+  "Not support for every task on day one."
 ];
 
 export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a search and browsing app for meaningful questions and real decisions. It routes requests through different privacy paths so no single system sees everything you search, open, and keep."
+      "Amon is a search and browsing app that routes every request through its own privacy layer. It helps you search, browse, compare, and think through decisions without collapsing your activity into one profile."
   },
   {
     question: "Is it a browser?",
     answer:
-      "Not in the usual sense. Amon includes search and browsing, but it is not trying to replace every browser use case. It routes requests through local, clean, and protected paths, then keeps saved work local."
+      "Amon includes browsing, but it is not just a browser. It changes how each request is handled: locally through Amon’s privacy route, cleanly as retrieved information, or through a protected remote session."
   },
   {
     question: "Is it a VPN?",
     answer:
-      "Amon uses VPN-like routing and remote infrastructure as part of its privacy model, but it is not just a consumer VPN. It changes how search, clean retrieval, mediated browsing, and saved work are handled end to end."
+      "Amon includes a privacy route, but it does more than a VPN. A VPN mainly protects the network path. Amon also changes how search, retrieval, live browsing, and saved work are handled."
   },
   {
     question: "Does Amon store my history?",
     answer:
-      "We do not store your browsing history. Saved results, notes, and comparisons belong in your local workspace, not a server-side history log."
+      "No. Amon does not store your browsing history on its servers. What you choose to keep belongs in your local encrypted workspace, not a server-side history log."
+  },
+  {
+    question: "What is Clean View?",
+    answer:
+      "Clean View is when Amon fetches and presents the information from a page without making it a conventional live site visit from your own browser and device."
   },
   {
     question: "What is Protected Session?",
     answer:
-      "Protected Session is when Amon opens the real site through a controlled remote host and lets you use it through that session. It is for tasks that need the actual site while keeping your own device and browser from being exposed directly."
+      "Protected Session is when Amon opens the real site through a controlled remote environment. It is for tasks that need the actual site while keeping your own browser and device out of the direct interaction."
   },
   {
-    question: "What is in scope today?",
+    question: "What happens if I log into another service?",
     answer:
-      "Today Amon is focused on public-web search and browsing. It is not trying to cover every website, every account flow, or every browser task on day one."
+      "If you sign into a third-party account, that service can know who you are. Amon protects the path and your local saved work, but it cannot make identity-based services anonymous."
+  },
+  {
+    question: "How does billing relate to browsing?",
+    answer:
+      "Billing authorizes access to Amon. It is not meant to become your browsing identity inside the product."
+  },
+  {
+    question: "What is in scope at launch?",
+    answer:
+      "Amon is focused on public-web search, browsing, clean retrieval, protected sessions, comparison, research, and local saved work. It is not trying to cover every account-based workflow or every browser task on day one."
   }
 ];
