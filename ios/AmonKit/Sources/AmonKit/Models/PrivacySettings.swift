@@ -41,7 +41,7 @@ public enum DefaultBrowsingMode: String, CaseIterable, Codable, Identifiable, Se
     public var title: String {
         switch self {
         case .standard:
-            return "Standard"
+            return "Local"
         case .cleanView:
             return "Clean View"
         case .protectedSession:
@@ -52,7 +52,7 @@ public enum DefaultBrowsingMode: String, CaseIterable, Codable, Identifiable, Se
     public var summary: String {
         switch self {
         case .standard:
-            return "Sites open directly on this device."
+            return "Render on-device through Amon's privacy route when available."
         case .cleanView:
             return "Amon fetches readable content on your behalf first."
         case .protectedSession:

@@ -23,8 +23,9 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertEqual(orchestrator.activeChoice?.decision?.disposition, .recommendProtected)
         XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Protected Session Recommended")
         XCTAssertEqual(orchestrator.activeChoice?.protectedSessionTitle, "Open Protected Session (Recommended)")
-        XCTAssertEqual(orchestrator.activeChoice?.standardTitle, "Open Normally")
+        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local (Falls Back to Direct)")
         XCTAssertTrue(orchestrator.activeChoice?.showsProtectedSession ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
     }
 
     func testPresentChoicesFallsBackToLocalChoiceWhenDecisionFails() async {
@@ -38,12 +39,11 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertEqual(apiClient.serveDecisionRequests.count, 1)
         XCTAssertNil(orchestrator.activeChoice?.decision)
         XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
-        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Open on This Device")
-        XCTAssertEqual(orchestrator.activeChoice?.standardTitle, "Open Normally (Local)")
-        XCTAssertEqual(
-            orchestrator.activeChoice?.message,
-            "Amon can't reach the backend right now. Make sure your local server is running and reachable from the device. Amon will keep this as a local choice for now."
-        )
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Choose Browse Path")
+        XCTAssertEqual(orchestrator.activeChoice?.localRoutedTitle, "Open Local (Falls Back to Direct)")
+        XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Amon can't reach the backend right now") ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("local browsing currently uses direct fallback") ?? false)
     }
 
     func testLocalOnlyDecisionExplainsProtectedSessionIsUnavailable() async {
@@ -61,15 +61,13 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
 
         await orchestrator.presentChoices(for: target)
 
-        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Open Locally")
+        XCTAssertEqual(orchestrator.activeChoice?.dialogTitle, "Local Browsing")
         XCTAssertFalse(orchestrator.activeChoice?.showsProtectedSession ?? true)
-        XCTAssertEqual(
-            orchestrator.activeChoice?.message,
-            "This page stays on-device in this build. You can open it normally or use Clean View, but Protected Session is not offered."
-        )
+        XCTAssertTrue(orchestrator.activeChoice?.showsDirectFallback ?? false)
+        XCTAssertTrue(orchestrator.activeChoice?.message?.contains("Protected Session is not offered") ?? false)
     }
 
-    func testOpenClearsChoiceAndPresentsRequestedMode() async throws {
+    func testOpenClearsChoiceAndPresentsRequestedPath() async throws {
         let apiClient = BrowseOpenMockAPIClient()
         let orchestrator = BrowseOpenOrchestrator(apiClient: apiClient)
         let target = BrowseOpenTarget(title: "Example", url: URL(string: "https://example.com/page")!)
@@ -82,7 +80,37 @@ final class BrowseOpenOrchestratorTests: XCTestCase {
         XCTAssertNil(orchestrator.activeChoice)
         XCTAssertEqual(orchestrator.presentedPage?.title, "Example")
         XCTAssertEqual(orchestrator.presentedPage?.url, target.url)
-        XCTAssertEqual(orchestrator.presentedPage?.requestedMode, .cleanView)
+        XCTAssertEqual(orchestrator.presentedPage?.requestedPath, .cleanView)
+        XCTAssertEqual(orchestrator.presentedPage?.effectivePath, .cleanView)
+    }
+
+    func testOpenLocalRoutedUsesDirectFallbackWhenRouteUnavailable() {
+        let apiClient = BrowseOpenMockAPIClient()
+        let orchestrator = BrowseOpenOrchestrator(apiClient: apiClient)
+        let target = BrowseOpenTarget(title: "Example", url: URL(string: "https://example.com/page")!)
+
+        orchestrator.open(.localRouted, for: target)
+
+        XCTAssertEqual(orchestrator.presentedPage?.requestedPath, .localRouted)
+        XCTAssertEqual(orchestrator.presentedPage?.effectivePath, .directFallback)
+        XCTAssertEqual(orchestrator.presentedPage?.localRouteState, .unavailable)
+        XCTAssertTrue(orchestrator.presentedPage?.fallbackReason?.contains("not available in this build yet") ?? false)
+    }
+
+    func testOpenLocalRoutedStaysLocalWhenRouteConnected() {
+        let apiClient = BrowseOpenMockAPIClient()
+        let orchestrator = BrowseOpenOrchestrator(
+            apiClient: apiClient,
+            localRouteStateProvider: { .connected }
+        )
+        let target = BrowseOpenTarget(title: "Example", url: URL(string: "https://example.com/page")!)
+
+        orchestrator.open(.localRouted, for: target)
+
+        XCTAssertEqual(orchestrator.presentedPage?.requestedPath, .localRouted)
+        XCTAssertEqual(orchestrator.presentedPage?.effectivePath, .localRouted)
+        XCTAssertEqual(orchestrator.presentedPage?.localRouteState, .connected)
+        XCTAssertNil(orchestrator.presentedPage?.fallbackReason)
     }
 }
 

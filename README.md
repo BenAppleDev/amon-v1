@@ -56,13 +56,6 @@ uvicorn app.main:app --reload
 - Queries, result sets, and page content are handled transiently.
 - Saved user work belongs in the local store and export bundle only.
 
-## Next build steps
-
-- add production Sign in with Apple token verification on the backend
-- harden the iOS local store to full encrypted-database semantics if you want SQLCipher
-- add richer clean-view parsing and workspace editing
-- add CI and release automation
-
 ## Deployment notes
 
 - Public site deployment notes: [website/README.md](/Users/ben/amon-v1/website/README.md)

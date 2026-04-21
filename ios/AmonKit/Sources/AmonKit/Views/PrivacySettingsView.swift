@@ -81,7 +81,7 @@ public struct PrivacySettingsView: View {
             }
 
             if store.selectedPreset == .strict {
-                Text("Strict mode favors clean reader views and isolated site sessions. Some sites may work better if you switch browsing back to Standard.")
+                Text("Strict mode favors clean reader views and isolated site sessions. Some sites may work better if you switch browsing back to Local.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .padding(.top, 2)
@@ -97,7 +97,7 @@ public struct PrivacySettingsView: View {
             VStack(alignment: .leading, spacing: 16) {
                 settingHeader(
                     title: "Default browsing mode",
-                    message: "Standard opens a site directly. Clean View asks Amon to fetch a readable version first."
+                    message: "Local targets on-device rendering over Amon's privacy route. Clean View asks Amon to fetch a readable version first."
                 )
 
                 Picker(
@@ -113,7 +113,7 @@ public struct PrivacySettingsView: View {
                 }
                 .pickerStyle(.segmented)
 
-                Text("Protected Session is available as an explicit action for supported hosts. It always uses a short-lived remote session in this build.")
+                Text("Protected Session stays an explicit mediated option for supported hosts. Direct-from-device browsing is treated as fallback when local routing is unavailable.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
@@ -231,7 +231,7 @@ public struct PrivacySettingsView: View {
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Amon does not yet provide a privacy relay or route for normal site browsing.")
+                Text("Local browsing is modeled as privacy-route first, but this build still falls back to direct device browsing when that route is unavailable.")
                 Text("Backend retrieval already uses one-off fetches, but there is no separate user-facing control for backend-side site sessions yet.")
                 Text("Workspace uses field-level protection for sensitive saved content, not a fully encrypted opaque database yet.")
                 Text("Workspace locking and export/import confirmation UI are not exposed in this build yet.")

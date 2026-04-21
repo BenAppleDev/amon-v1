@@ -5,25 +5,34 @@ public struct PrivacyAwarePageView: View {
     private let url: URL
     private let apiClient: any AmonAPIClienting
     @ObservedObject private var privacySettingsStore: PrivacySettingsStore
-    private let requestedMode: DefaultBrowsingMode?
+    private let requestedPath: BrowsePath?
+    private let resolvedPath: BrowsePath?
+    private let localRouteState: LocalPrivacyRouteState
+    private let fallbackReason: String?
 
     public init(
         title: String,
         url: URL,
         apiClient: any AmonAPIClienting,
         privacySettingsStore: PrivacySettingsStore,
-        requestedMode: DefaultBrowsingMode? = nil
+        requestedPath: BrowsePath? = nil,
+        resolvedPath: BrowsePath? = nil,
+        localRouteState: LocalPrivacyRouteState = .unavailable,
+        fallbackReason: String? = nil
     ) {
         self.title = title
         self.url = url
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
-        self.requestedMode = requestedMode
+        self.requestedPath = requestedPath
+        self.resolvedPath = resolvedPath
+        self.localRouteState = localRouteState
+        self.fallbackReason = fallbackReason
     }
 
     public var body: some View {
-        switch requestedMode ?? privacySettingsStore.settings.browsing.defaultBrowsingMode {
-        case .standard:
+        switch openResolution.effectivePath {
+        case .localRouted, .directFallback:
             WebViewContainer(
                 url: url,
                 sessionPersistence: privacySettingsStore.settings.browsing.sessionPersistence
@@ -37,7 +46,8 @@ public struct PrivacyAwarePageView: View {
                 title: title,
                 url: url,
                 apiClient: apiClient,
-                sessionPersistence: privacySettingsStore.settings.browsing.sessionPersistence
+                privacySettingsStore: privacySettingsStore,
+                localRouteStateProvider: { openResolution.localRouteState }
             )
 
         case .protectedSession:
@@ -48,19 +58,36 @@ public struct PrivacyAwarePageView: View {
             )
         }
     }
+
+    private var openResolution: BrowsePathResolution {
+        if let requestedPath {
+            return BrowsePathResolution(
+                requestedPath: requestedPath,
+                effectivePath: resolvedPath ?? requestedPath,
+                localRouteState: localRouteState,
+                fallbackReason: fallbackReason
+            )
+        }
+
+        return BrowsePathResolver.resolve(
+            requestedPath: privacySettingsStore.settings.browsing.defaultBrowsingMode.preferredBrowsePath,
+            localRouteState: localRouteState
+        )
+    }
 }
 
 public struct ReaderPageView: View {
     @StateObject private var viewModel: ReaderPageViewModel
+    @StateObject private var browseOpenOrchestrator: BrowseOpenOrchestrator
+    @ObservedObject private var privacySettingsStore: PrivacySettingsStore
     private let url: URL
-    private let sessionPersistence: BrowsingSessionPersistence
-    @State private var presentedWebsite: PresentedWebsite?
 
     public init(
         title: String,
         url: URL,
         apiClient: any AmonAPIClienting,
-        sessionPersistence: BrowsingSessionPersistence,
+        privacySettingsStore: PrivacySettingsStore,
+        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable },
         initialPage: StructuredRetrievalDTO? = nil
     ) {
         _viewModel = StateObject(
@@ -71,8 +98,14 @@ public struct ReaderPageView: View {
                 initialPage: initialPage
             )
         )
+        _browseOpenOrchestrator = StateObject(
+            wrappedValue: BrowseOpenOrchestrator(
+                apiClient: apiClient,
+                localRouteStateProvider: localRouteStateProvider
+            )
+        )
+        self.privacySettingsStore = privacySettingsStore
         self.url = url
-        self.sessionPersistence = sessionPersistence
     }
 
     public var body: some View {
@@ -95,16 +128,71 @@ public struct ReaderPageView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Open Site") {
-                    presentedWebsite = PresentedWebsite(title: viewModel.navigationTitle, url: url)
+                Button(isPreparingOpenChoices ? "Checking..." : "Open Site") {
+                    Task {
+                        await presentSiteChoices()
+                    }
                 }
+                .disabled(isPreparingOpenChoices)
             }
         }
-        .navigationDestination(item: $presentedWebsite) { destination in
-            WebViewContainer(url: destination.url, sessionPersistence: sessionPersistence)
-                .ignoresSafeArea()
-                .navigationTitle(destination.title)
-                .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(
+            item: Binding(
+                get: { browseOpenOrchestrator.presentedPage },
+                set: { page in
+                    if page == nil {
+                        browseOpenOrchestrator.dismissPresentedPage()
+                    }
+                }
+            )
+        ) { page in
+            PrivacyAwarePageView(
+                title: page.title,
+                url: page.url,
+                apiClient: viewModel.apiClient,
+                privacySettingsStore: privacySettingsStore,
+                requestedPath: page.requestedPath,
+                resolvedPath: page.effectivePath,
+                localRouteState: page.localRouteState,
+                fallbackReason: page.fallbackReason
+            )
+        }
+        .confirmationDialog(
+            browseOpenOrchestrator.activeChoice?.dialogTitle ?? "Open",
+            isPresented: Binding(
+                get: { browseOpenOrchestrator.activeChoice != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        browseOpenOrchestrator.dismissChoice()
+                    }
+                }
+            ),
+            titleVisibility: .visible,
+            presenting: browseOpenOrchestrator.activeChoice
+        ) { recommendation in
+            Button(recommendation.localRoutedTitle) {
+                browseOpenOrchestrator.open(.localRouted, from: recommendation)
+            }
+
+            Button(recommendation.cleanViewTitle) {
+                browseOpenOrchestrator.open(.cleanView, from: recommendation)
+            }
+
+            if recommendation.showsProtectedSession {
+                Button(recommendation.protectedSessionTitle) {
+                    browseOpenOrchestrator.open(.protectedSession, from: recommendation)
+                }
+            }
+
+            if recommendation.showsDirectFallback {
+                Button(recommendation.directFallbackTitle) {
+                    browseOpenOrchestrator.open(.directFallback, from: recommendation)
+                }
+            }
+        } message: { recommendation in
+            if let message = recommendation.message {
+                Text(message)
+            }
         }
         .task {
             await viewModel.loadIfNeeded()
@@ -170,20 +258,27 @@ public struct ReaderPageView: View {
         } else {
             AmonEmptyStateView(
                 title: "Couldn’t prepare a clean view",
-                message: "You can still open the site directly if you need the original page.",
+                message: "You can still open the live site and choose a browse path for it.",
                 systemImage: "exclamationmark.triangle",
-                actionTitle: "Open site",
-                action: { presentedWebsite = PresentedWebsite(title: viewModel.navigationTitle, url: url) }
+                actionTitle: "Open site options",
+                action: {
+                    Task {
+                        await presentSiteChoices()
+                    }
+                }
             )
         }
     }
-}
 
-private struct PresentedWebsite: Identifiable, Hashable {
-    let title: String
-    let url: URL
+    private var isPreparingOpenChoices: Bool {
+        browseOpenOrchestrator.isPreparingChoice(for: url.absoluteString)
+    }
 
-    var id: URL { url }
+    private func presentSiteChoices() async {
+        await browseOpenOrchestrator.presentChoices(
+            for: BrowseOpenTarget(title: viewModel.navigationTitle, url: url)
+        )
+    }
 }
 
 @MainActor
@@ -199,7 +294,7 @@ private final class ReaderPageViewModel: ObservableObject {
 
     private let title: String
     private let url: URL
-    private let apiClient: any AmonAPIClienting
+    let apiClient: any AmonAPIClienting
     private let contentSource: ContentSource
     private var didLoad = false
 
@@ -241,9 +336,9 @@ private final class ReaderPageViewModel: ObservableObject {
     var pageIntroMessage: String {
         switch contentSource {
         case .backendFetch:
-            return "Sites do not interact directly with your device until you choose Open Site."
+            return "Sites do not interact directly with your device until you choose Open Site and a browse path."
         case .savedLocalCopy:
-            return "This saved copy lives on this device. Open Site only if you want the live page."
+            return "This saved copy lives on this device. Open Site only if you want the live page and path options."
         }
     }
 

@@ -7,16 +7,24 @@ public struct WorkspaceDetailView: View {
     @StateObject private var browseOpenOrchestrator: BrowseOpenOrchestrator
     @State private var presentedSavedPage: PresentedSavedPage?
     private let apiClient: any AmonAPIClienting
+    private let localRouteStateProvider: () -> LocalPrivacyRouteState
 
     init(
         viewModel: WorkspaceDetailViewModel,
         apiClient: any AmonAPIClienting,
-        privacySettingsStore: PrivacySettingsStore
+        privacySettingsStore: PrivacySettingsStore,
+        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
     ) {
         self.viewModel = viewModel
         self.apiClient = apiClient
         self.privacySettingsStore = privacySettingsStore
-        _browseOpenOrchestrator = StateObject(wrappedValue: BrowseOpenOrchestrator(apiClient: apiClient))
+        self.localRouteStateProvider = localRouteStateProvider
+        _browseOpenOrchestrator = StateObject(
+            wrappedValue: BrowseOpenOrchestrator(
+                apiClient: apiClient,
+                localRouteStateProvider: localRouteStateProvider
+            )
+        )
     }
 
     public var body: some View {
@@ -205,18 +213,18 @@ public struct WorkspaceDetailView: View {
                                         }
                                     } label: {
                                         Label(
-                                            item.hasOwnedReadableContent ? "Open Source..." : "Choose How to Open",
+                                            item.hasOwnedReadableContent ? "Open Source..." : "Choose Browse Path",
                                             systemImage: "arrow.up.right.square"
                                         )
                                     }
 
                                     Button {
                                         browseOpenOrchestrator.open(
-                                            .standard,
+                                            .localRouted,
                                             for: BrowseOpenTarget(title: item.displayTitle, url: url)
                                         )
                                     } label: {
-                                        Label("Open Normally", systemImage: "arrow.up.right.square")
+                                        Label("Open Local (Privacy Route)", systemImage: "arrow.up.right.square")
                                     }
 
                                     Button {
@@ -226,6 +234,15 @@ public struct WorkspaceDetailView: View {
                                         )
                                     } label: {
                                         Label("Clean View", systemImage: "doc.text")
+                                    }
+
+                                    Button {
+                                        browseOpenOrchestrator.open(
+                                            .directFallback,
+                                            for: BrowseOpenTarget(title: item.displayTitle, url: url)
+                                        )
+                                    } label: {
+                                        Label("Open Direct (Fallback)", systemImage: "arrowshape.turn.up.right")
                                     }
                                 }
 
@@ -393,7 +410,8 @@ public struct WorkspaceDetailView: View {
                 title: page.title,
                 url: page.url,
                 apiClient: apiClient,
-                sessionPersistence: privacySettingsStore.settings.browsing.sessionPersistence,
+                privacySettingsStore: privacySettingsStore,
+                localRouteStateProvider: localRouteStateProvider,
                 initialPage: page.page
             )
         }
@@ -412,7 +430,10 @@ public struct WorkspaceDetailView: View {
                 url: page.url,
                 apiClient: apiClient,
                 privacySettingsStore: privacySettingsStore,
-                requestedMode: page.requestedMode
+                requestedPath: page.requestedPath,
+                resolvedPath: page.effectivePath,
+                localRouteState: page.localRouteState,
+                fallbackReason: page.fallbackReason
             )
         }
         .confirmationDialog(
@@ -428,8 +449,8 @@ public struct WorkspaceDetailView: View {
             titleVisibility: .visible,
             presenting: browseOpenOrchestrator.activeChoice
         ) { recommendation in
-            Button(recommendation.standardTitle) {
-                browseOpenOrchestrator.open(.standard, from: recommendation)
+            Button(recommendation.localRoutedTitle) {
+                browseOpenOrchestrator.open(.localRouted, from: recommendation)
             }
 
             Button(recommendation.cleanViewTitle) {
@@ -439,6 +460,12 @@ public struct WorkspaceDetailView: View {
             if recommendation.showsProtectedSession {
                 Button(recommendation.protectedSessionTitle) {
                     browseOpenOrchestrator.open(.protectedSession, from: recommendation)
+                }
+            }
+
+            if recommendation.showsDirectFallback {
+                Button(recommendation.directFallbackTitle) {
+                    browseOpenOrchestrator.open(.directFallback, from: recommendation)
                 }
             }
         } message: { recommendation in

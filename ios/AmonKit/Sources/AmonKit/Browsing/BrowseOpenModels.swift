@@ -3,8 +3,8 @@ import Foundation
 public enum BrowseOpenRecommendationState: Equatable, Sendable {
     case protectedRecommended
     case protectedAvailable
-    case localPreferred
-    case localOnly
+    case localRoutedPreferred
+    case localRoutedOnly
     case decisionFetchFailed(message: String)
 }
 
@@ -22,12 +22,28 @@ public struct BrowseOpenPresentedPage: Identifiable, Hashable {
     public let id = UUID()
     public let title: String
     public let url: URL
-    public let requestedMode: DefaultBrowsingMode?
+    public let pathResolution: BrowsePathResolution
 
-    public init(title: String, url: URL, requestedMode: DefaultBrowsingMode?) {
+    public init(title: String, url: URL, pathResolution: BrowsePathResolution) {
         self.title = title
         self.url = url
-        self.requestedMode = requestedMode
+        self.pathResolution = pathResolution
+    }
+
+    public var requestedPath: BrowsePath {
+        pathResolution.requestedPath
+    }
+
+    public var effectivePath: BrowsePath {
+        pathResolution.effectivePath
+    }
+
+    public var localRouteState: LocalPrivacyRouteState {
+        pathResolution.localRouteState
+    }
+
+    public var fallbackReason: String? {
+        pathResolution.fallbackReason
     }
 }
 
@@ -36,15 +52,18 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     public let target: BrowseOpenTarget
     public let decision: ServeDecisionResponseDTO?
     public let decisionErrorMessage: String?
+    public let localRouteState: LocalPrivacyRouteState
 
     public init(
         target: BrowseOpenTarget,
         decision: ServeDecisionResponseDTO?,
-        decisionErrorMessage: String? = nil
+        decisionErrorMessage: String? = nil,
+        localRouteState: LocalPrivacyRouteState = .unavailable
     ) {
         self.target = target
         self.decision = decision
         self.decisionErrorMessage = decisionErrorMessage
+        self.localRouteState = localRouteState
     }
 
     public var recommendationState: BrowseOpenRecommendationState {
@@ -58,16 +77,16 @@ public struct BrowseOpenChoicePresentation: Identifiable {
             )
         }
 
-        switch decision.disposition {
-        case .recommendProtected:
+        if preferredPath == .protectedSession {
             return .protectedRecommended
-        case .allowProtected:
-            return .protectedAvailable
-        case .allowCleanView:
-            return .localPreferred
-        case .allowLocal, .deny:
-            return .localOnly
         }
+        if allowedPaths.contains(.protectedSession) {
+            return .protectedAvailable
+        }
+        if preferredPath == .localRouted {
+            return .localRoutedPreferred
+        }
+        return .localRoutedOnly
     }
 
     public var dialogTitle: String {
@@ -75,41 +94,39 @@ public struct BrowseOpenChoicePresentation: Identifiable {
         case .protectedRecommended:
             return "Protected Session Recommended"
         case .protectedAvailable:
-            return "Choose How to Open"
-        case .localPreferred:
-            return "Open on This Device"
-        case .localOnly:
-            return "Open Locally"
+            return "Choose Browse Path"
+        case .localRoutedPreferred, .localRoutedOnly:
+            return "Local Browsing"
         case .decisionFetchFailed:
-            return "Open on This Device"
+            return "Choose Browse Path"
         }
     }
 
     public var showsProtectedSession: Bool {
-        switch recommendationState {
-        case .protectedRecommended, .protectedAvailable:
-            return true
-        case .localPreferred, .localOnly, .decisionFetchFailed:
-            return false
-        }
+        allowedPaths.contains(.protectedSession)
     }
 
-    public var standardTitle: String {
-        switch recommendationState {
-        case .localPreferred, .localOnly, .decisionFetchFailed:
-            return "Open Normally (Local)"
-        case .protectedRecommended, .protectedAvailable:
-            return "Open Normally"
+    public var showsDirectFallback: Bool {
+        allowedPaths.contains(.directFallback)
+    }
+
+    public var localRoutedTitle: String {
+        switch localRouteState {
+        case .connected:
+            return "Open Local (Privacy Route)"
+        case .connecting:
+            return "Open Local (Route Connecting)"
+        case .degraded, .unavailable:
+            return "Open Local (Falls Back to Direct)"
         }
     }
 
     public var cleanViewTitle: String {
-        switch recommendationState {
-        case .localPreferred, .localOnly, .decisionFetchFailed:
-            return "Open Clean View (Local)"
-        case .protectedRecommended, .protectedAvailable:
-            return "Open Clean View"
-        }
+        "Open Clean View"
+    }
+
+    public var directFallbackTitle: String {
+        "Open Direct (Fallback)"
     }
 
     public var protectedSessionTitle: String {
@@ -121,15 +138,69 @@ public struct BrowseOpenChoicePresentation: Identifiable {
     public var message: String? {
         switch recommendationState {
         case .protectedRecommended:
-            return "Amon recommends Protected Session for this page. You still choose whether to open it remotely, use Clean View, or stay fully local."
+            return "Amon recommends Protected Session for this page. Local browsing is still available if you prefer to render on this device. \(localRouteMessage)"
         case .protectedAvailable:
-            return "Protected Session is available here if you want stronger isolation, but Amon is not recommending it over a local open."
-        case .localPreferred:
-            return "Amon recommends keeping this page on your device. Clean View is available if you want a cleaner local copy."
-        case .localOnly:
-            return "This page stays on-device in this build. You can open it normally or use Clean View, but Protected Session is not offered."
+            return "Protected Session is available if you want stronger mediated isolation, but it is not required. \(localRouteMessage)"
+        case .localRoutedPreferred:
+            return "Amon recommends local rendering for this page, with Clean View as the retrieval-first option. \(localRouteMessage)"
+        case .localRoutedOnly:
+            return "Protected Session is not offered for this page right now. \(localRouteMessage)"
         case .decisionFetchFailed(let message):
-            return "\(message) Amon will keep this as a local choice for now."
+            return "\(message) \(localRouteMessage)"
+        }
+    }
+
+    private var preferredPath: BrowsePath? {
+        decision?.normalizedPreferredBrowsePath
+    }
+
+    private var allowedPaths: Set<BrowsePath> {
+        if let decision {
+            return decision.normalizedAllowedBrowsePaths
+        }
+        return [.localRouted, .cleanView, .directFallback]
+    }
+
+    private var localRouteMessage: String {
+        switch localRouteState {
+        case .connected:
+            return "Amon privacy route is connected for local browsing."
+        case .connecting:
+            return "Amon privacy route is connecting, so local browsing may temporarily degrade to direct fallback."
+        case .degraded:
+            return "Amon privacy route is degraded, so local browsing currently uses direct fallback."
+        case .unavailable:
+            return "Amon privacy route is not available in this build yet, so local browsing currently uses direct fallback."
+        }
+    }
+}
+
+private extension ServeDecisionResponseDTO {
+    var normalizedPreferredBrowsePath: BrowsePath? {
+        if let preferred_browse_path {
+            return preferred_browse_path.browsePath
+        }
+
+        switch disposition {
+        case .recommendProtected:
+            return .protectedSession
+        case .allowProtected, .allowCleanView, .allowLocal, .deny:
+            return .localRouted
+        }
+    }
+
+    var normalizedAllowedBrowsePaths: Set<BrowsePath> {
+        if let allowed_browse_paths, !allowed_browse_paths.isEmpty {
+            var mapped = Set(allowed_browse_paths.map(\.browsePath))
+            mapped.insert(.directFallback)
+            return mapped
+        }
+
+        switch disposition {
+        case .recommendProtected, .allowProtected:
+            return [.localRouted, .cleanView, .protectedSession, .directFallback]
+        case .allowCleanView, .allowLocal, .deny:
+            return [.localRouted, .cleanView, .directFallback]
         }
     }
 }

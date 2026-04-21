@@ -13,12 +13,18 @@ public struct SearchView: View {
     public init(
         viewModel: SearchViewModel,
         privacySettingsStore: PrivacySettingsStore,
-        openAppMenu: @escaping () -> Void
+        openAppMenu: @escaping () -> Void,
+        localRouteStateProvider: @escaping () -> LocalPrivacyRouteState = { .unavailable }
     ) {
         self.viewModel = viewModel
         self.privacySettingsStore = privacySettingsStore
         self.openAppMenu = openAppMenu
-        _browseOpenOrchestrator = StateObject(wrappedValue: BrowseOpenOrchestrator(apiClient: viewModel.apiClient))
+        _browseOpenOrchestrator = StateObject(
+            wrappedValue: BrowseOpenOrchestrator(
+                apiClient: viewModel.apiClient,
+                localRouteStateProvider: localRouteStateProvider
+            )
+        )
     }
 
     public var body: some View {
@@ -87,7 +93,10 @@ public struct SearchView: View {
                     url: page.url,
                     apiClient: viewModel.apiClient,
                     privacySettingsStore: privacySettingsStore,
-                    requestedMode: page.requestedMode
+                    requestedPath: page.requestedPath,
+                    resolvedPath: page.effectivePath,
+                    localRouteState: page.localRouteState,
+                    fallbackReason: page.fallbackReason
                 )
             }
             .confirmationDialog(
@@ -103,8 +112,8 @@ public struct SearchView: View {
                 titleVisibility: .visible,
                 presenting: browseOpenOrchestrator.activeChoice
             ) { recommendation in
-                Button(recommendation.standardTitle) {
-                    browseOpenOrchestrator.open(.standard, from: recommendation)
+                Button(recommendation.localRoutedTitle) {
+                    browseOpenOrchestrator.open(.localRouted, from: recommendation)
                 }
 
                 Button(recommendation.cleanViewTitle) {
@@ -114,6 +123,12 @@ public struct SearchView: View {
                 if recommendation.showsProtectedSession {
                     Button(recommendation.protectedSessionTitle) {
                         browseOpenOrchestrator.open(.protectedSession, from: recommendation)
+                    }
+                }
+
+                if recommendation.showsDirectFallback {
+                    Button(recommendation.directFallbackTitle) {
+                        browseOpenOrchestrator.open(.directFallback, from: recommendation)
                     }
                 }
             } message: { recommendation in
@@ -283,13 +298,17 @@ public struct SearchView: View {
                                     )
                                 }
                             },
-                            onOpenNormally: {
+                            onOpenLocalRouted: {
                                 guard let url = URL(string: result.url) else { return }
-                                browseOpenOrchestrator.open(.standard, for: BrowseOpenTarget(title: result.title, url: url))
+                                browseOpenOrchestrator.open(.localRouted, for: BrowseOpenTarget(title: result.title, url: url))
                             },
                             onOpenCleanView: {
                                 guard let url = URL(string: result.url) else { return }
                                 browseOpenOrchestrator.open(.cleanView, for: BrowseOpenTarget(title: result.title, url: url))
+                            },
+                            onOpenDirectFallback: {
+                                guard let url = URL(string: result.url) else { return }
+                                browseOpenOrchestrator.open(.directFallback, for: BrowseOpenTarget(title: result.title, url: url))
                             },
                             onSave: {
                                 AmonHaptics.success()
@@ -449,8 +468,9 @@ private struct SearchResultCard: View {
     let isBusy: Bool
     let isPreparingOpenChoice: Bool
     let onOpenChooser: () -> Void
-    let onOpenNormally: () -> Void
+    let onOpenLocalRouted: () -> Void
     let onOpenCleanView: () -> Void
+    let onOpenDirectFallback: () -> Void
     let onSave: () -> Void
     let onToggleSelection: () -> Void
     let onQuickCompare: () -> Void
@@ -543,15 +563,19 @@ private struct SearchResultCard: View {
         .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .contextMenu {
             Button(action: onOpenChooser) {
-                Label("Choose How to Open", systemImage: "arrow.up.right.square")
+                Label("Choose Browse Path", systemImage: "arrow.up.right.square")
             }
 
-            Button(action: onOpenNormally) {
-                Label("Open Normally", systemImage: "arrow.up.right.square")
+            Button(action: onOpenLocalRouted) {
+                Label("Open Local (Privacy Route)", systemImage: "arrow.up.right.square")
             }
 
             Button(action: onOpenCleanView) {
                 Label("Clean View", systemImage: "doc.text")
+            }
+
+            Button(action: onOpenDirectFallback) {
+                Label("Open Direct (Fallback)", systemImage: "arrowshape.turn.up.right")
             }
 
             Button(action: onSave) {

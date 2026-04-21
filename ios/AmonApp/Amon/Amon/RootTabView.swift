@@ -65,7 +65,10 @@ struct RootTabView: View {
                     SearchView(
                         viewModel: searchViewModel,
                         privacySettingsStore: privacySettingsStore,
-                        openAppMenu: { isPresentingSettings = true }
+                        openAppMenu: { isPresentingSettings = true },
+                        localRouteStateProvider: {
+                            LocalPrivacyRouteState(tunnelStatus: tunnelManager.statusSnapshot.state)
+                        }
                     )
                     .tag(AppTab.search)
 
@@ -73,7 +76,10 @@ struct RootTabView: View {
                         viewModel: workspaceViewModel,
                         apiClient: apiClient,
                         privacySettingsStore: privacySettingsStore,
-                        openAppMenu: { isPresentingSettings = true }
+                        openAppMenu: { isPresentingSettings = true },
+                        localRouteStateProvider: {
+                            LocalPrivacyRouteState(tunnelStatus: tunnelManager.statusSnapshot.state)
+                        }
                     )
                     .tag(AppTab.workspace)
                 }

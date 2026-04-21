@@ -96,6 +96,13 @@ public struct ServeDecisionRequestDTO: Codable, Sendable {
     }
 }
 
+public enum BrowsePathDTO: String, Codable, Sendable {
+    case localRouted = "local_routed"
+    case cleanView = "clean_view"
+    case protectedSession = "protected_session"
+    case directFallback = "direct_fallback"
+}
+
 public enum ServeDecisionDispositionDTO: String, Codable, Sendable {
     case allowLocal = "ALLOW_LOCAL"
     case allowCleanView = "ALLOW_CLEAN_VIEW"
@@ -111,6 +118,28 @@ public struct ServeDecisionResponseDTO: Codable, Sendable {
     public var policy_version: String
     public var site_class: String?
     public var budget_tier: String?
+    public var preferred_browse_path: BrowsePathDTO?
+    public var allowed_browse_paths: [BrowsePathDTO]?
+
+    public init(
+        disposition: ServeDecisionDispositionDTO,
+        reason_code: String,
+        confidence: Double,
+        policy_version: String,
+        site_class: String?,
+        budget_tier: String?,
+        preferred_browse_path: BrowsePathDTO? = nil,
+        allowed_browse_paths: [BrowsePathDTO]? = nil
+    ) {
+        self.disposition = disposition
+        self.reason_code = reason_code
+        self.confidence = confidence
+        self.policy_version = policy_version
+        self.site_class = site_class
+        self.budget_tier = budget_tier
+        self.preferred_browse_path = preferred_browse_path
+        self.allowed_browse_paths = allowed_browse_paths
+    }
 }
 
 public enum ProtectedSessionActionKindDTO: String, Codable, Sendable {
