@@ -37,8 +37,11 @@ function AccessVisual() {
       <div className="security-access-device">
         <span />
         <span />
+        <span className="short" />
       </div>
-      <div className="security-access-badge">ID</div>
+      <div className="security-access-ring">
+        <div className="security-access-check" />
+      </div>
     </div>
   );
 }
@@ -46,9 +49,13 @@ function AccessVisual() {
 function TransportVisual() {
   return (
     <div className="security-visual security-visual-transport" aria-hidden="true">
-      <div className="security-transport-track" />
-      <div className="security-transport-pill">TLS 1.3</div>
-      <div className="security-transport-pill">ATS</div>
+      <div className="security-transport-endpoint" />
+      <div className="security-transport-path">
+        <div className="security-transport-lock">
+          <span />
+        </div>
+      </div>
+      <div className="security-transport-endpoint" />
     </div>
   );
 }
@@ -57,10 +64,19 @@ function HandlingVisual() {
   return (
     <div className="security-visual security-visual-handling" aria-hidden="true">
       <div className="security-handling-node">A</div>
-      <div className="security-handling-flow">
-        <span>Live</span>
-        <span>Text</span>
-        <span>Remote</span>
+      <div className="security-handling-branches">
+        <div className="security-handling-branch security-handling-branch-live">
+          <span />
+          <span />
+        </div>
+        <div className="security-handling-branch security-handling-branch-text">
+          <span />
+          <span />
+        </div>
+        <div className="security-handling-branch security-handling-branch-remote">
+          <span />
+          <span />
+        </div>
       </div>
     </div>
   );
@@ -74,7 +90,9 @@ function WorkspaceVisual() {
         <span />
         <span />
       </div>
-      <div className="security-workspace-lock" />
+      <div className="security-workspace-lock">
+        <i />
+      </div>
     </div>
   );
 }
@@ -87,7 +105,10 @@ function OperationsVisual() {
         <span />
         <span />
       </div>
-      <div className="security-operations-chip">Meta</div>
+      <div className="security-operations-eyeoff">
+        <i />
+        <b />
+      </div>
     </div>
   );
 }
