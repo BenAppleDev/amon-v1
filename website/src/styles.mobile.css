@@ -756,3 +756,46 @@
     max-width: none;
   }
 }
+
+@media (max-width: 1100px) {
+  .security-visual-transport {
+    width: min(100%, 180px);
+  }
+
+  .security-handling-connectors,
+  .security-handling-branches {
+    width: clamp(114px, 16vw, 142px);
+  }
+
+  .security-workspace-vault {
+    width: clamp(118px, 16vw, 142px);
+    height: clamp(80px, 10vw, 96px);
+  }
+}
+
+@media (max-width: 640px) {
+  .security-visual {
+    height: 112px;
+    padding: 12px;
+  }
+
+  .security-visual-transport {
+    width: min(100%, 160px);
+    gap: 10px;
+  }
+
+  .security-handling-connectors,
+  .security-handling-branches {
+    width: 120px;
+  }
+
+  .security-workspace-vault {
+    width: 126px;
+    height: 84px;
+  }
+
+  .security-workspace-files {
+    width: 82px;
+    height: 54px;
+  }
+}

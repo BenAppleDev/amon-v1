@@ -2796,16 +2796,91 @@ h3 {
 .security-layer-card-operations {
   border-color: rgba(255, 94, 79, 0.16);
 }
+/* Security page */
+
+.security-layers-graphic {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(198, 255, 97, 0.06), transparent 24%),
+    radial-gradient(circle at 86% 28%, rgba(255, 94, 79, 0.048), transparent 22%),
+    rgba(255, 255, 255, 0.026);
+}
+
+.security-layers-graphic::before,
+.security-foundation-card::before,
+.security-layer-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 94%);
+}
+
+.security-layers-header,
+.security-layers-footer,
+.security-layer-strip {
+  position: relative;
+  z-index: 1;
+}
+
+.security-layers-header strong,
+.security-layers-footer strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink);
+}
+
+.security-layers-header strong {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.02;
+}
+
+.security-layer-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.security-layer-card {
+  min-width: 0;
+  min-height: 340px;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.security-layer-card-access,
+.security-layer-card-transport,
+.security-layer-card-workspace {
+  border-color: rgba(198, 255, 97, 0.18);
+}
+
+.security-layer-card-handling,
+.security-layer-card-operations {
+  border-color: rgba(255, 94, 79, 0.16);
+}
 
 .security-visual {
-  height: var(--security-visual-h);
+  height: 146px;
   display: grid;
   place-items: center;
-  border-radius: clamp(18px, 1.8vw, 22px);
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.055);
   background: rgba(255, 255, 255, 0.022);
   overflow: hidden;
-  padding: clamp(10px, 1.2vw, 14px);
 }
 
 /* Access */
@@ -2813,37 +2888,37 @@ h3 {
 .security-visual-access {
   display: grid;
   grid-template-columns: auto auto;
-  gap: clamp(12px, 1.2vw, 16px);
+  gap: 16px;
   justify-content: center;
   align-items: center;
 }
 
 .security-access-device {
-  width: clamp(68px, 6vw, 84px);
-  height: clamp(92px, 8vw, 110px);
-  padding: clamp(12px, 1.2vw, 14px) clamp(10px, 1vw, 12px);
-  border-radius: clamp(18px, 2vw, 24px);
+  width: 84px;
+  height: 110px;
+  padding: 14px 12px;
+  border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   align-content: center;
-  gap: clamp(8px, 0.9vw, 10px);
+  gap: 10px;
 }
 
 .security-access-device span {
   display: block;
-  height: clamp(6px, 0.7vw, 8px);
+  height: 8px;
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
 
 .security-access-device span.short {
-  width: 62%;
+  width: 58%;
 }
 
 .security-access-ring {
-  width: clamp(50px, 4.6vw, 62px);
-  height: clamp(50px, 4.6vw, 62px);
+  width: 62px;
+  height: 62px;
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.08);
@@ -2853,41 +2928,48 @@ h3 {
 }
 
 .security-access-check {
-  width: clamp(16px, 1.6vw, 20px);
-  height: clamp(8px, 0.8vw, 10px);
-  border-left: 3px solid var(--lime);
-  border-bottom: 3px solid var(--lime);
-  transform: rotate(-45deg) translateY(-2px);
+  width: 18px;
+  height: 10px;
+  border-left: 4px solid var(--lime);
+  border-bottom: 4px solid var(--lime);
+  transform: rotate(-45deg) translateY(-1px);
 }
 
 /* Transport */
 
 .security-visual-transport {
   display: grid;
-  grid-template-columns: clamp(18px, 2vw, 26px) 1fr clamp(18px, 2vw, 26px);
+  grid-template-columns: 24px minmax(96px, 1fr) 24px;
   align-items: center;
-  gap: clamp(10px, 1.1vw, 14px);
-  width: 100%;
-  max-width: clamp(128px, 16vw, 180px);
+  gap: 16px;
+  width: min(100%, 210px);
   margin: 0 auto;
 }
 
-.security-transport-endpoint {
-  width: clamp(18px, 2vw, 26px);
-  height: clamp(18px, 2vw, 26px);
+.security-transport-node {
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.07);
+  box-shadow: 0 0 14px rgba(198, 255, 97, 0.06);
 }
 
-.security-transport-path {
+.security-transport-rail {
   position: relative;
+  height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+.security-transport-flow {
+  width: 100%;
   height: 4px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
     rgba(198, 255, 97, 0.18),
-    rgba(198, 255, 97, 0.82),
+    rgba(198, 255, 97, 0.88),
     rgba(198, 255, 97, 0.18)
   );
 }
@@ -2896,22 +2978,23 @@ h3 {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: clamp(26px, 2.6vw, 32px);
-  height: clamp(22px, 2.3vw, 28px);
+  width: 34px;
+  height: 30px;
   transform: translate(-50%, -50%);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.045);
   display: grid;
   place-items: center;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.04);
 }
 
 .security-transport-lock span {
   position: relative;
-  width: clamp(8px, 0.9vw, 10px);
-  height: clamp(8px, 0.9vw, 10px);
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
-  background: rgba(244, 239, 232, 0.82);
+  background: rgba(244, 239, 232, 0.84);
 }
 
 .security-transport-lock span::before {
@@ -2919,10 +3002,10 @@ h3 {
   position: absolute;
   left: 50%;
   top: -8px;
-  width: clamp(10px, 1vw, 12px);
-  height: clamp(8px, 0.9vw, 10px);
+  width: 12px;
+  height: 9px;
   transform: translateX(-50%);
-  border: 2px solid rgba(244, 239, 232, 0.7);
+  border: 2px solid rgba(244, 239, 232, 0.74);
   border-bottom: none;
   border-radius: 10px 10px 0 0;
 }
@@ -2933,60 +3016,74 @@ h3 {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: clamp(10px, 1vw, 14px);
+  gap: 12px;
 }
 
 .security-handling-node {
-  width: clamp(58px, 5.5vw, 72px);
-  height: clamp(58px, 5.5vw, 72px);
-  border-radius: clamp(18px, 1.8vw, 22px);
+  width: 70px;
+  height: 70px;
+  border-radius: 22px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.06);
   display: grid;
   place-items: center;
   color: var(--ink);
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.65rem, 2vw, 2rem);
+  font-size: 2rem;
   line-height: 1;
 }
 
-.security-handling-branches {
+.security-handling-connectors {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, clamp(32px, 3.4vw, 42px));
-  gap: clamp(8px, 0.9vw, 14px);
-  align-items: start;
-  justify-content: center;
-  padding-top: 16px;
+  width: 152px;
+  height: 18px;
 }
 
-.security-handling-branches::before {
-  content: "";
+.security-handling-trunk {
   position: absolute;
-  top: 0;
   left: 50%;
+  top: 0;
   width: 2px;
   height: 10px;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.22);
 }
 
-.security-handling-branches::after {
-  content: "";
+.security-handling-rail {
   position: absolute;
-  top: 10px;
-  left: 22px;
-  right: 22px;
+  left: 14px;
+  right: 14px;
+  bottom: 0;
   height: 2px;
-  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.security-handling-branches {
+  width: 152px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 12px;
+}
+
+.security-handling-branch-wrap {
+  display: grid;
+  justify-items: center;
+  row-gap: 0;
+}
+
+.security-handling-branch-wrap i {
+  display: block;
+  width: 2px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .security-handling-branch {
-  position: relative;
-  width: clamp(32px, 3.4vw, 42px);
-  height: clamp(28px, 2.9vw, 36px);
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   align-content: center;
@@ -2994,27 +3091,16 @@ h3 {
   gap: 4px;
 }
 
-.security-handling-branch::before {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  width: 2px;
-  height: 10px;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.18);
-}
-
 .security-handling-branch span {
   display: block;
-  width: clamp(12px, 1.6vw, 18px);
+  width: 14px;
   height: 4px;
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
 
-.security-handling-branch-text span:last-child {
-  width: clamp(9px, 1.1vw, 12px);
+.security-handling-branch span.short {
+  width: 10px;
 }
 
 .security-handling-branch-remote {
@@ -3025,72 +3111,85 @@ h3 {
 /* Workspace */
 
 .security-visual-workspace {
-  position: relative;
   display: grid;
   place-items: center;
 }
 
-.security-workspace-stack {
+.security-workspace-vault {
   position: relative;
-  width: clamp(84px, 8vw, 102px);
-  height: clamp(70px, 7vw, 84px);
+  width: 150px;
+  height: 100px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
+  display: grid;
+  place-items: center;
 }
 
-.security-workspace-stack span {
+.security-workspace-files {
+  position: relative;
+  width: 96px;
+  height: 64px;
+}
+
+.security-workspace-files span {
   position: absolute;
-  width: clamp(42px, 4.4vw, 52px);
-  height: clamp(56px, 5.8vw, 68px);
-  border-radius: 14px;
+  width: 36px;
+  height: 50px;
+  border-radius: 12px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.security-workspace-stack span:nth-child(1) {
-  left: 10px;
-  top: 10px;
+.security-workspace-files span:nth-child(1) {
+  left: 6px;
+  top: 8px;
 }
 
-.security-workspace-stack span:nth-child(2) {
-  left: 26px;
+.security-workspace-files span:nth-child(2) {
+  left: 23px;
   top: 4px;
 }
 
-.security-workspace-stack span:nth-child(3) {
-  left: 42px;
-  top: 10px;
+.security-workspace-files span:nth-child(3) {
+  left: 40px;
+  top: 8px;
 }
 
-.security-workspace-lock {
+.security-workspace-badge {
   position: absolute;
-  right: clamp(14px, 1.5vw, 22px);
-  bottom: clamp(12px, 1.4vw, 20px);
-  width: clamp(24px, 2.4vw, 30px);
-  height: clamp(24px, 2.4vw, 30px);
+  right: 10px;
+  bottom: 10px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.2);
   background: rgba(198, 255, 97, 0.1);
   display: grid;
   place-items: center;
-  box-shadow: 0 0 20px rgba(198, 255, 97, 0.08);
+  box-shadow: 0 0 18px rgba(198, 255, 97, 0.08);
 }
 
-.security-workspace-lock i {
+.security-workspace-badge-lock {
   position: relative;
-  width: clamp(10px, 1vw, 12px);
-  height: clamp(8px, 0.9vw, 10px);
+  width: 11px;
+  height: 9px;
   border-radius: 3px;
-  background: rgba(244, 239, 232, 0.82);
+  background: rgba(244, 239, 232, 0.84);
 }
 
-.security-workspace-lock i::before {
+.security-workspace-badge-lock::before {
   content: "";
   position: absolute;
   left: 50%;
   top: -7px;
-  width: clamp(10px, 1vw, 12px);
-  height: clamp(8px, 0.9vw, 8px);
+  width: 11px;
+  height: 8px;
   transform: translateX(-50%);
-  border: 2px solid rgba(244, 239, 232, 0.7);
+  border: 2px solid rgba(244, 239, 232, 0.72);
   border-bottom: none;
   border-radius: 9px 9px 0 0;
 }
@@ -3098,17 +3197,14 @@ h3 {
 /* Operations */
 
 .security-visual-operations {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: clamp(10px, 1vw, 14px);
+  gap: 12px;
 }
 
 .security-operations-panel {
-  width: clamp(88px, 9vw, 110px);
-  height: clamp(62px, 6.5vw, 78px);
-  padding: clamp(12px, 1.2vw, 14px);
-  border-radius: 20px;
+  width: 110px;
+  height: 78px;
+  padding: 14px 12px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.11);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
@@ -3118,36 +3214,43 @@ h3 {
 
 .security-operations-panel span {
   display: block;
-  height: clamp(6px, 0.8vw, 8px);
+  height: 8px;
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
 
 .security-operations-eyeoff {
   position: relative;
-  width: clamp(30px, 3vw, 38px);
-  height: clamp(18px, 2vw, 24px);
+  width: 38px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.security-operations-eye {
+  width: 100%;
+  height: 100%;
   border: 2px solid rgba(255, 94, 79, 0.62);
   border-radius: 999px;
   display: grid;
   place-items: center;
 }
 
-.security-operations-eyeoff i {
-  width: clamp(6px, 0.8vw, 8px);
-  height: clamp(6px, 0.8vw, 8px);
+.security-operations-eye::before {
+  content: "";
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: rgba(255, 94, 79, 0.82);
 }
 
-.security-operations-eyeoff b {
+.security-operations-slash {
   position: absolute;
-  width: clamp(34px, 3.6vw, 42px);
+  width: 42px;
   height: 2px;
+  border-radius: 999px;
   background: rgba(255, 94, 79, 0.82);
   transform: rotate(-24deg);
-  transform-origin: center;
-  border-radius: 999px;
 }
 
 /* Copy */

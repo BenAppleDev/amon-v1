@@ -49,13 +49,14 @@ function AccessVisual() {
 function TransportVisual() {
   return (
     <div className="security-visual security-visual-transport" aria-hidden="true">
-      <div className="security-transport-endpoint" />
-      <div className="security-transport-path">
+      <div className="security-transport-node" />
+      <div className="security-transport-rail">
+        <div className="security-transport-flow" />
         <div className="security-transport-lock">
           <span />
         </div>
       </div>
-      <div className="security-transport-endpoint" />
+      <div className="security-transport-node" />
     </div>
   );
 }
@@ -64,18 +65,35 @@ function HandlingVisual() {
   return (
     <div className="security-visual security-visual-handling" aria-hidden="true">
       <div className="security-handling-node">A</div>
+
+      <div className="security-handling-connectors">
+        <span className="security-handling-trunk" />
+        <span className="security-handling-rail" />
+      </div>
+
       <div className="security-handling-branches">
-        <div className="security-handling-branch security-handling-branch-live">
-          <span />
-          <span />
+        <div className="security-handling-branch-wrap">
+          <i />
+          <div className="security-handling-branch">
+            <span />
+            <span className="short" />
+          </div>
         </div>
-        <div className="security-handling-branch security-handling-branch-text">
-          <span />
-          <span />
+
+        <div className="security-handling-branch-wrap">
+          <i />
+          <div className="security-handling-branch">
+            <span />
+            <span className="short" />
+          </div>
         </div>
-        <div className="security-handling-branch security-handling-branch-remote">
-          <span />
-          <span />
+
+        <div className="security-handling-branch-wrap">
+          <i />
+          <div className="security-handling-branch security-handling-branch-remote">
+            <span />
+            <span className="short" />
+          </div>
         </div>
       </div>
     </div>
@@ -85,13 +103,16 @@ function HandlingVisual() {
 function WorkspaceVisual() {
   return (
     <div className="security-visual security-visual-workspace" aria-hidden="true">
-      <div className="security-workspace-stack">
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="security-workspace-lock">
-        <i />
+      <div className="security-workspace-vault">
+        <div className="security-workspace-files">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className="security-workspace-badge">
+          <span className="security-workspace-badge-lock" />
+        </div>
       </div>
     </div>
   );
@@ -105,9 +126,10 @@ function OperationsVisual() {
         <span />
         <span />
       </div>
+
       <div className="security-operations-eyeoff">
-        <i />
-        <b />
+        <span className="security-operations-eye" />
+        <span className="security-operations-slash" />
       </div>
     </div>
   );
