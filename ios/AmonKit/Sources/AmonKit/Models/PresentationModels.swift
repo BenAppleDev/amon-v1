@@ -98,11 +98,29 @@ enum AmonErrorPresenter {
                     || code == "protected_session_unavailable" {
                     return detail ?? "Amon couldn't keep that protected session running right now."
                 }
+                if code == "missing_bearer_token" {
+                    return detail ?? "This device no longer has a signed-in bearer token. Sign in again before starting the routed-local tunnel."
+                }
+                if code == "product_session_missing" || code == "product_session_revoked" || code == "product_session_expired" {
+                    return detail ?? "This device no longer has a valid product session for routed-local startup. Sign in again before connecting."
+                }
+                if code == "auth_session_invalid" {
+                    return detail ?? "The signed-in auth session tied to this device is no longer valid. Sign in again before connecting."
+                }
+                if code == "entitlement_missing" || code == "account_missing" {
+                    return detail ?? "The access context tied to this device is no longer valid for routed-local startup."
+                }
+                if code == "route_product_session_missing" || code == "route_product_session_invalid" {
+                    return detail ?? "The routed-local session's parent product session is no longer valid."
+                }
                 if context.statusCode == 503 {
                     return detail ?? "Amon can't reach that service right now. Check that the backend is running."
                 }
                 if context.statusCode == 403 {
                     return detail ?? "That request was blocked."
+                }
+                if context.statusCode == 401 {
+                    return detail ?? "Your signed-in session is no longer valid for that request."
                 }
                 if context.statusCode >= 500 {
                     return detail ?? "The backend couldn't complete that request right now."

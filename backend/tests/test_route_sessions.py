@@ -67,6 +67,27 @@ def test_route_session_refresh_rejects_other_authenticated_session(client):
     assert other_refresh.json()['detail']['code'] == 'route_session_missing'
 
 
+def test_route_session_mint_surfaces_auth_session_invalid_context(client, db_session_factory):
+    token = _login(client)
+
+    db = db_session_factory()
+    try:
+        product_session = db.get(ProductSessionRecord, token)
+        assert product_session is not None
+
+        auth_session = db.get(SessionRecord, product_session.auth_session_id)
+        assert auth_session is not None
+        auth_session.expires_at = utcnow() - timedelta(seconds=1)
+        db.add(auth_session)
+        db.commit()
+    finally:
+        db.close()
+
+    response = client.post('/v1/route-sessions', headers={'Authorization': f'Bearer {token}'})
+    assert response.status_code == 401
+    assert response.json()['detail']['code'] == 'auth_session_invalid'
+
+
 def test_route_session_control_plane_access_token_resolution_marks_expired(client, db_session_factory):
     token = _login(client)
     headers = {'Authorization': f'Bearer {token}'}

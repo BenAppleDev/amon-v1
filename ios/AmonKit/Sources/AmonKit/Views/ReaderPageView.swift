@@ -132,7 +132,8 @@ public struct ReaderPageView: View {
                     eyebrow: "Mode / Clean View",
                     title: "Clean View",
                     message: "Readable retrieval first. The live site stays optional until you choose a deeper open mode.",
-                    badges: ["Local", "Clean View", "Protected Session"]
+                    badges: ["Local", "Clean View", "Protected"],
+                    compact: true
                 )
 
                 AmonTrustStripView(

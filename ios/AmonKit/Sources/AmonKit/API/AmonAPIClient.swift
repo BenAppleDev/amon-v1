@@ -255,7 +255,7 @@ public final class AmonAPIClient: @unchecked Sendable, AmonAPIClienting {
             )
         }
         guard (200..<300).contains(http.statusCode) else {
-            if http.statusCode == 401 {
+            if http.statusCode == 401, data.isEmpty {
                 throw AmonAPIError.unauthorized
             }
             throw AmonAPIError.serverError(decodeBackendErrorContext(statusCode: http.statusCode, data: data))

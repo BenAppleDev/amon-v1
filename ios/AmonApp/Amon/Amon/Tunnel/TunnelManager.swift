@@ -823,7 +823,7 @@ private enum TunnelConfigurationError: LocalizedError {
         case .invalidPort:
             return "Use a valid tunnel port between 1 and 65535."
         case .routeSessionMissing:
-            return "Amon could not mint a routed-local session for this tunnel start."
+            return "A routed-local session was not ready for this tunnel start. Check Recent Activity for the route-session preparation failure."
         case .routeSessionInactive:
             return "The routed-local session is no longer active. Refresh it before reconnecting."
         case .routeSessionExpired:

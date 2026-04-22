@@ -54,6 +54,77 @@ public enum LocalRouteSessionStatus: String, CaseIterable, Codable, Sendable {
     case failed
 }
 
+public enum LocalRouteSessionRequestStage: String, CaseIterable, Codable, Sendable {
+    case mint
+    case refresh
+
+    public var title: String {
+        switch self {
+        case .mint:
+            return "Mint"
+        case .refresh:
+            return "Refresh"
+        }
+    }
+}
+
+public enum LocalRouteSessionFailureCategory: String, CaseIterable, Codable, Sendable {
+    case authSessionMissing
+    case productSessionMissing
+    case entitlementMissing
+    case unauthorizedOrExpired
+    case apiFailure
+    case malformedResponse
+    case networkFailure
+    case unknown
+
+    public var title: String {
+        switch self {
+        case .authSessionMissing:
+            return "Auth/session missing"
+        case .productSessionMissing:
+            return "Product session missing"
+        case .entitlementMissing:
+            return "Entitlement/access missing"
+        case .unauthorizedOrExpired:
+            return "Unauthorized or expired"
+        case .apiFailure:
+            return "Route-session API failure"
+        case .malformedResponse:
+            return "Malformed backend response"
+        case .networkFailure:
+            return "Network failure"
+        case .unknown:
+            return "Other failure"
+        }
+    }
+}
+
+public struct LocalRouteSessionFailureDiagnostic: Equatable, Hashable, Sendable {
+    public let stage: LocalRouteSessionRequestStage
+    public let category: LocalRouteSessionFailureCategory
+    public let statusCode: Int?
+    public let code: String?
+    public let message: String
+    public let lastUpdatedAt: Date
+
+    public init(
+        stage: LocalRouteSessionRequestStage,
+        category: LocalRouteSessionFailureCategory,
+        statusCode: Int? = nil,
+        code: String? = nil,
+        message: String,
+        lastUpdatedAt: Date = Date()
+    ) {
+        self.stage = stage
+        self.category = category
+        self.statusCode = statusCode
+        self.code = code
+        self.message = message
+        self.lastUpdatedAt = lastUpdatedAt
+    }
+}
+
 public enum LocalRouteRelayAuthState: String, CaseIterable, Codable, Sendable {
     case notStarted
     case pending
@@ -153,6 +224,7 @@ public struct LocalRouteCapabilitySnapshot: Equatable, Hashable, Sendable {
     public let routeSessionStatus: LocalRouteSessionStatus
     public let routeSessionID: String?
     public let routeSessionExpiresAt: Date?
+    public let routeSessionDiagnostic: LocalRouteSessionFailureDiagnostic?
     public let relayStatus: LocalRouteRelayStatusSnapshot
     public let tunnelStatus: TransportTunnelStatusSnapshot
 
@@ -164,6 +236,7 @@ public struct LocalRouteCapabilitySnapshot: Equatable, Hashable, Sendable {
         routeSessionStatus: LocalRouteSessionStatus = .absent,
         routeSessionID: String? = nil,
         routeSessionExpiresAt: Date? = nil,
+        routeSessionDiagnostic: LocalRouteSessionFailureDiagnostic? = nil,
         relayStatus: LocalRouteRelayStatusSnapshot = .notStarted,
         tunnelStatus: TransportTunnelStatusSnapshot = .disconnected
     ) {
@@ -174,6 +247,7 @@ public struct LocalRouteCapabilitySnapshot: Equatable, Hashable, Sendable {
         self.routeSessionStatus = routeSessionStatus
         self.routeSessionID = routeSessionID
         self.routeSessionExpiresAt = routeSessionExpiresAt
+        self.routeSessionDiagnostic = routeSessionDiagnostic
         self.relayStatus = relayStatus
         self.tunnelStatus = tunnelStatus
     }
@@ -236,6 +310,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
     private var routeSessionStatus: LocalRouteSessionStatus = .absent
     private var routeSessionFailureReason: LocalRouteCapabilityReason?
     private var routeSessionFailureDetail: String?
+    private var routeSessionFailureDiagnostic: LocalRouteSessionFailureDiagnostic?
     private var lastTunnelStatus: TransportTunnelStatusSnapshot = .disconnected
     private var lastRelayStatus: LocalRouteRelayStatusSnapshot = .notStarted
     private var isSynchronizingRouteSession = false
@@ -262,6 +337,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
             routeSessionStatus = .absent
             routeSessionFailureReason = nil
             routeSessionFailureDetail = nil
+            routeSessionFailureDiagnostic = nil
             capability = snapshot(
                 state: .disconnected,
                 readinessState: .routeUnavailable,
@@ -276,6 +352,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
             routeSessionStatus = .absent
             routeSessionFailureReason = nil
             routeSessionFailureDetail = nil
+            routeSessionFailureDiagnostic = nil
             capability = snapshot(
                 state: .disconnected,
                 readinessState: .routeUnavailable,
@@ -335,6 +412,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
                 routeSessionStatus = .revoked
                 routeSessionFailureReason = .routeSessionRevoked
                 routeSessionFailureDetail = "The routed-local session was revoked and must be reissued."
+                routeSessionFailureDiagnostic = nil
                 currentRouteSession = nil
                 return
             }
@@ -343,6 +421,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
                 routeSessionStatus = .expired
                 routeSessionFailureReason = .routeSessionExpired
                 routeSessionFailureDetail = "The routed-local session expired and must be refreshed before browsing can stay local-routed."
+                routeSessionFailureDiagnostic = nil
                 currentRouteSession = nil
             } else if session.refresh_after <= now() {
                 routeSessionStatus = .refreshing
@@ -352,12 +431,18 @@ public final class LocalRouteCapabilityController: ObservableObject {
                     routeSessionStatus = .active
                     routeSessionFailureReason = nil
                     routeSessionFailureDetail = nil
+                    routeSessionFailureDiagnostic = nil
                 } catch {
                     routeSessionStatus = .failed
                     routeSessionFailureReason = .routeSessionRefreshFailed
                     routeSessionFailureDetail = AmonErrorPresenter.message(
                         for: error,
                         fallback: "Amon couldn't refresh the routed-local session."
+                    )
+                    routeSessionFailureDiagnostic = failureDiagnostic(
+                        for: error,
+                        stage: .refresh,
+                        fallback: routeSessionFailureDetail ?? "Amon couldn't refresh the routed-local session."
                     )
                     currentRouteSession = nil
                 }
@@ -366,6 +451,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
                 routeSessionStatus = .active
                 routeSessionFailureReason = nil
                 routeSessionFailureDetail = nil
+                routeSessionFailureDiagnostic = nil
                 return
             }
         }
@@ -377,12 +463,18 @@ public final class LocalRouteCapabilityController: ObservableObject {
             routeSessionStatus = .active
             routeSessionFailureReason = nil
             routeSessionFailureDetail = nil
+            routeSessionFailureDiagnostic = nil
         } catch {
             routeSessionStatus = .failed
             routeSessionFailureReason = .routeSessionMintFailed
             routeSessionFailureDetail = AmonErrorPresenter.message(
                 for: error,
                 fallback: "Amon couldn't mint a routed-local session."
+            )
+            routeSessionFailureDiagnostic = failureDiagnostic(
+                for: error,
+                stage: .mint,
+                fallback: routeSessionFailureDetail ?? "Amon couldn't mint a routed-local session."
             )
             currentRouteSession = nil
         }
@@ -394,6 +486,7 @@ public final class LocalRouteCapabilityController: ObservableObject {
             _ = try? await apiClient.revokeRouteSession(sessionID: currentRouteSession.session_id)
         }
         self.currentRouteSession = nil
+        routeSessionFailureDiagnostic = nil
     }
 
     private func resolvedSnapshot() -> LocalRouteCapabilitySnapshot {
@@ -502,9 +595,84 @@ public final class LocalRouteCapabilityController: ObservableObject {
             routeSessionStatus: routeSessionStatus,
             routeSessionID: currentRouteSession?.session_id,
             routeSessionExpiresAt: currentRouteSession?.expires_at,
+            routeSessionDiagnostic: routeSessionFailureDiagnostic,
             relayStatus: lastRelayStatus,
             tunnelStatus: lastTunnelStatus
         )
+    }
+
+    private func failureDiagnostic(
+        for error: Error,
+        stage: LocalRouteSessionRequestStage,
+        fallback: String
+    ) -> LocalRouteSessionFailureDiagnostic {
+        if let apiError = error as? AmonAPIError {
+            switch apiError {
+            case .invalidURL:
+                return LocalRouteSessionFailureDiagnostic(
+                    stage: stage,
+                    category: .apiFailure,
+                    message: "Amon couldn't prepare the routed-local API request."
+                )
+            case .unauthorized:
+                return LocalRouteSessionFailureDiagnostic(
+                    stage: stage,
+                    category: .unauthorizedOrExpired,
+                    statusCode: 401,
+                    message: "The local client no longer has a valid signed-in session."
+                )
+            case .decodingError:
+                return LocalRouteSessionFailureDiagnostic(
+                    stage: stage,
+                    category: .malformedResponse,
+                    message: "Amon received a routed-local response that it could not decode."
+                )
+            case .serverError(let context):
+                return LocalRouteSessionFailureDiagnostic(
+                    stage: stage,
+                    category: failureCategory(for: context),
+                    statusCode: context.statusCode,
+                    code: context.code,
+                    message: context.message ?? fallback
+                )
+            }
+        }
+
+        if let urlError = error as? URLError {
+            return LocalRouteSessionFailureDiagnostic(
+                stage: stage,
+                category: .networkFailure,
+                message: AmonErrorPresenter.message(for: urlError, fallback: fallback)
+            )
+        }
+
+        return LocalRouteSessionFailureDiagnostic(
+            stage: stage,
+            category: .unknown,
+            message: fallback
+        )
+    }
+
+    private func failureCategory(for context: AmonBackendErrorContext) -> LocalRouteSessionFailureCategory {
+        switch context.code {
+        case "missing_bearer_token", "auth_session_invalid":
+            return .authSessionMissing
+        case "product_session_missing",
+            "product_session_revoked",
+            "product_session_expired",
+            "route_product_session_missing",
+            "route_product_session_invalid":
+            return .productSessionMissing
+        case "entitlement_missing", "account_missing":
+            return .entitlementMissing
+        default:
+            break
+        }
+
+        if context.statusCode == 401 {
+            return .unauthorizedOrExpired
+        }
+        return .apiFailure
     }
 
     private func capabilityReason(for relayStatus: LocalRouteRelayStatusSnapshot) -> LocalRouteCapabilityReason {

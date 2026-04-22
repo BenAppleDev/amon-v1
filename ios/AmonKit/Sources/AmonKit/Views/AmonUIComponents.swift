@@ -81,19 +81,25 @@ struct AmonBrandHeroCard: View {
     let title: String
     let message: String
     var badges: [String] = []
+    var compact = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: compact ? 10 : 16) {
             AmonBrandEyebrow(text: eyebrow)
 
             Text(title)
-                .font(AmonBrandTypography.brandDisplay(size: 34, relativeTo: .largeTitle))
+                .font(
+                    AmonBrandTypography.brandDisplay(
+                        size: compact ? 26 : 34,
+                        relativeTo: compact ? .title2 : .largeTitle
+                    )
+                )
                 .foregroundStyle(AmonTheme.ink)
-                .lineSpacing(2)
+                .lineSpacing(compact ? 1 : 2)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(message)
-                .font(.subheadline)
+                .font(compact ? .footnote : .subheadline)
                 .foregroundStyle(AmonTheme.muted)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -113,7 +119,7 @@ struct AmonBrandHeroCard: View {
                 }
             }
         }
-        .amonCardStyle(padding: 20)
+        .amonCardStyle(padding: compact ? 16 : 20)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(
@@ -272,7 +278,7 @@ struct AmonEmptyStateView: View {
 
             if let actionTitle, let action {
                 Button(actionTitle, action: action)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(AmonPrimaryButtonStyle())
             }
         }
         .padding(24)
@@ -282,6 +288,90 @@ struct AmonEmptyStateView: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(AmonTheme.border.opacity(0.8), lineWidth: 1)
         )
+    }
+}
+
+struct AmonPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    var minHeight: CGFloat = 48
+    var horizontalPadding: CGFloat = 16
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AmonTheme.canvas)
+            .padding(.horizontal, horizontalPadding)
+            .frame(minHeight: minHeight)
+            .frame(maxWidth: .infinity)
+            .background(backgroundColor(configuration: configuration), in: Capsule())
+            .overlay(
+                Capsule()
+                    .strokeBorder(AmonTheme.accent.opacity(isEnabled ? 0.18 : 0.08), lineWidth: 1)
+            )
+            .opacity(isEnabled ? 1 : 0.45)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+
+    private func backgroundColor(configuration: Configuration) -> Color {
+        let base = AmonTheme.accent
+        if !isEnabled {
+            return base.opacity(0.45)
+        }
+        return configuration.isPressed ? base.opacity(0.88) : base
+    }
+}
+
+struct AmonSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    var minHeight: CGFloat = 48
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AmonTheme.ink)
+            .padding(.horizontal, 16)
+            .frame(minHeight: minHeight)
+            .frame(maxWidth: .infinity)
+            .background(
+                (configuration.isPressed ? AmonTheme.elevatedSurface.opacity(0.88) : AmonTheme.pillSurface),
+                in: Capsule()
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(AmonTheme.border, lineWidth: 1)
+            )
+            .opacity(isEnabled ? 1 : 0.45)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
+struct AmonDestructiveButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    var minHeight: CGFloat = 48
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AmonTheme.ink)
+            .padding(.horizontal, 16)
+            .frame(minHeight: minHeight)
+            .frame(maxWidth: .infinity)
+            .background(
+                (configuration.isPressed ? AmonTheme.danger.opacity(0.82) : AmonTheme.danger),
+                in: Capsule()
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(AmonTheme.danger.opacity(0.3), lineWidth: 1)
+            )
+            .opacity(isEnabled ? 1 : 0.45)
+            .scaleEffect(configuration.isPressed ? 0.985 : 1)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
     }
 }
 
@@ -341,7 +431,7 @@ struct AmonActionChip: View {
         }
         .font(.footnote.weight(.semibold))
         .foregroundStyle(foregroundColor)
-        .frame(maxWidth: expands ? .infinity : nil, minHeight: 40)
+        .frame(maxWidth: expands ? .infinity : nil, minHeight: 36)
         .padding(.horizontal, 10)
         .background(backgroundColor, in: Capsule())
         .overlay(
@@ -429,5 +519,16 @@ extension View {
                     .strokeBorder(AmonTheme.border, lineWidth: 1)
             )
             .shadow(color: AmonTheme.shadow, radius: 14, y: 7)
+    }
+
+    func amonInputStyle(cornerRadius: CGFloat = 18, verticalPadding: CGFloat = 14) -> some View {
+        self
+            .padding(.horizontal, 16)
+            .padding(.vertical, verticalPadding)
+            .background(AmonTheme.elevatedSurface, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(AmonTheme.border, lineWidth: 1)
+            )
     }
 }

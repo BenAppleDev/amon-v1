@@ -184,17 +184,7 @@ struct RootTabView: View {
                 tunnelDiagnostics: tunnelManager.diagnostics,
                 connectTunnel: {
                     Task {
-                        tunnelManager.recordExternalEvent("Manual connect requested from settings")
-                        let routeSession = await localRouteController.prepareForTunnelConnection(
-                            isAuthenticated: searchViewModel.isAuthenticated,
-                            settings: transportSettingsStore.settings,
-                            tunnelStatus: tunnelManager.statusSnapshot,
-                            relayStatus: tunnelManager.routeRelayStatus
-                        )
-                        await tunnelManager.connect(
-                            using: transportSettingsStore.settings,
-                            routeSession: routeSession
-                        )
+                        await connectTunnelIfReady(trigger: "Manual connect requested from settings")
                     }
                 },
                 disconnectTunnel: {
@@ -210,17 +200,7 @@ struct RootTabView: View {
                 primaryButton: .default(Text("Connect")) {
                     transportSettingsStore.updateEnabledWhenSignedIn(true)
                     Task {
-                        tunnelManager.recordExternalEvent("Tunnel prompt accepted for \(prompt.rawValue)")
-                        let routeSession = await localRouteController.prepareForTunnelConnection(
-                            isAuthenticated: searchViewModel.isAuthenticated,
-                            settings: transportSettingsStore.settings,
-                            tunnelStatus: tunnelManager.statusSnapshot,
-                            relayStatus: tunnelManager.routeRelayStatus
-                        )
-                        await tunnelManager.connect(
-                            using: transportSettingsStore.settings,
-                            routeSession: routeSession
-                        )
+                        await connectTunnelIfReady(trigger: "Tunnel prompt accepted for \(prompt.rawValue)")
                     }
                 },
                 secondaryButton: .cancel(Text("Not now")) {
@@ -255,18 +235,55 @@ struct RootTabView: View {
                 return
             }
 
-            tunnelManager.recordExternalEvent("Auto-connect path chosen; requesting tunnel connect")
-            let routeSession = await localRouteController.prepareForTunnelConnection(
-                isAuthenticated: searchViewModel.isAuthenticated,
-                settings: settings,
-                tunnelStatus: tunnelManager.statusSnapshot,
-                relayStatus: tunnelManager.routeRelayStatus
-            )
-            await tunnelManager.connect(using: settings, routeSession: routeSession)
+            await connectTunnelIfReady(trigger: "Auto-connect path chosen; requesting tunnel connect")
         } else if tunnelManager.statusSnapshot.state == .disconnected {
             tunnelManager.recordExternalEvent("Tunnel not enabled when signed in; presenting opt-in prompt")
             pendingTunnelPrompt = isSessionRestore ? .sessionRestore : .signIn
         }
+    }
+
+    private func connectTunnelIfReady(trigger: String) async {
+        tunnelManager.recordExternalEvent("\(trigger); preparing routed-local session")
+        let routeSession = await localRouteController.prepareForTunnelConnection(
+            isAuthenticated: searchViewModel.isAuthenticated,
+            settings: transportSettingsStore.settings,
+            tunnelStatus: tunnelManager.statusSnapshot,
+            relayStatus: tunnelManager.routeRelayStatus
+        )
+
+        guard let routeSession else {
+            let capability = localRouteController.capability
+            var fragments = [
+                "Tunnel connect aborted before NetworkExtension start because routed-local session preparation failed.",
+                "routeSessionStatus=\(capability.routeSessionStatus.rawValue)",
+            ]
+            if let reason = capability.reason {
+                fragments.append("reason=\(reason.rawValue)")
+            }
+            if let diagnostic = capability.routeSessionDiagnostic {
+                fragments.append("stage=\(diagnostic.stage.rawValue)")
+                fragments.append("category=\(diagnostic.category.rawValue)")
+                if let statusCode = diagnostic.statusCode {
+                    fragments.append("statusCode=\(statusCode)")
+                }
+                if let code = diagnostic.code, !code.isEmpty {
+                    fragments.append("code=\(code)")
+                }
+            }
+            if let detail = capability.detail, !detail.isEmpty {
+                fragments.append("detail=\(detail)")
+            }
+            tunnelManager.recordExternalEvent(fragments.joined(separator: " "))
+            return
+        }
+
+        tunnelManager.recordExternalEvent(
+            "Route session ready for tunnel connect sessionID=\(routeSession.session_id) productSessionID=\(routeSession.product_session_id) expiresAt=\(routeSession.expires_at)"
+        )
+        await tunnelManager.connect(
+            using: transportSettingsStore.settings,
+            routeSession: routeSession
+        )
     }
 }
 

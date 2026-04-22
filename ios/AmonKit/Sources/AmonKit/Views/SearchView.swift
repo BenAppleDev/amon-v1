@@ -34,8 +34,7 @@ public struct SearchView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        browseModesHero
+                    VStack(alignment: .leading, spacing: 16) {
                         searchComposer
                         AmonTrustStripView(items: ["Saved locally", "No server history"])
 
@@ -46,10 +45,11 @@ public struct SearchView: View {
                         content
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 18)
+                    .padding(.top, 12)
                     .padding(.bottom, viewModel.shouldShowSelectionBar ? 120 : 32)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                .contentShape(Rectangle())
                 .simultaneousGesture(
                     TapGesture().onEnded {
                         isSearchFieldFocused = false
@@ -149,12 +149,15 @@ public struct SearchView: View {
     }
 
     private var searchComposer: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 12) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(AmonTheme.muted)
+
                     TextField("Search the web privately", text: $viewModel.query)
+                        .font(.body.weight(.medium))
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
                         .submitLabel(.search)
@@ -162,26 +165,32 @@ public struct SearchView: View {
                         .onSubmit {
                             submitSearch()
                         }
+
+                    if !viewModel.query.isEmpty {
+                        Button {
+                            viewModel.query = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(AmonTheme.muted)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search")
+                    }
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 14)
-                .background(AmonTheme.elevatedSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(AmonTheme.border.opacity(0.85), lineWidth: 1)
-                )
+                .amonInputStyle(cornerRadius: 22, verticalPadding: 16)
 
                 Button(action: submitSearch) {
                     if viewModel.isSearching {
                         ProgressView()
                             .progressViewStyle(.circular)
+                            .tint(AmonTheme.canvas)
                     } else {
                         Text("Search")
-                            .fontWeight(.semibold)
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(AmonPrimaryButtonStyle(minHeight: 56, horizontalPadding: 18))
+                .frame(width: 108)
                 .disabled(!viewModel.canSubmitSearch)
             }
 
@@ -196,15 +205,6 @@ public struct SearchView: View {
                 }
             }
         }
-    }
-
-    private var browseModesHero: some View {
-        AmonBrandHeroCard(
-            eyebrow: "Search / Browse",
-            title: "Search privately. Open in local, clean, or protected mode.",
-            message: "Every result can open as a local visit on this device, a readable clean fetch, or a Protected Session when deeper isolation is available.",
-            badges: ["Local", "Clean View", "Protected Session"]
-        )
     }
 
     private var workspaceDestinationCard: some View {
@@ -242,7 +242,7 @@ public struct SearchView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AmonTheme.muted)
             }
-            .amonCardStyle(padding: 14)
+            .amonCardStyle(padding: 13)
         }
         .buttonStyle(.plain)
     }
@@ -270,7 +270,7 @@ public struct SearchView: View {
                 )
             }
         } else {
-            LazyVStack(spacing: 14) {
+            LazyVStack(spacing: 12) {
                 ForEach(viewModel.results, id: \.id) { result in
                         SearchResultCard(
                             result: result,
@@ -335,8 +335,7 @@ public struct SearchView: View {
                     Label("Save", systemImage: "square.and.arrow.down")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(AmonSecondaryButtonStyle())
                 .disabled(!viewModel.canSaveSelection)
 
                 Button {
@@ -346,8 +345,7 @@ public struct SearchView: View {
                     Label("Compare", systemImage: "square.split.2x2")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+                .buttonStyle(AmonSecondaryButtonStyle())
                 .disabled(!viewModel.canCompare)
 
                 Button {
@@ -357,8 +355,7 @@ public struct SearchView: View {
                     Label("Research", systemImage: "text.magnifyingglass")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(AmonPrimaryButtonStyle())
                 .disabled(!viewModel.canResearch)
             }
         }
@@ -465,8 +462,8 @@ private struct SearchResultCard: View {
     let onQuickResearch: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 9) {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(result.title)
@@ -506,13 +503,12 @@ private struct SearchResultCard: View {
                 }
             }
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Button(action: onOpenChooser) {
                     AmonActionChip(
                         title: isPreparingOpenChoice ? "Checking..." : "Open Modes",
                         systemImage: isPreparingOpenChoice ? "ellipsis.circle" : "square.grid.2x2",
-                        tone: .accent,
-                        expands: true
+                        tone: .accent
                     )
                 }
                 .buttonStyle(.plain)
@@ -545,7 +541,7 @@ private struct SearchResultCard: View {
                 }
             }
         }
-        .amonCardStyle()
+        .amonCardStyle(padding: 16)
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(isSelected ? AmonTheme.strongBorder : .clear, lineWidth: 1.5)
@@ -656,6 +652,7 @@ private struct SearchWorkspaceChooserSheet: View {
                     dismiss()
                 }
             }
+            .buttonStyle(AmonPrimaryButtonStyle(minHeight: 42))
             .disabled(newWorkspaceTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         } header: {
             Text(workspaces.isEmpty ? "Create a workspace" : "New workspace")

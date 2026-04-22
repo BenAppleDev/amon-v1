@@ -66,9 +66,17 @@ class CurrentAccessContext:
 CurrentUser = CurrentAccessContext
 
 
+def access_context_http_exception(status_code: int, code: str, message: str) -> HTTPException:
+    return HTTPException(status_code=status_code, detail={'code': code, 'message': message})
+
+
 def extract_bearer_token(authorization: str | None) -> str:
     if not authorization or not authorization.lower().startswith('bearer '):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing bearer token')
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'missing_bearer_token',
+            'Missing bearer token',
+        )
     return authorization.split(' ', 1)[1].strip()
 
 
@@ -76,12 +84,25 @@ def resolve_current_access_context_from_token(token: str, db: Session) -> Curren
     product_session = db.get(ProductSessionRecord, token)
     now = utcnow()
 
-    if (
-        product_session is None
-        or product_session.revoked_at is not None
-        or product_session.expires_at < now
-    ):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid or expired session')
+    if product_session is None:
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'product_session_missing',
+            'The signed-in product session is missing or no longer exists.',
+        )
+    if product_session.revoked_at is not None:
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'product_session_revoked',
+            'The signed-in product session was revoked.',
+        )
+    if product_session.expires_at < now:
+        _revoke_product_session(product_session, db)
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'product_session_expired',
+            'The signed-in product session expired.',
+        )
 
     auth_session = db.get(SessionRecord, product_session.auth_session_id)
     if (
@@ -91,17 +112,28 @@ def resolve_current_access_context_from_token(token: str, db: Session) -> Curren
         or auth_session.expires_at < now
     ):
         _revoke_product_session(product_session, db)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid or expired session')
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'auth_session_invalid',
+            'The signed-in auth session tied to this product session is no longer valid.',
+        )
 
     account = db.get(User, product_session.account_id)
     entitlement = db.get(Entitlement, product_session.entitlement_id)
-    if (
-        account is None
-        or entitlement is None
-        or entitlement.user_id != product_session.account_id
-    ):
+    if account is None:
         _revoke_product_session(product_session, db)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid session state')
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'account_missing',
+            'The account tied to this product session is no longer available.',
+        )
+    if entitlement is None or entitlement.user_id != product_session.account_id:
+        _revoke_product_session(product_session, db)
+        raise access_context_http_exception(
+            status.HTTP_401_UNAUTHORIZED,
+            'entitlement_missing',
+            'The entitlement tied to this product session is no longer valid.',
+        )
 
     product_session.last_seen_at = now
     db.add(product_session)

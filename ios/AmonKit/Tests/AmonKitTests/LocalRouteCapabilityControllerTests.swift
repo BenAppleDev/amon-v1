@@ -82,6 +82,34 @@ final class LocalRouteCapabilityControllerTests: XCTestCase {
         XCTAssertNil(controller.routeSessionForTunnel())
     }
 
+    func testRefreshCapturesStructuredRouteSessionFailureDiagnostic() async {
+        let apiClient = LocalRouteCapabilityMockAPIClient()
+        apiClient.mintRouteSessionError = AmonAPIError.serverError(
+            AmonBackendErrorContext(
+                statusCode: 401,
+                code: "product_session_missing",
+                message: "The signed-in product session is missing or no longer exists."
+            )
+        )
+        let controller = LocalRouteCapabilityController(apiClient: apiClient)
+
+        await controller.refresh(
+            isAuthenticated: true,
+            settings: configuredSettings(),
+            tunnelStatus: .disconnected,
+            relayStatus: .notStarted
+        )
+
+        XCTAssertEqual(controller.capability.state, .unavailable)
+        XCTAssertEqual(controller.capability.reason, .routeSessionMintFailed)
+        XCTAssertEqual(controller.capability.routeSessionStatus, .failed)
+        XCTAssertEqual(controller.capability.routeSessionDiagnostic?.stage, .mint)
+        XCTAssertEqual(controller.capability.routeSessionDiagnostic?.category, .productSessionMissing)
+        XCTAssertEqual(controller.capability.routeSessionDiagnostic?.statusCode, 401)
+        XCTAssertEqual(controller.capability.routeSessionDiagnostic?.code, "product_session_missing")
+        XCTAssertNil(controller.routeSessionForTunnel())
+    }
+
     func testRefreshUsesRefreshEndpointWhenLeaseNeedsRotation() async {
         let baseNow = Date(timeIntervalSince1970: 1_700_000_000)
         let apiClient = LocalRouteCapabilityMockAPIClient(now: baseNow)

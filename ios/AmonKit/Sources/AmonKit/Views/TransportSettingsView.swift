@@ -94,17 +94,22 @@ public struct TransportSettingsView: View {
                     }
                 }
 
-                if let expiresAt = capability.routeSessionExpiresAt {
-                    Text("Route session: \(capability.routeSessionStatus.rawValue.capitalized) until \(AmonFormatters.relativeTimestamp(for: expiresAt))")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
                 VStack(alignment: .leading, spacing: 8) {
+                    statusRow(label: "Route session", value: routeSessionSummary)
                     statusRow(label: "Tunnel profile", value: tunnelProfileState)
                     statusRow(label: "Tunnel state", value: status.state.title)
                     statusRow(label: "Route readiness", value: capability.readinessState.title)
                     statusRow(label: "Relay auth", value: capability.relayStatus.state.title)
+
+                    if let routeDiagnostic = capability.routeSessionDiagnostic {
+                        statusRow(
+                            label: "Route prep",
+                            value: "\(routeDiagnostic.stage.title) failed: \(routeDiagnostic.category.title)"
+                        )
+                        if let routeCode = routeDiagnostic.code, !routeCode.isEmpty {
+                            statusRow(label: "Route code", value: routeCode)
+                        }
+                    }
 
                     if let relayCode = capability.relayStatus.code, !relayCode.isEmpty {
                         statusRow(label: "Relay code", value: relayCode)
@@ -125,7 +130,7 @@ public struct TransportSettingsView: View {
                         Label("Connect", systemImage: "bolt.horizontal.circle")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(AmonPrimaryButtonStyle())
                     .disabled(!store.settings.endpoint.isConfigured || status.state == .connecting || status.state == .connected)
 
                     Button {
@@ -134,7 +139,7 @@ public struct TransportSettingsView: View {
                         Label("Disconnect", systemImage: "bolt.slash.circle")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(AmonSecondaryButtonStyle())
                     .disabled(status.state == .disconnected || status.state == .disconnecting)
                 }
             }
@@ -371,7 +376,23 @@ public struct TransportSettingsView: View {
         return "Configured for packet tunnel"
     }
 
+    private var routeSessionSummary: String {
+        let status = capability.routeSessionStatus.rawValue.capitalized
+        if let expiresAt = capability.routeSessionExpiresAt {
+            return "\(status) until \(AmonFormatters.relativeTimestamp(for: expiresAt))"
+        }
+        return status
+    }
+
     private var debugHint: String? {
+        if let routeDiagnostic = capability.routeSessionDiagnostic {
+            var hint = "Routed-local session \(routeDiagnostic.stage.rawValue) is blocked by \(routeDiagnostic.category.title.lowercased())."
+            if let code = routeDiagnostic.code, !code.isEmpty {
+                hint += " Backend code: \(code)."
+            }
+            return hint
+        }
+
         let detail = capability.detail ?? status.detail
         guard let detail, !detail.isEmpty else {
             return "Use Recent Activity to confirm whether the next failure is in profile setup, tunnel activation, or relay bootstrap."

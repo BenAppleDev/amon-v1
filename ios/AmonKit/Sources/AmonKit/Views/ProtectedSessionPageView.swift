@@ -20,7 +20,8 @@ public struct ProtectedSessionPageView: View {
                     eyebrow: "Mode / Protected",
                     title: "Protected Session",
                     message: "Live browsing through Amon's remote mediated session. This mode stays clearly separate from local and clean opens.",
-                    badges: ["Local", "Clean View", "Protected Session"]
+                    badges: ["Local", "Clean View", "Protected"],
+                    compact: true
                 )
 
                 AmonTrustStripView(
@@ -116,9 +117,7 @@ public struct ProtectedSessionPageView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AmonTheme.danger)
-                .controlSize(.large)
+                .buttonStyle(AmonDestructiveButtonStyle())
                 .disabled(viewModel.isEndingSession)
             }
             .padding(20)
@@ -206,8 +205,7 @@ public struct ProtectedSessionPageView: View {
                         Label("Back", systemImage: "chevron.left")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(AmonTheme.ink)
+                    .buttonStyle(AmonSecondaryButtonStyle())
                     .disabled(!(viewModel.state?.can_go_back ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
@@ -216,8 +214,7 @@ public struct ProtectedSessionPageView: View {
                         Label("Forward", systemImage: "chevron.right")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(AmonTheme.ink)
+                    .buttonStyle(AmonSecondaryButtonStyle())
                     .disabled(!(viewModel.state?.can_go_forward ?? false) || viewModel.isPerformingAction || !viewModel.canInteract)
 
                     Button {
@@ -226,8 +223,7 @@ public struct ProtectedSessionPageView: View {
                         Label("Reload", systemImage: "arrow.clockwise")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AmonTheme.accent)
+                    .buttonStyle(AmonPrimaryButtonStyle())
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
 
@@ -235,19 +231,13 @@ public struct ProtectedSessionPageView: View {
                     TextField("https://\(viewModel.allowedHost)/...", text: $navigationAddress)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .background(AmonTheme.elevatedSurface, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(AmonTheme.border.opacity(0.85), lineWidth: 1)
-                        )
+                        .amonInputStyle(cornerRadius: 14, verticalPadding: 10)
 
                     Button("Go") {
                         Task { await viewModel.navigate(to: navigationAddress) }
                     }
-                    .buttonStyle(.bordered)
-                    .tint(AmonTheme.ink)
+                    .buttonStyle(AmonSecondaryButtonStyle(minHeight: 42))
+                    .frame(width: 78)
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract || navigationAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -388,8 +378,7 @@ public struct ProtectedSessionPageView: View {
                         Label(form.submit_label, systemImage: "paperplane")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AmonTheme.accent)
+                    .buttonStyle(AmonPrimaryButtonStyle())
                     .disabled(viewModel.isPerformingAction || !viewModel.canInteract)
                 }
                 .padding(16)

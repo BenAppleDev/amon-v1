@@ -86,8 +86,7 @@ public struct WorkspaceDetailView: View {
                                     Label("Strengthen Workspace", systemImage: "square.and.arrow.down.on.square")
                                         .font(.callout.weight(.semibold))
                                 }
-                                .buttonStyle(.borderedProminent)
-                                .tint(.accentColor)
+                                .buttonStyle(AmonPrimaryButtonStyle(minHeight: 44))
                             }
 
                             AmonTrustStripView(items: viewModel.ownershipStripItems)

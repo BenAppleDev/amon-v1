@@ -9,20 +9,27 @@ struct AmonBrowseModeSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: 14) {
                     AmonBrandHeroCard(
                         eyebrow: "Open / Modes",
-                        title: choice.browseSheetTitle,
+                        title: "Choose a mode",
                         message: choice.browseSheetMessage,
-                        badges: ["Local", "Clean View", "Protected Session"]
+                        badges: ["Local", "Clean View", "Protected"],
+                        compact: true
                     )
 
-                    Text(choice.browseSheetDomain)
-                        .font(.footnote)
-                        .foregroundStyle(AmonTheme.muted)
-                        .textSelection(.enabled)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(choice.browseSheetTitle)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AmonTheme.ink)
+                        Text(choice.browseSheetDomain)
+                            .font(.caption)
+                            .foregroundStyle(AmonTheme.muted)
+                            .textSelection(.enabled)
+                    }
+                    .padding(.horizontal, 4)
 
-                    VStack(spacing: 12) {
+                    VStack(spacing: 10) {
                         modeCard(
                             title: "Local",
                             description: choice.localModeDescription,
@@ -58,7 +65,7 @@ struct AmonBrowseModeSheet: View {
                     }
 
                     if choice.showsDirectFallback {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 8) {
                             AmonBrandEyebrow(text: "Fallback")
 
                             Button {
@@ -85,13 +92,15 @@ struct AmonBrowseModeSheet: View {
                                         .font(.caption.weight(.bold))
                                         .foregroundStyle(AmonTheme.muted)
                                 }
-                                .amonCardStyle(padding: 16)
+                                .amonCardStyle(padding: 14)
                             }
                             .buttonStyle(.plain)
                         }
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 14)
+                .padding(.bottom, 20)
             }
             .background(AmonTheme.canvas.ignoresSafeArea())
             .navigationTitle(choice.dialogTitle)
@@ -121,28 +130,28 @@ struct AmonBrowseModeSheet: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: systemImage)
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(isEnabled ? AmonTheme.accent : AmonTheme.muted)
-                        .frame(width: 38, height: 38)
+                        .frame(width: 34, height: 34)
                         .background(
                             (isEnabled ? AmonTheme.accent.opacity(0.12) : AmonTheme.pillSurface),
                             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
                         )
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
                             Text(title)
-                                .font(AmonBrandTypography.brandDisplay(size: 24, relativeTo: .title3))
+                                .font(AmonBrandTypography.brandDisplay(size: 22, relativeTo: .title3))
                                 .foregroundStyle(AmonTheme.ink)
 
                             AmonModeBadge(text: badgeText, tone: badgeTone)
                         }
 
                         Text(description)
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(AmonTheme.muted)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -150,20 +159,20 @@ struct AmonBrowseModeSheet: View {
 
                 HStack {
                     Text(actionTitle)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.footnote.weight(.semibold))
                     Spacer()
                     Image(systemName: isEnabled ? "arrow.up.right" : "minus")
                         .font(.caption.weight(.bold))
                 }
                 .foregroundStyle(isEnabled ? AmonTheme.canvas : AmonTheme.muted)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 9)
                 .background(
                     isEnabled ? AmonTheme.accent : AmonTheme.pillSurface,
                     in: Capsule()
                 )
             }
-            .amonCardStyle(padding: 18)
+            .amonCardStyle(padding: 15)
             .overlay(
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .strokeBorder(isEnabled ? AmonTheme.strongBorder : Color.clear, lineWidth: 1)
