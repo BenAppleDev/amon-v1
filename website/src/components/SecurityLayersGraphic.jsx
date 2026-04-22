@@ -34,13 +34,11 @@ const layers = [
 function AccessVisual() {
   return (
     <div className="security-visual security-visual-access" aria-hidden="true">
-      <div className="security-device-card">
+      <div className="security-access-device">
         <span />
         <span />
       </div>
-      <div className="security-token-card">
-        <strong>ID</strong>
-      </div>
+      <div className="security-access-badge">ID</div>
     </div>
   );
 }
@@ -48,9 +46,9 @@ function AccessVisual() {
 function TransportVisual() {
   return (
     <div className="security-visual security-visual-transport" aria-hidden="true">
-      <div className="security-tunnel-line" />
-      <div className="security-tunnel-pill">TLS</div>
-      <div className="security-tunnel-pill">ATS</div>
+      <div className="security-transport-track" />
+      <div className="security-transport-pill">TLS 1.3</div>
+      <div className="security-transport-pill">ATS</div>
     </div>
   );
 }
@@ -58,8 +56,8 @@ function TransportVisual() {
 function HandlingVisual() {
   return (
     <div className="security-visual security-visual-handling" aria-hidden="true">
-      <div className="security-amon-node">A</div>
-      <div className="security-handling-chips">
+      <div className="security-handling-node">A</div>
+      <div className="security-handling-flow">
         <span>Live</span>
         <span>Text</span>
         <span>Remote</span>
@@ -76,7 +74,7 @@ function WorkspaceVisual() {
         <span />
         <span />
       </div>
-      <div className="security-unlock-dot" />
+      <div className="security-workspace-lock" />
     </div>
   );
 }
@@ -84,12 +82,12 @@ function WorkspaceVisual() {
 function OperationsVisual() {
   return (
     <div className="security-visual security-visual-operations" aria-hidden="true">
-      <div className="security-ops-panel">
+      <div className="security-operations-panel">
         <span />
         <span />
         <span />
       </div>
-      <div className="security-ops-metadata">meta</div>
+      <div className="security-operations-chip">Meta</div>
     </div>
   );
 }
@@ -131,7 +129,9 @@ export function SecurityLayersGraphic() {
 
       <div className="security-layers-footer">
         <strong>No layer is implicitly trusted with the whole picture.</strong>
-        <span>Access, transport, request handling, saved work, and operations each have separate controls.</span>
+        <span>
+          Access, transport, request handling, saved work, and operations each have separate controls.
+        </span>
       </div>
     </div>
   );

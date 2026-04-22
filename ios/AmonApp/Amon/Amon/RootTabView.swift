@@ -194,19 +194,34 @@ struct RootTabView: View {
             )
         }
         .alert(item: $pendingTunnelPrompt) { prompt in
-            Alert(
-                title: Text(prompt.title),
-                message: Text(prompt.message),
-                primaryButton: .default(Text("Connect")) {
-                    transportSettingsStore.updateEnabledWhenSignedIn(true)
-                    Task {
-                        await connectTunnelIfReady(trigger: "Tunnel prompt accepted for \(prompt.rawValue)")
+            switch prompt {
+            case .endpointMissing:
+                return Alert(
+                    title: Text(prompt.title),
+                    message: Text(prompt.message),
+                    primaryButton: .default(Text("Open Settings")) {
+                        isPresentingSettings = true
+                    },
+                    secondaryButton: .cancel(Text("Not now")) {
+                        tunnelManager.recordExternalEvent("Tunnel endpoint prompt dismissed")
                     }
-                },
-                secondaryButton: .cancel(Text("Not now")) {
-                    tunnelManager.recordExternalEvent("Tunnel prompt dismissed for \(prompt.rawValue)")
-                }
-            )
+                )
+
+            case .signIn, .sessionRestore:
+                return Alert(
+                    title: Text(prompt.title),
+                    message: Text(prompt.message),
+                    primaryButton: .default(Text("Connect")) {
+                        transportSettingsStore.updateEnabledWhenSignedIn(true)
+                        Task {
+                            await connectTunnelIfReady(trigger: "Tunnel prompt accepted for \(prompt.rawValue)")
+                        }
+                    },
+                    secondaryButton: .cancel(Text("Not now")) {
+                        tunnelManager.recordExternalEvent("Tunnel prompt dismissed for \(prompt.rawValue)")
+                    }
+                )
+            }
         }
     }
 
@@ -223,6 +238,7 @@ struct RootTabView: View {
 
         guard settings.endpoint.isConfigured else {
             tunnelManager.recordExternalEvent("Authenticated state handling skipped because endpoint is not configured")
+            pendingTunnelPrompt = .endpointMissing
             return
         }
 
@@ -290,6 +306,7 @@ struct RootTabView: View {
 private enum TunnelPromptContext: String, Identifiable {
     case signIn
     case sessionRestore
+    case endpointMissing
 
     var id: String { rawValue }
 
@@ -299,6 +316,8 @@ private enum TunnelPromptContext: String, Identifiable {
             return "Connect Amon tunnel?"
         case .sessionRestore:
             return "Reconnect the Amon tunnel?"
+        case .endpointMissing:
+            return "Set tunnel endpoint"
         }
     }
 
@@ -308,6 +327,8 @@ private enum TunnelPromptContext: String, Identifiable {
             return "Amon can route browsing traffic through your laptop endpoint while you're signed in."
         case .sessionRestore:
             return "Your session came back. Amon can reconnect the development tunnel for this device."
+        case .endpointMissing:
+            return "Enter your laptop or relay host before Amon can start the routed-local privacy path."
         }
     }
 }
