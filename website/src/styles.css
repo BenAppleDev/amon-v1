@@ -2717,9 +2717,15 @@ h3 {
 /* Security page */
 
 .security-layers-graphic {
+  --security-card-pad: clamp(14px, 1.4vw, 18px);
+  --security-card-radius: clamp(22px, 2vw, 28px);
+  --security-visual-h: clamp(112px, 10vw, 146px);
+  --security-gap: clamp(12px, 1.2vw, 16px);
+  --security-title-size: clamp(1.18rem, 1.5vw, 1.85rem);
+
   position: relative;
   overflow: hidden;
-  padding: 28px;
+  padding: clamp(18px, 2vw, 28px);
   border-radius: 32px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
@@ -2763,19 +2769,19 @@ h3 {
 
 .security-layer-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--security-gap);
   margin-top: 26px;
 }
 
 .security-layer-card {
   min-width: 0;
-  min-height: 340px;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto auto 1fr;
-  gap: 18px;
-  padding: 18px;
-  border-radius: 28px;
+  gap: clamp(14px, 1.3vw, 18px);
+  padding: var(--security-card-pad);
+  border-radius: var(--security-card-radius);
   border: 1px solid rgba(255, 255, 255, 0.075);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -2792,13 +2798,14 @@ h3 {
 }
 
 .security-visual {
-  height: 146px;
+  height: var(--security-visual-h);
   display: grid;
   place-items: center;
-  border-radius: 22px;
+  border-radius: clamp(18px, 1.8vw, 22px);
   border: 1px solid rgba(255, 255, 255, 0.055);
   background: rgba(255, 255, 255, 0.022);
   overflow: hidden;
+  padding: clamp(10px, 1.2vw, 14px);
 }
 
 /* Access */
@@ -2806,26 +2813,26 @@ h3 {
 .security-visual-access {
   display: grid;
   grid-template-columns: auto auto;
-  gap: 16px;
+  gap: clamp(12px, 1.2vw, 16px);
   justify-content: center;
   align-items: center;
 }
 
 .security-access-device {
-  width: 84px;
-  height: 110px;
-  padding: 14px 12px;
-  border-radius: 24px;
+  width: clamp(68px, 6vw, 84px);
+  height: clamp(92px, 8vw, 110px);
+  padding: clamp(12px, 1.2vw, 14px) clamp(10px, 1vw, 12px);
+  border-radius: clamp(18px, 2vw, 24px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   align-content: center;
-  gap: 10px;
+  gap: clamp(8px, 0.9vw, 10px);
 }
 
 .security-access-device span {
   display: block;
-  height: 8px;
+  height: clamp(6px, 0.7vw, 8px);
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
@@ -2835,8 +2842,8 @@ h3 {
 }
 
 .security-access-ring {
-  width: 62px;
-  height: 62px;
+  width: clamp(50px, 4.6vw, 62px);
+  height: clamp(50px, 4.6vw, 62px);
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.08);
@@ -2846,8 +2853,8 @@ h3 {
 }
 
 .security-access-check {
-  width: 20px;
-  height: 10px;
+  width: clamp(16px, 1.6vw, 20px);
+  height: clamp(8px, 0.8vw, 10px);
   border-left: 3px solid var(--lime);
   border-bottom: 3px solid var(--lime);
   transform: rotate(-45deg) translateY(-2px);
@@ -2857,17 +2864,17 @@ h3 {
 
 .security-visual-transport {
   display: grid;
-  grid-template-columns: 26px 1fr 26px;
+  grid-template-columns: clamp(18px, 2vw, 26px) 1fr clamp(18px, 2vw, 26px);
   align-items: center;
-  gap: 14px;
+  gap: clamp(10px, 1.1vw, 14px);
   width: 100%;
-  max-width: 180px;
+  max-width: clamp(128px, 16vw, 180px);
   margin: 0 auto;
 }
 
 .security-transport-endpoint {
-  width: 26px;
-  height: 26px;
+  width: clamp(18px, 2vw, 26px);
+  height: clamp(18px, 2vw, 26px);
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.07);
@@ -2877,15 +2884,20 @@ h3 {
   position: relative;
   height: 4px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(198, 255, 97, 0.18), rgba(198, 255, 97, 0.82), rgba(198, 255, 97, 0.18));
+  background: linear-gradient(
+    90deg,
+    rgba(198, 255, 97, 0.18),
+    rgba(198, 255, 97, 0.82),
+    rgba(198, 255, 97, 0.18)
+  );
 }
 
 .security-transport-lock {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 32px;
-  height: 28px;
+  width: clamp(26px, 2.6vw, 32px);
+  height: clamp(22px, 2.3vw, 28px);
   transform: translate(-50%, -50%);
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -2896,8 +2908,8 @@ h3 {
 
 .security-transport-lock span {
   position: relative;
-  width: 10px;
-  height: 10px;
+  width: clamp(8px, 0.9vw, 10px);
+  height: clamp(8px, 0.9vw, 10px);
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.82);
 }
@@ -2907,8 +2919,8 @@ h3 {
   position: absolute;
   left: 50%;
   top: -8px;
-  width: 12px;
-  height: 10px;
+  width: clamp(10px, 1vw, 12px);
+  height: clamp(8px, 0.9vw, 10px);
   transform: translateX(-50%);
   border: 2px solid rgba(244, 239, 232, 0.7);
   border-bottom: none;
@@ -2921,31 +2933,31 @@ h3 {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 14px;
+  gap: clamp(10px, 1vw, 14px);
 }
 
 .security-handling-node {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
+  width: clamp(58px, 5.5vw, 72px);
+  height: clamp(58px, 5.5vw, 72px);
+  border-radius: clamp(18px, 1.8vw, 22px);
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.06);
   display: grid;
   place-items: center;
   color: var(--ink);
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2rem;
+  font-size: clamp(1.65rem, 2vw, 2rem);
   line-height: 1;
 }
 
 .security-handling-branches {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 42px);
-  gap: 14px;
+  grid-template-columns: repeat(3, clamp(32px, 3.4vw, 42px));
+  gap: clamp(8px, 0.9vw, 14px);
   align-items: start;
   justify-content: center;
-  padding-top: 18px;
+  padding-top: 16px;
 }
 
 .security-handling-branches::before {
@@ -2954,7 +2966,7 @@ h3 {
   top: 0;
   left: 50%;
   width: 2px;
-  height: 12px;
+  height: 10px;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.18);
 }
@@ -2962,47 +2974,47 @@ h3 {
 .security-handling-branches::after {
   content: "";
   position: absolute;
-  top: 12px;
-  left: 28px;
-  right: 28px;
+  top: 10px;
+  left: 22px;
+  right: 22px;
   height: 2px;
   background: rgba(255, 255, 255, 0.18);
 }
 
 .security-handling-branch {
   position: relative;
-  width: 42px;
-  height: 36px;
+  width: clamp(32px, 3.4vw, 42px);
+  height: clamp(28px, 2.9vw, 36px);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.03);
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .security-handling-branch::before {
   content: "";
   position: absolute;
-  top: -12px;
+  top: -10px;
   left: 50%;
   width: 2px;
-  height: 12px;
+  height: 10px;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.18);
 }
 
 .security-handling-branch span {
   display: block;
-  width: 18px;
+  width: clamp(12px, 1.6vw, 18px);
   height: 4px;
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
 
 .security-handling-branch-text span:last-child {
-  width: 12px;
+  width: clamp(9px, 1.1vw, 12px);
 }
 
 .security-handling-branch-remote {
@@ -3020,14 +3032,14 @@ h3 {
 
 .security-workspace-stack {
   position: relative;
-  width: 102px;
-  height: 84px;
+  width: clamp(84px, 8vw, 102px);
+  height: clamp(70px, 7vw, 84px);
 }
 
 .security-workspace-stack span {
   position: absolute;
-  width: 52px;
-  height: 68px;
+  width: clamp(42px, 4.4vw, 52px);
+  height: clamp(56px, 5.8vw, 68px);
   border-radius: 14px;
   border: 1px solid rgba(198, 255, 97, 0.22);
   background: rgba(198, 255, 97, 0.08);
@@ -3050,10 +3062,10 @@ h3 {
 
 .security-workspace-lock {
   position: absolute;
-  right: 22px;
-  bottom: 20px;
-  width: 30px;
-  height: 30px;
+  right: clamp(14px, 1.5vw, 22px);
+  bottom: clamp(12px, 1.4vw, 20px);
+  width: clamp(24px, 2.4vw, 30px);
+  height: clamp(24px, 2.4vw, 30px);
   border-radius: 999px;
   border: 1px solid rgba(198, 255, 97, 0.2);
   background: rgba(198, 255, 97, 0.1);
@@ -3064,8 +3076,8 @@ h3 {
 
 .security-workspace-lock i {
   position: relative;
-  width: 12px;
-  height: 10px;
+  width: clamp(10px, 1vw, 12px);
+  height: clamp(8px, 0.9vw, 10px);
   border-radius: 3px;
   background: rgba(244, 239, 232, 0.82);
 }
@@ -3075,8 +3087,8 @@ h3 {
   position: absolute;
   left: 50%;
   top: -7px;
-  width: 12px;
-  height: 8px;
+  width: clamp(10px, 1vw, 12px);
+  height: clamp(8px, 0.9vw, 8px);
   transform: translateX(-50%);
   border: 2px solid rgba(244, 239, 232, 0.7);
   border-bottom: none;
@@ -3089,13 +3101,13 @@ h3 {
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 14px;
+  gap: clamp(10px, 1vw, 14px);
 }
 
 .security-operations-panel {
-  width: 110px;
-  height: 78px;
-  padding: 14px 14px;
+  width: clamp(88px, 9vw, 110px);
+  height: clamp(62px, 6.5vw, 78px);
+  padding: clamp(12px, 1.2vw, 14px);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.11);
   background: rgba(255, 255, 255, 0.03);
@@ -3106,15 +3118,15 @@ h3 {
 
 .security-operations-panel span {
   display: block;
-  height: 8px;
+  height: clamp(6px, 0.8vw, 8px);
   border-radius: 999px;
   background: rgba(244, 239, 232, 0.24);
 }
 
 .security-operations-eyeoff {
   position: relative;
-  width: 38px;
-  height: 24px;
+  width: clamp(30px, 3vw, 38px);
+  height: clamp(18px, 2vw, 24px);
   border: 2px solid rgba(255, 94, 79, 0.62);
   border-radius: 999px;
   display: grid;
@@ -3122,15 +3134,15 @@ h3 {
 }
 
 .security-operations-eyeoff i {
-  width: 8px;
-  height: 8px;
+  width: clamp(6px, 0.8vw, 8px);
+  height: clamp(6px, 0.8vw, 8px);
   border-radius: 999px;
   background: rgba(255, 94, 79, 0.82);
 }
 
 .security-operations-eyeoff b {
   position: absolute;
-  width: 42px;
+  width: clamp(34px, 3.6vw, 42px);
   height: 2px;
   background: rgba(255, 94, 79, 0.82);
   transform: rotate(-24deg);
@@ -3155,7 +3167,7 @@ h3 {
 
 .security-layer-copy strong {
   color: var(--ink);
-  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  font-size: var(--security-title-size);
   line-height: 1.04;
   max-width: 11ch;
 }
@@ -3179,7 +3191,7 @@ h3 {
   justify-content: center;
   text-align: center;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: clamp(0.82rem, 0.9vw, 0.92rem);
   font-weight: 700;
   line-height: 1.2;
   text-wrap: balance;
@@ -3317,113 +3329,4 @@ h3 {
   margin: 12px 0 0;
   max-width: 34ch;
   color: var(--muted);
-}
-
-/* Responsive */
-
-@media (max-width: 1180px) {
-  .security-layer-strip {
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  }
-
-  .security-feature-grid,
-  .security-foundation-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 900px) {
-  .security-layers-graphic {
-    padding: 22px 18px;
-    border-radius: 28px;
-  }
-
-  .security-layer-strip {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    margin-top: 22px;
-  }
-
-  .security-layer-card {
-    min-height: 320px;
-    padding: 16px;
-    border-radius: 24px;
-  }
-
-  .security-visual {
-    height: 124px;
-  }
-
-  .security-feature-grid,
-  .security-foundation-grid,
-  .security-roadmap-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .security-layer-row {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 18px;
-  }
-}
-
-@media (max-width: 640px) {
-  .security-layers-graphic {
-    padding: 18px 14px;
-    border-radius: 24px;
-  }
-
-  .security-layer-strip {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 20px;
-  }
-
-  .security-layer-card {
-    min-height: auto;
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .security-visual {
-    height: 118px;
-  }
-
-  .security-layer-copy strong {
-    max-width: none;
-  }
-
-  .security-layer-tags {
-    gap: 8px;
-  }
-
-  .security-layer-tags span {
-    min-height: 40px;
-    font-size: 0.86rem;
-  }
-
-  .security-layers-header,
-  .security-layers-footer {
-    text-align: center;
-  }
-
-  .security-layers-header .diagram-kicker {
-    justify-content: center;
-  }
-
-  .security-layers-footer span {
-    max-width: none;
-  }
-
-  .security-layer-row {
-    padding: 16px;
-  }
-
-  .security-foundation-card {
-    min-height: auto;
-    padding: 18px;
-  }
-
-  .security-foundation-card h3 {
-    max-width: 100%;
-  }
 }
