@@ -8,15 +8,15 @@ import { homeBelief, homeBoundaryCards, spaceLines } from "../content/site";
 export function HomePage() {
   return (
     <>
-      <Seo description="Amon keeps you as anonymous as the task allows, then makes the boundary clear when going further requires more exposure." />
+      <Seo description="Amon keeps your questions from becoming a profile by separating inquiry from identity and starting with the least exposing path first." />
 
       <section className="hero hero-home hero-home-thesis">
         <div className="frame hero-grid hero-grid-with-diagram">
           <Reveal className="hero-copy hero-copy-thesis">
-            <span className="eyebrow">Private mode clears the trail on your device.</span>
-            <h1>Amon keeps you anonymous for as long as the task allows.</h1>
+            <span className="eyebrow">Inquiry before identity.</span>
+            <h1>Amon keeps your questions from becoming a profile.</h1>
             <p className="hero-lede">
-              Search, browse, compare, and go deeper through the least exposing path first. When a task needs more visibility, Amon makes that boundary clear.
+              Separate your questions from your identity. Search, browse, compare, and go deeper through the least exposing path first — before the internet decides what your curiosity means.
             </p>
             <div className="button-row">
               <Link className="button" to="/contact">
@@ -37,10 +37,10 @@ export function HomePage() {
       <section className="page-section">
         <div className="frame">
           <Reveal className="section-heading">
-            <span className="eyebrow">Before the boundary</span>
-            <h2>Before your question becomes a profile.</h2>
+            <span className="eyebrow">Before the profile</span>
+            <h2>You should be able to explore before you are identified.</h2>
             <p>
-              Most people do not need perfect secrecy. They need room to explore before a question turns into a signal about who they are, what they want, or what they are about to do.
+              Most tools collapse question, identity, and intent too early. Amon is built for the space before that happens: the part where you are still searching, comparing, reading, and deciding.
             </p>
           </Reveal>
 
@@ -81,7 +81,7 @@ export function HomePage() {
             <span className="eyebrow">The belief</span>
             <p className="belief-quote">{homeBelief}</p>
             <p className="belief-support">
-              Amon exists for the space between curiosity and commitment: the part where you are still thinking, comparing, and deciding.
+              A person’s inquiry should not be automatically linked to identity, interpreted as intent, and turned into a profile before they have even finished thinking.
             </p>
           </Reveal>
         </div>
@@ -110,7 +110,7 @@ export function HomePage() {
           <Reveal className="cta-panel cta-panel-home">
             <div>
               <span className="eyebrow">Request access</span>
-              <h2>Start with the least exposing path.</h2>
+              <h2>Separate your questions from your identity.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">

@@ -9,47 +9,47 @@ export const navLinks = [
 ];
 
 export const homeBelief =
-  "You should be able to explore before you are classified.";
+  "Inquiry should come before identification.";
 
 export const spaceLines = [
-  "Search without being sorted.",
-  "Go deeper without being tagged.",
+  "Ask before you're defined.",
+  "Go deeper before you're tagged.",
   "Step forward when you choose."
 ];
 
 export const homeBoundaryCards = [
+  {
+    title: "Inquiry before identity",
+    text:
+      "Amon is built for the part before a question becomes a profile. It keeps the inquiry detached from your identity until the task truly requires more."
+  },
   {
     title: "Least exposing path first",
     text:
       "Amon starts with the path that reveals the least about you for the task: live through the privacy route, cleanly as extracted text, or through a protected remote session."
   },
   {
-    title: "Detached until the task needs more",
+    title: "Boundary made explicit",
     text:
-      "If a page can be read cleanly, it stays detached. If the site needs interaction, Amon can mediate it. If the task needs identity, that boundary becomes clear."
-  },
-  {
-    title: "You decide when to step forward",
-    text:
-      "Amon does not pretend identity-based services are anonymous. It helps preserve anonymity where possible, then makes the tradeoff explicit when going further costs more visibility."
+      "If a page can stay detached, it stays detached. If the site needs interaction or identity, Amon makes that boundary clear before you cross it."
   }
 ];
 
 export const productBoundaryCards = [
   {
-    title: "Anonymous where possible",
+    title: "What Amon preserves",
     text:
-      "Amon tries to keep the inquiry detached before the task requires identity. Search, reading, comparison, and research should not immediately become one readable profile."
+      "Amon keeps the inquiry detached before the task requires identity. Search, reading, comparison, and research do not have to become one readable signal about you right away."
   },
   {
-    title: "Mediated when needed",
+    title: "What Amon changes",
     text:
       "When a page needs more than clean reading, Amon can keep the interaction mediated through its privacy route or through a protected remote session."
   },
   {
-    title: "Explicit when it changes",
+    title: "When the boundary moves",
     text:
-      "Some tasks eventually require you to identify yourself. Amon does not hide that moment. It makes the boundary clear so you choose when to cross it."
+      "Some tasks eventually require you to identify yourself. Amon does not hide that moment. It makes the tradeoff explicit so you choose when to step forward."
   }
 ];
 
@@ -197,6 +197,11 @@ export const privacyModeMap = [
 
 export const privacyMechanisms = [
   {
+    title: "Inquiry before identity",
+    text:
+      "Amon is designed to maximize anonymity where possible, preserve it as long as possible, and make the tradeoff explicit when a task requires more exposure."
+  },
+  {
     title: "Least exposing path first",
     text:
       "Amon is designed to preserve anonymity where possible, then recommend a more capable path only when the task needs it."
@@ -247,7 +252,7 @@ export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a search and browsing app that keeps you as anonymous as the task allows, for as long as the task allows, and makes the boundary clear when going further requires more exposure."
+      "Amon is a search and browsing app built to keep your questions from becoming a profile. It separates inquiry from identity, starts with the least exposing path, and makes the boundary clear when a task requires more exposure."
   },
   {
     question: "Why not just use private mode?",
@@ -257,7 +262,7 @@ export const faqItems = [
   {
     question: "How long does Amon keep me anonymous?",
     answer:
-      "As long as the task allows. If a page can be handled cleanly, Amon can keep the read detached. If the site needs interaction, Amon can mediate it. If the task requires you to identify yourself, Amon makes that boundary clear."
+      "Amon is designed to maximize anonymity where possible, preserve it as long as possible, and make the tradeoff explicit when a task requires more exposure. If a page can be handled cleanly, it can stay detached. If the site needs interaction or identity, Amon makes that boundary clear."
   },
   {
     question: "When does that protection change?",
