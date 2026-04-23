@@ -9,12 +9,48 @@ export const navLinks = [
 ];
 
 export const homeBelief =
-  "No single system should see the whole path from what you search to what you open to what you keep.";
+  "You should be able to explore before you are classified.";
 
 export const spaceLines = [
-  "Where to live.",
-  "What to buy.",
-  "What comes next."
+  "Search without being sorted.",
+  "Go deeper without being tagged.",
+  "Step forward when you choose."
+];
+
+export const homeBoundaryCards = [
+  {
+    title: "Least exposing path first",
+    text:
+      "Amon starts with the path that reveals the least about you for the task: live through the privacy route, cleanly as extracted text, or through a protected remote session."
+  },
+  {
+    title: "Detached until the task needs more",
+    text:
+      "If a page can be read cleanly, it stays detached. If the site needs interaction, Amon can mediate it. If the task needs identity, that boundary becomes clear."
+  },
+  {
+    title: "You decide when to step forward",
+    text:
+      "Amon does not pretend identity-based services are anonymous. It helps preserve anonymity where possible, then makes the tradeoff explicit when going further costs more visibility."
+  }
+];
+
+export const productBoundaryCards = [
+  {
+    title: "Anonymous where possible",
+    text:
+      "Amon tries to keep the inquiry detached before the task requires identity. Search, reading, comparison, and research should not immediately become one readable profile."
+  },
+  {
+    title: "Mediated when needed",
+    text:
+      "When a page needs more than clean reading, Amon can keep the interaction mediated through its privacy route or through a protected remote session."
+  },
+  {
+    title: "Explicit when it changes",
+    text:
+      "Some tasks eventually require you to identify yourself. Amon does not hide that moment. It makes the boundary clear so you choose when to cross it."
+  }
 ];
 
 export const modeDeepDives = [
@@ -32,6 +68,10 @@ export const modeDeepDives = [
       {
         title: "What changes",
         text: "The live page runs through Amon’s privacy route instead of exposing a plain direct browsing path from your device."
+      },
+      {
+        title: "What this preserves",
+        text: "Local keeps the request mediated before you identify yourself or move into a more exposing workflow."
       },
       {
         title: "What the site sees",
@@ -59,6 +99,10 @@ export const modeDeepDives = [
         text: "Amon retrieves the page and extracts readable text instead of sending your device through a normal page load."
       },
       {
+        title: "What this preserves",
+        text: "Clean View keeps the read detached when you only need the information, not a live relationship with the site."
+      },
+      {
         title: "What the site sees",
         text: "The destination sees Amon handling the retrieval, not your own device making the visit."
       },
@@ -84,6 +128,10 @@ export const modeDeepDives = [
         text: "The browsing session runs from Amon’s controlled remote environment rather than directly from your device."
       },
       {
+        title: "What this preserves",
+        text: "Protected Session keeps your own browser and device out of the direct interaction when the live site matters."
+      },
+      {
         title: "What the site sees",
         text: "The destination interacts with Amon’s remote session, not your own browser and device."
       },
@@ -107,6 +155,10 @@ export const modeDeepDives = [
       {
         title: "What changes",
         text: "Durable memory stays on your device instead of becoming a server-side activity record."
+      },
+      {
+        title: "What this preserves",
+        text: "Workspace lets a question become a project without turning your saved work into centralized service-side memory."
       },
       {
         title: "What Amon can read",
@@ -144,6 +196,11 @@ export const privacyModeMap = [
 ];
 
 export const privacyMechanisms = [
+  {
+    title: "Least exposing path first",
+    text:
+      "Amon is designed to preserve anonymity where possible, then recommend a more capable path only when the task needs it."
+  },
   {
     title: "Encrypted transport",
     text: "Amon browsing runs through an app-level privacy route using encrypted transport."
@@ -190,7 +247,27 @@ export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a search and browsing app that routes every request through its own privacy layer. From there, you can browse live, extract readable text, remote into a protected session, or save work locally."
+      "Amon is a search and browsing app that keeps you as anonymous as the task allows, for as long as the task allows, and makes the boundary clear when going further requires more exposure."
+  },
+  {
+    question: "Why not just use private mode?",
+    answer:
+      "Private mode mostly clears the trail on your device. Amon is built for the part before your question becomes a profile: search, reading, comparison, and deeper research through paths that reduce exposure and linkage."
+  },
+  {
+    question: "How long does Amon keep me anonymous?",
+    answer:
+      "As long as the task allows. If a page can be handled cleanly, Amon can keep the read detached. If the site needs interaction, Amon can mediate it. If the task requires you to identify yourself, Amon makes that boundary clear."
+  },
+  {
+    question: "When does that protection change?",
+    answer:
+      "The boundary changes when the task itself needs more exposure: for example, logging into a third-party account, submitting a form with personal details, or using a service that already knows who you are."
+  },
+  {
+    question: "Will Amon tell me when I am about to expose myself?",
+    answer:
+      "That is the goal. Amon is designed to recommend the least exposing path first, then make it clear when a task needs live interaction, remote handling, or identity."
   },
   {
     question: "Is it a browser?",

@@ -8,13 +8,13 @@ export function FAQPage() {
     <>
       <Seo
         title="FAQ"
-        description="Plain answers about what Amon is, how it handles requests, what it protects, and what it does not claim."
+        description="Plain answers about how long Amon keeps you anonymous, when that boundary changes, what Amon protects, and what it does not claim."
       />
 
       <PageHero
         eyebrow="FAQ"
         title="Questions people will ask."
-        lede="Plain answers about what Amon is, how it handles requests, and where the privacy boundaries are."
+        lede="Plain answers about what Amon protects, how long that protection lasts, and when a task requires more exposure."
       />
 
       <section className="page-section">

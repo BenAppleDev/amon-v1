@@ -3,20 +3,20 @@ import { ModeComparisonDiagram } from "../components/ModeComparisonDiagram";
 import { RequestFlowDiagram } from "../components/RequestFlowDiagram";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { homeBelief, spaceLines } from "../content/site";
+import { homeBelief, homeBoundaryCards, spaceLines } from "../content/site";
 
 export function HomePage() {
   return (
     <>
-      <Seo description="Amon routes every request through its own privacy layer, then lets you browse live, extract text, remote into protected sessions, or save work locally." />
+      <Seo description="Amon keeps you as anonymous as the task allows, then makes the boundary clear when going further requires more exposure." />
 
       <section className="hero hero-home hero-home-thesis">
         <div className="frame hero-grid hero-grid-with-diagram">
           <Reveal className="hero-copy hero-copy-thesis">
-            <span className="eyebrow">Private by default. Deeper when needed.</span>
-            <h1>Search, browse, and think through decisions — privately.</h1>
+            <span className="eyebrow">Private mode clears the trail on your device.</span>
+            <h1>Amon keeps you anonymous for as long as the task allows.</h1>
             <p className="hero-lede">
-              Amon routes every request through its own privacy layer. From there, you can browse live, extract readable text, remote into protected sessions, or save work locally.
+              Search, browse, compare, and go deeper through the least exposing path first. When a task needs more visibility, Amon makes that boundary clear.
             </p>
             <div className="button-row">
               <Link className="button" to="/contact">
@@ -34,13 +34,38 @@ export function HomePage() {
         </div>
       </section>
 
+      <section className="page-section">
+        <div className="frame">
+          <Reveal className="section-heading">
+            <span className="eyebrow">Before the boundary</span>
+            <h2>Before your question becomes a profile.</h2>
+            <p>
+              Most people do not need perfect secrecy. They need room to explore before a question turns into a signal about who they are, what they want, or what they are about to do.
+            </p>
+          </Reveal>
+
+          <div className="policy-grid">
+            {homeBoundaryCards.map((item, index) => (
+              <Reveal
+                key={item.title}
+                className={`comparison-panel${index % 2 === 1 ? " comparison-panel-muted" : ""}`}
+                delay={index * 70}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="page-section response-section">
         <div className="frame">
           <Reveal className="section-heading">
-            <span className="eyebrow">How Amon works</span>
+            <span className="eyebrow">Proof layer</span>
             <h2>One privacy route. Three ways to handle the web.</h2>
             <p>
-              Amon does not treat every page the same. Use the live site, extract the readable text, or remote into the site from an Amon-controlled machine.
+              Amon starts with the least exposing path and then handles the task live, cleanly as readable text, or through a protected remote session when the site requires interaction.
             </p>
           </Reveal>
 
@@ -56,7 +81,7 @@ export function HomePage() {
             <span className="eyebrow">The belief</span>
             <p className="belief-quote">{homeBelief}</p>
             <p className="belief-support">
-              Amon separates the path from question to page to saved work so your activity does not collapse into one server-side profile.
+              Amon exists for the space between curiosity and commitment: the part where you are still thinking, comparing, and deciding.
             </p>
           </Reveal>
         </div>
@@ -74,7 +99,7 @@ export function HomePage() {
               ))}
             </div>
             <p className="space-note">
-              These are ordinary questions. They are also highly revealing. Amon gives them better boundaries.
+              Moving, work, purchases, research, and life decisions are ordinary. They are also revealing. Amon gives them better boundaries until you choose to step forward.
             </p>
           </Reveal>
         </div>
@@ -85,7 +110,7 @@ export function HomePage() {
           <Reveal className="cta-panel cta-panel-home">
             <div>
               <span className="eyebrow">Request access</span>
-              <h2>Use the web without collapsing your activity into one profile.</h2>
+              <h2>Start with the least exposing path.</h2>
             </div>
             <div className="button-row">
               <Link className="button" to="/contact">

@@ -3,27 +3,52 @@ import { ModeComparisonDiagram } from "../components/ModeComparisonDiagram";
 import { PageHero } from "../components/PageHero";
 import { Reveal } from "../components/Reveal";
 import { Seo } from "../components/Seo";
-import { modeDeepDives, policyBoundaries } from "../content/site";
+import { modeDeepDives, policyBoundaries, productBoundaryCards } from "../content/site";
 
 export function ProductPage() {
   return (
     <>
       <Seo
         title="Product"
-        description="How Amon handles requests through live browsing, text extraction, protected remote sessions, and local workspace ownership."
+        description="How Amon keeps requests as anonymous as the task allows through live browsing, text extraction, protected remote sessions, and local workspace ownership."
       />
 
       <PageHero
         eyebrow="Product"
-        title="How Amon handles the web."
-        lede="Every request uses Amon’s privacy route. From there, the user can choose live browsing, text extraction, or remote-in browsing from an Amon-controlled machine."
+        title="Least exposing path first."
+        lede="Amon handles each request through the path that preserves anonymity for as long as the task allows: live through the privacy route, cleanly as extracted text, or through a protected remote session."
         aside={
           <>
             <span className="note-kicker">Core model</span>
-            <p>Privacy route. Live page, extracted text, or remote session. Saved work stays local.</p>
+            <p>Anonymous where possible. Mediated when needed. Explicit when the boundary changes.</p>
           </>
         }
       />
+
+      <section className="page-section">
+        <div className="frame">
+          <Reveal className="section-heading">
+            <span className="eyebrow">Until then</span>
+            <h2>What Amon preserves before identity is required.</h2>
+            <p>
+              Amon is not a promise of invisibility everywhere. It is a system for preserving anonymity where possible and making the exposure tradeoff clear when a task requires more.
+            </p>
+          </Reveal>
+
+          <div className="policy-grid">
+            {productBoundaryCards.map((item, index) => (
+              <Reveal
+                key={item.title}
+                className={`comparison-panel${index % 2 === 1 ? " comparison-panel-muted" : ""}`}
+                delay={index * 70}
+              >
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="page-section">
         <div className="frame comparison-grid comparison-grid-equal">
@@ -49,7 +74,7 @@ export function ProductPage() {
             <span className="eyebrow">Request paths</span>
             <h2>Use the site live, extract the text, or remote in.</h2>
             <p>
-              The privacy route is the baseline. The handling path depends on what the task needs.
+              The privacy route is the baseline. The handling path depends on what the task needs and how much exposure the user is willing to accept.
             </p>
           </Reveal>
 
@@ -119,9 +144,9 @@ export function ProductPage() {
           </Reveal>
 
           <Reveal className="comparison-panel comparison-panel-muted" delay={100}>
-            <h3>Not every workflow is in scope</h3>
+            <h3>When anonymity stops being possible</h3>
             <p>
-              Amon works best for public-web inquiry, comparison, research, and decision-making. Logging into third-party accounts or completing identity-based workflows can reveal identity to those services.
+              Logging into third-party accounts, submitting personal forms, or completing identity-based workflows can reveal identity to those services. Amon’s role is to keep the path protected until that boundary is reached.
             </p>
           </Reveal>
         </div>
