@@ -33,12 +33,12 @@ export function SecurityPage() {
       />
 
       <section className="page-section">
-        <div className="frame feature-split">
+        <div className="frame security-model-frame">
           <Reveal>
             <SecurityLayersGraphic />
           </Reveal>
 
-          <div className="stack">
+          <div className="security-intro-panels">
             <Reveal className="comparison-panel">
               <h3>Security is layered.</h3>
               <p>

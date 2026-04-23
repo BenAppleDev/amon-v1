@@ -2716,13 +2716,18 @@ h3 {
 }
 /* Security page */
 
-.security-layers-graphic {
-  --security-card-pad: clamp(14px, 1.4vw, 18px);
-  --security-card-radius: clamp(22px, 2vw, 28px);
-  --security-visual-h: clamp(112px, 10vw, 146px);
-  --security-gap: clamp(12px, 1.2vw, 16px);
-  --security-title-size: clamp(1.18rem, 1.5vw, 1.85rem);
+.security-model-frame {
+  display: grid;
+  gap: 18px;
+}
 
+.security-intro-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.security-layers-graphic {
   position: relative;
   overflow: hidden;
   padding: clamp(18px, 2vw, 28px);
@@ -2768,84 +2773,10 @@ h3 {
 }
 
 .security-layer-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--security-gap);
-  margin-top: 26px;
-}
-
-.security-layer-card {
-  min-width: 0;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: clamp(14px, 1.3vw, 18px);
-  padding: var(--security-card-pad);
-  border-radius: var(--security-card-radius);
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.security-layer-card-access,
-.security-layer-card-transport,
-.security-layer-card-workspace {
-  border-color: rgba(198, 255, 97, 0.18);
-}
-
-.security-layer-card-handling,
-.security-layer-card-operations {
-  border-color: rgba(255, 94, 79, 0.16);
-}
-/* Security page */
-
-.security-layers-graphic {
-  position: relative;
-  overflow: hidden;
-  padding: 28px;
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    radial-gradient(circle at 20% 10%, rgba(198, 255, 97, 0.06), transparent 24%),
-    radial-gradient(circle at 86% 28%, rgba(255, 94, 79, 0.048), transparent 22%),
-    rgba(255, 255, 255, 0.026);
-}
-
-.security-layers-graphic::before,
-.security-foundation-card::before,
-.security-layer-row::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), transparent 94%);
-}
-
-.security-layers-header,
-.security-layers-footer,
-.security-layer-strip {
   position: relative;
   z-index: 1;
-}
-
-.security-layers-header strong,
-.security-layers-footer strong {
-  display: block;
-  margin-top: 8px;
-  color: var(--ink);
-}
-
-.security-layers-header strong {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  line-height: 1.02;
-}
-
-.security-layer-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   margin-top: 26px;
 }
@@ -2856,10 +2787,19 @@ h3 {
   display: grid;
   grid-template-rows: auto auto 1fr;
   gap: 18px;
+  grid-column: span 2;
   padding: 18px;
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.075);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.security-layer-card:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.security-layer-card:nth-child(5) {
+  grid-column: 4 / span 2;
 }
 
 .security-layer-card-access,
@@ -2881,379 +2821,80 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.055);
   background: rgba(255, 255, 255, 0.022);
   overflow: hidden;
+  padding: 10px;
 }
 
-/* Access */
-
-.security-visual-access {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 16px;
-  justify-content: center;
-  align-items: center;
+.security-visual-svg {
+  width: min(100%, 220px);
+  height: auto;
+  overflow: visible;
 }
 
-.security-access-device {
-  width: 84px;
-  height: 110px;
-  padding: 14px 12px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-  display: grid;
-  align-content: center;
-  gap: 10px;
+.security-svg-soft {
+  fill: rgba(255, 255, 255, 0.035);
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 2;
 }
 
-.security-access-device span {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(244, 239, 232, 0.24);
+.security-svg-lime-soft {
+  fill: rgba(198, 255, 97, 0.08);
+  stroke: rgba(198, 255, 97, 0.28);
+  stroke-width: 2;
 }
 
-.security-access-device span.short {
-  width: 58%;
+.security-svg-red-soft {
+  fill: rgba(255, 94, 79, 0.07);
+  stroke: rgba(255, 94, 79, 0.28);
+  stroke-width: 2;
 }
 
-.security-access-ring {
-  width: 62px;
-  height: 62px;
-  border-radius: 999px;
-  border: 1px solid rgba(198, 255, 97, 0.22);
-  background: rgba(198, 255, 97, 0.08);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 22px rgba(198, 255, 97, 0.08);
+.security-svg-muted-line,
+.security-svg-muted-stroke {
+  stroke: rgba(244, 239, 232, 0.34);
+  stroke-width: 6;
+  fill: none;
 }
 
-.security-access-check {
-  width: 18px;
-  height: 10px;
-  border-left: 4px solid var(--lime);
-  border-bottom: 4px solid var(--lime);
-  transform: rotate(-45deg) translateY(-1px);
+.security-svg-muted-stroke {
+  stroke-width: 2.5;
 }
 
-/* Transport */
-
-.security-visual-transport {
-  display: grid;
-  grid-template-columns: 24px minmax(96px, 1fr) 24px;
-  align-items: center;
-  gap: 16px;
-  width: min(100%, 210px);
-  margin: 0 auto;
+.security-svg-lime-stroke {
+  stroke: var(--lime);
+  stroke-width: 6;
+  fill: none;
 }
 
-.security-transport-node {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  border: 1px solid rgba(198, 255, 97, 0.22);
-  background: rgba(198, 255, 97, 0.07);
-  box-shadow: 0 0 14px rgba(198, 255, 97, 0.06);
+.security-svg-red-stroke {
+  stroke: rgba(255, 94, 79, 0.82);
+  stroke-width: 3;
+  fill: none;
 }
 
-.security-transport-rail {
-  position: relative;
-  height: 22px;
-  display: flex;
-  align-items: center;
+.security-svg-red-fill {
+  fill: rgba(255, 94, 79, 0.82);
 }
 
-.security-transport-flow {
-  width: 100%;
-  height: 4px;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    rgba(198, 255, 97, 0.18),
-    rgba(198, 255, 97, 0.88),
-    rgba(198, 255, 97, 0.18)
-  );
+.security-svg-ink-fill {
+  fill: rgba(244, 239, 232, 0.86);
 }
 
-.security-transport-lock {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 34px;
-  height: 30px;
-  transform: translate(-50%, -50%);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  background: rgba(255, 255, 255, 0.045);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 16px rgba(255, 255, 255, 0.04);
+.security-svg-round {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.security-transport-lock span {
-  position: relative;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(244, 239, 232, 0.84);
+.security-svg-square {
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
 }
 
-.security-transport-lock span::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -8px;
-  width: 12px;
-  height: 9px;
-  transform: translateX(-50%);
-  border: 2px solid rgba(244, 239, 232, 0.74);
-  border-bottom: none;
-  border-radius: 10px 10px 0 0;
-}
-
-/* Handling */
-
-.security-visual-handling {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 12px;
-}
-
-.security-handling-node {
-  width: 70px;
-  height: 70px;
-  border-radius: 22px;
-  border: 1px solid rgba(198, 255, 97, 0.22);
-  background: rgba(198, 255, 97, 0.06);
-  display: grid;
-  place-items: center;
-  color: var(--ink);
+.security-svg-amon {
+  fill: var(--ink);
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: 2rem;
+  font-size: 34px;
   line-height: 1;
 }
-
-.security-handling-connectors {
-  position: relative;
-  width: 152px;
-  height: 18px;
-}
-
-.security-handling-trunk {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 2px;
-  height: 10px;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.security-handling-rail {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 0;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.security-handling-branches {
-  width: 152px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 12px;
-}
-
-.security-handling-branch-wrap {
-  display: grid;
-  justify-items: center;
-  row-gap: 0;
-}
-
-.security-handling-branch-wrap i {
-  display: block;
-  width: 2px;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.security-handling-branch {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  background: rgba(255, 255, 255, 0.03);
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 4px;
-}
-
-.security-handling-branch span {
-  display: block;
-  width: 14px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgba(244, 239, 232, 0.24);
-}
-
-.security-handling-branch span.short {
-  width: 10px;
-}
-
-.security-handling-branch-remote {
-  border-color: rgba(255, 94, 79, 0.18);
-  background: rgba(255, 94, 79, 0.05);
-}
-
-/* Workspace */
-
-.security-visual-workspace {
-  display: grid;
-  place-items: center;
-}
-
-.security-workspace-vault {
-  position: relative;
-  width: 150px;
-  height: 100px;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.02);
-  display: grid;
-  place-items: center;
-}
-
-.security-workspace-files {
-  position: relative;
-  width: 96px;
-  height: 64px;
-}
-
-.security-workspace-files span {
-  position: absolute;
-  width: 36px;
-  height: 50px;
-  border-radius: 12px;
-  border: 1px solid rgba(198, 255, 97, 0.22);
-  background: rgba(198, 255, 97, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.security-workspace-files span:nth-child(1) {
-  left: 6px;
-  top: 8px;
-}
-
-.security-workspace-files span:nth-child(2) {
-  left: 23px;
-  top: 4px;
-}
-
-.security-workspace-files span:nth-child(3) {
-  left: 40px;
-  top: 8px;
-}
-
-.security-workspace-badge {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  border: 1px solid rgba(198, 255, 97, 0.2);
-  background: rgba(198, 255, 97, 0.1);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 18px rgba(198, 255, 97, 0.08);
-}
-
-.security-workspace-badge-lock {
-  position: relative;
-  width: 11px;
-  height: 9px;
-  border-radius: 3px;
-  background: rgba(244, 239, 232, 0.84);
-}
-
-.security-workspace-badge-lock::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: -7px;
-  width: 11px;
-  height: 8px;
-  transform: translateX(-50%);
-  border: 2px solid rgba(244, 239, 232, 0.72);
-  border-bottom: none;
-  border-radius: 9px 9px 0 0;
-}
-
-/* Operations */
-
-.security-visual-operations {
-  gap: 12px;
-}
-
-.security-operations-panel {
-  width: 110px;
-  height: 78px;
-  padding: 14px 12px;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.11);
-  background: rgba(255, 255, 255, 0.03);
-  display: grid;
-  align-content: center;
-  gap: 10px;
-}
-
-.security-operations-panel span {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(244, 239, 232, 0.24);
-}
-
-.security-operations-eyeoff {
-  position: relative;
-  width: 38px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-}
-
-.security-operations-eye {
-  width: 100%;
-  height: 100%;
-  border: 2px solid rgba(255, 94, 79, 0.62);
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-}
-
-.security-operations-eye::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 94, 79, 0.82);
-}
-
-.security-operations-slash {
-  position: absolute;
-  width: 42px;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255, 94, 79, 0.82);
-  transform: rotate(-24deg);
-}
-
-/* Copy */
 
 .security-layer-copy {
   display: grid;
@@ -3270,12 +2911,10 @@ h3 {
 
 .security-layer-copy strong {
   color: var(--ink);
-  font-size: var(--security-title-size);
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
   line-height: 1.04;
   max-width: 11ch;
 }
-
-/* Tags */
 
 .security-layer-tags {
   display: grid;
@@ -3300,9 +2939,9 @@ h3 {
   text-wrap: balance;
 }
 
-/* Footer */
-
 .security-layers-footer {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 10px;
   margin-top: 22px;
@@ -3320,8 +2959,6 @@ h3 {
   color: var(--muted);
   font-size: 1rem;
 }
-
-/* Existing security-page layout blocks, reconciled */
 
 .security-feature-grid,
 .security-foundation-grid,

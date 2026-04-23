@@ -33,104 +33,109 @@ const layers = [
 
 function AccessVisual() {
   return (
-    <div className="security-visual security-visual-access" aria-hidden="true">
-      <div className="security-access-device">
-        <span />
-        <span />
-        <span className="short" />
-      </div>
-      <div className="security-access-ring">
-        <div className="security-access-check" />
-      </div>
+    <div className="security-visual" aria-hidden="true">
+      <svg className="security-visual-svg" viewBox="0 0 220 150">
+        <rect className="security-svg-soft" x="42" y="26" width="76" height="104" rx="24" />
+        <path className="security-svg-muted-line" d="M62 62H96" />
+        <path className="security-svg-muted-line" d="M62 76H100" />
+        <path className="security-svg-muted-line" d="M62 90H86" />
+        <circle className="security-svg-lime-soft" cx="156" cy="75" r="32" />
+        <path className="security-svg-lime-stroke security-svg-round" d="M143 76L153 86L174 62" />
+      </svg>
     </div>
   );
 }
 
 function TransportVisual() {
   return (
-    <div className="security-visual security-visual-transport" aria-hidden="true">
-      <div className="security-transport-node" />
-      <div className="security-transport-rail">
-        <div className="security-transport-flow" />
-        <div className="security-transport-lock">
-          <span />
-        </div>
-      </div>
-      <div className="security-transport-node" />
+    <div className="security-visual" aria-hidden="true">
+      <svg className="security-visual-svg" viewBox="0 0 220 150">
+        <circle className="security-svg-lime-soft" cx="38" cy="75" r="14" />
+        <circle className="security-svg-lime-soft" cx="182" cy="75" r="14" />
+
+        <path className="security-svg-lime-stroke security-svg-round" d="M53 75H92" />
+        <path className="security-svg-lime-stroke security-svg-round" d="M148 75H167" />
+
+        <path
+          className="security-svg-muted-stroke security-svg-round"
+          d="M102 72V61C102 49 110 42 120 42C130 42 138 49 138 61V72"
+        />
+        <rect className="security-svg-soft" x="94" y="72" width="52" height="42" rx="12" />
+        <circle className="security-svg-ink-fill" cx="120" cy="91" r="5" />
+        <path className="security-svg-muted-stroke security-svg-round" d="M120 96V102" />
+      </svg>
     </div>
   );
 }
 
 function HandlingVisual() {
   return (
-    <div className="security-visual security-visual-handling" aria-hidden="true">
-      <div className="security-handling-node">A</div>
+    <div className="security-visual" aria-hidden="true">
+      <svg className="security-visual-svg" viewBox="0 0 220 150">
+        <rect className="security-svg-lime-soft" x="86" y="14" width="48" height="48" rx="16" />
+        <text className="security-svg-amon" x="110" y="48" textAnchor="middle">A</text>
 
-      <div className="security-handling-connectors">
-        <span className="security-handling-trunk" />
-        <span className="security-handling-rail" />
-      </div>
+        <path className="security-svg-muted-stroke security-svg-square" d="M110 62V82" />
+        <path className="security-svg-muted-stroke security-svg-square" d="M54 82H166" />
+        <path className="security-svg-muted-stroke security-svg-square" d="M54 82V96" />
+        <path className="security-svg-muted-stroke security-svg-square" d="M110 82V96" />
+        <path className="security-svg-muted-stroke security-svg-square" d="M166 82V96" />
 
-      <div className="security-handling-branches">
-        <div className="security-handling-branch-wrap">
-          <i />
-          <div className="security-handling-branch">
-            <span />
-            <span className="short" />
-          </div>
-        </div>
+        <rect className="security-svg-soft" x="34" y="96" width="40" height="34" rx="12" />
+        <rect className="security-svg-soft" x="90" y="96" width="40" height="34" rx="12" />
+        <rect className="security-svg-red-soft" x="146" y="96" width="40" height="34" rx="12" />
 
-        <div className="security-handling-branch-wrap">
-          <i />
-          <div className="security-handling-branch">
-            <span />
-            <span className="short" />
-          </div>
-        </div>
+        <path className="security-svg-muted-line" d="M45 109H63" />
+        <path className="security-svg-muted-line" d="M45 119H58" />
 
-        <div className="security-handling-branch-wrap">
-          <i />
-          <div className="security-handling-branch security-handling-branch-remote">
-            <span />
-            <span className="short" />
-          </div>
-        </div>
-      </div>
+        <path className="security-svg-muted-line" d="M101 109H119" />
+        <path className="security-svg-muted-line" d="M101 119H114" />
+
+        <path className="security-svg-muted-line" d="M157 109H175" />
+        <path className="security-svg-muted-line" d="M157 119H170" />
+      </svg>
     </div>
   );
 }
 
 function WorkspaceVisual() {
   return (
-    <div className="security-visual security-visual-workspace" aria-hidden="true">
-      <div className="security-workspace-vault">
-        <div className="security-workspace-files">
-          <span />
-          <span />
-          <span />
-        </div>
+    <div className="security-visual" aria-hidden="true">
+      <svg className="security-visual-svg" viewBox="0 0 220 150">
+        <rect className="security-svg-soft" x="42" y="38" width="136" height="86" rx="26" />
 
-        <div className="security-workspace-badge">
-          <span className="security-workspace-badge-lock" />
-        </div>
-      </div>
+        <path
+          className="security-svg-lime-soft"
+          d="M70 64C70 57 75 52 82 52H98C104 52 108 56 112 61H140C148 61 154 67 154 75V104C154 112 148 118 140 118H82C75 118 70 113 70 106V64Z"
+        />
+
+        <path className="security-svg-muted-line" d="M88 82H132" />
+        <path className="security-svg-muted-line" d="M88 96H120" />
+
+        <circle className="security-svg-lime-soft" cx="160" cy="106" r="20" />
+        <path
+          className="security-svg-muted-stroke security-svg-round"
+          d="M153 104V99C153 93 156 89 160 89C164 89 167 93 167 99V104"
+        />
+        <rect className="security-svg-ink-fill" x="151" y="103" width="18" height="15" rx="4" />
+      </svg>
     </div>
   );
 }
 
 function OperationsVisual() {
   return (
-    <div className="security-visual security-visual-operations" aria-hidden="true">
-      <div className="security-operations-panel">
-        <span />
-        <span />
-        <span />
-      </div>
+    <div className="security-visual" aria-hidden="true">
+      <svg className="security-visual-svg" viewBox="0 0 220 150">
+        <rect className="security-svg-soft" x="58" y="30" width="104" height="72" rx="22" />
+        <path className="security-svg-muted-line" d="M78 58H142" />
+        <path className="security-svg-muted-line" d="M78 74H132" />
+        <path className="security-svg-muted-line" d="M78 90H118" />
 
-      <div className="security-operations-eyeoff">
-        <span className="security-operations-eye" />
-        <span className="security-operations-slash" />
-      </div>
+        <path className="security-svg-red-stroke security-svg-round" d="M80 120C94 105 126 105 140 120C126 135 94 135 80 120Z" />
+        <circle className="security-svg-red-fill" cx="110" cy="120" r="5" />
+        <path className="security-svg-red-stroke security-svg-round" d="M78 137L142 103" />
+      </svg>
     </div>
   );
 }
