@@ -1,56 +1,98 @@
-# Amon Architecture Map
+# Amon Architecture
 
-This file is the durable repo map for Codex and humans.
+This document explains the current prototype shape of Amon as a system, not just as a repo layout.
 
-## Top-level surfaces
+## Core idea
 
-- `backend/` — Python backend, tests, migrations
-- `ios/` — iOS app and Swift package
-- `website/` — site content and frontend build
-- `shared/` — shared OpenAPI/schema assets
-- `tools/` — deployment/tunnel tools
-- `docs/deployment/` — operational documentation
-- `ops-dashboard/` — dashboard/static ops surface
+Amon is an applied AI prototype with three main boundaries:
 
-## Lane ownership
+- a public-facing explanation layer
+- a backend that performs transient retrieval and synthesis work
+- client-side local storage for durable user work
 
-### backend
-Allowed default paths:
-- `backend/`
-- `shared/openapi/`
-- `shared/schema/`
+The design goal is to keep the backend useful without turning it into a permanent store of user content or an operator-facing surveillance surface.
 
-### ios
-Allowed default paths:
-- `ios/`
+## Main surfaces
 
-### website
-Allowed default paths:
-- `website/`
+### Website
 
-### ops
-Allowed default paths:
-- `tools/`
-- `docs/deployment/`
-- `ops-dashboard/`
+`website/` contains the public-facing React site. It is informational only and is intentionally separated from the backend and ops surface.
 
-## Global doc paths
+### Backend
 
-These are allowed across lanes for docs sync:
-- `docs/`
-- `README.md`
-- `VISION.md`
-- `ROADMAP.md`
-- `ARCHITECTURE.md`
-- `QUALITY_GATES.md`
+`backend/` contains the FastAPI service. It handles:
 
-## Branching model for autonomous work
+- local-dev auth flows
+- user/session/account metadata
+- search, retrieve, compare, and research endpoints
+- prototype operator/session metadata endpoints
 
-- Base branch: task-specific `base_ref`
-- Candidate branches: `cand/<task-id>-<strategy>`
-- Optional promoted branch: `integration/<task-id>`
+The backend is where transient AI-adjacent work happens, but it is not intended to be the durable home for user work product.
 
-## Rule
+### iOS client starter
 
-The orchestrator owns worktree/branch lifecycle.
-Candidate Codex runs should edit the current worktree, not spawn more worktrees unless explicitly requested.
+`ios/AmonKit/` and `ios/AppTemplate/` provide a Swift package and starter app shell. The client side is responsible for:
+
+- calling the backend
+- storing workspace data locally
+- holding local encryption material
+- exporting and importing local workspace bundles
+
+### Ops prototype
+
+`ops-dashboard/` is a metadata-only operator dashboard prototype. It is intentionally constrained: the goal is to support health and policy visibility without normalizing access to user page content or other sensitive work-product details.
+
+### Shared artifacts
+
+`shared/` contains shared schema and generated OpenAPI assets used for alignment across surfaces.
+
+## Data boundary
+
+### Durable backend data
+
+The backend currently persists metadata such as:
+
+- user/account identifiers
+- auth/session lineage
+- entitlements
+- rate-limit windows
+- metadata-only ops events and snapshots
+
+### Transient backend data
+
+The backend is intended to handle these transiently:
+
+- query text
+- result sets
+- fetched page content
+- compare/research inputs derived from live calls
+
+### Durable client-side data
+
+The iOS starter keeps saved workspace material locally. Export/import is built around encrypted bundles so the long-term user workspace does not have to live on the server by default.
+
+## Request flow
+
+1. A client authenticates with the backend.
+2. The client calls search, retrieve, compare, or research endpoints.
+3. The backend performs transient processing and returns normalized results.
+4. If the user saves work, the durable copy belongs in the local client store or export bundle.
+5. Operators can inspect metadata-only system state through the prototype ops surface.
+
+## Operator boundary
+
+The ops surface is intentionally narrower than the product surface.
+
+- It is meant for metadata and health signals.
+- It is not meant for page content inspection, cookie review, or a break-glass content browser.
+- Internal and prototype routes exist in the codebase and generated OpenAPI assets for local development and testing, but they should not be treated as a stable public API surface.
+
+## Repo map
+
+- `backend/` — backend service, tests, config
+- `website/` — public site
+- `ios/` — Swift package and app template
+- `ops-dashboard/` — prototype ops UI
+- `shared/` — schemas and OpenAPI
+- `tools/` — prototype tunnel and helper scripts
+- `docs/` — architecture, deployment notes, and handoff material

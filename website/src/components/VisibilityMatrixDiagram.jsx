@@ -1,133 +1,81 @@
-import { useState } from "react";
+import { privacyMatrixColumns, privacyMatrixRows } from "../content/site";
 
-const columns = [
-  { id: "amon", label: "Amon" },
-  { id: "destination", label: "Destination" },
-  { id: "network", label: "Network" },
-  { id: "device", label: "Device" }
-];
-
-const rows = [
-  {
-    mode: "Search",
-    tone: "neutral",
-    cells: {
-      amon: "Brokers request",
-      destination: "Sees Amon",
-      network: "Sees Amon traffic",
-      device: "No saved history unless you save"
-    }
-  },
-  {
-    mode: "Local",
-    tone: "lime",
-    cells: {
-      amon: "Routes live page",
-      destination: "Sees Amon-mediated path",
-      network: "Sees Amon",
-      device: "Renders live page"
-    }
-  },
-  {
-    mode: "Clean",
-    tone: "lime",
-    cells: {
-      amon: "Fetches and extracts text",
-      destination: "Sees Amon retrieval",
-      network: "Sees Amon",
-      device: "Receives readable text"
-    }
-  },
-  {
-    mode: "Protected",
-    tone: "red",
-    cells: {
-      amon: "Runs remote session",
-      destination: "Sees Amon machine",
-      network: "Sees Amon",
-      device: "Controls session"
-    }
-  },
-  {
-    mode: "Workspace",
-    tone: "neutral",
-    cells: {
-      amon: "Cannot decrypt files",
-      destination: "Sees nothing",
-      network: "Sees nothing",
-      device: "Encrypted local work"
-    }
-  }
-];
+const stateLabels = {
+  visible: "Visible",
+  limited: "Limited",
+  "not-stored": "Not stored",
+  "local-only": "Local only",
+  "metadata-only": "Metadata only"
+};
 
 export function VisibilityMatrixDiagram() {
-  const [hovered, setHovered] = useState(null);
-
-  const isColumnActive = (columnId) => hovered?.column === columnId;
-  const isRowActive = (rowIndex) => hovered?.row === rowIndex;
-
   return (
-    <div
-      className="visibility-map"
-      onMouseLeave={() => setHovered(null)}
-      role="table"
-      aria-label="Who sees what depends on the request path."
-    >
-      <div className="visibility-map-header" role="row">
-        <div
-          className={`visibility-map-cell visibility-map-heading visibility-map-mode-heading${isColumnActive("mode") ? " is-col-hover" : ""}`}
-          role="columnheader"
-          onMouseEnter={() => setHovered({ row: null, column: "mode" })}
-        >
-          Mode
+    <div className="privacy-matrix" aria-label="Visibility matrix showing what each layer can see">
+      <div className="privacy-matrix-table" role="table" aria-label="Visibility matrix">
+        <div className="privacy-matrix-row privacy-matrix-header" role="row">
+          <div className="privacy-matrix-cell privacy-matrix-topic" role="columnheader">
+            Data
+          </div>
+
+          {privacyMatrixColumns.map((column) => (
+            <div key={column.id} className="privacy-matrix-cell" role="columnheader">
+              {column.label}
+            </div>
+          ))}
         </div>
 
-        {columns.map((column) => (
-          <div
-            key={column.id}
-            className={`visibility-map-cell visibility-map-heading${isColumnActive(column.id) ? " is-col-hover" : ""}`}
-            role="columnheader"
-            onMouseEnter={() => setHovered({ row: null, column: column.id })}
-          >
-            {column.label}
+        {privacyMatrixRows.map((row) => (
+          <div key={row.label} className="privacy-matrix-row" role="row">
+            <div className="privacy-matrix-cell privacy-matrix-topic" role="rowheader">
+              {row.label}
+            </div>
+
+            {privacyMatrixColumns.map((column) => {
+              const value = row.values[column.id];
+
+              return (
+                <div key={column.id} className="privacy-matrix-cell" role="cell">
+                  <span className={`privacy-status privacy-status-${value.state}`}>
+                    <i aria-hidden="true" />
+                    {stateLabels[value.state]}
+                  </span>
+                  <small>{value.detail}</small>
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
 
-      {rows.map((row, rowIndex) => (
-        <div
-          className={`visibility-map-row is-${row.tone}${isRowActive(rowIndex) ? " is-row-hover" : ""}`}
-          role="row"
-          key={row.mode}
-          onMouseEnter={() => setHovered({ row: rowIndex, column: null })}
-        >
-          <div
-            className={`visibility-map-cell visibility-map-mode${isRowActive(rowIndex) ? " is-row-hover" : ""}${isColumnActive("mode") ? " is-col-hover" : ""}${hovered?.row === rowIndex && hovered?.column === "mode" ? " is-target" : ""}`}
-            role="cell"
-            onMouseEnter={() => setHovered({ row: rowIndex, column: "mode" })}
-          >
-            <i />
-            <strong>{row.mode}</strong>
-          </div>
+      <div className="privacy-matrix-stack" aria-hidden="true">
+        {privacyMatrixRows.map((row) => (
+          <article key={row.label} className="privacy-matrix-stack-card">
+            <h3>{row.label}</h3>
 
-          {columns.map((column) => (
-            <div
-              key={column.id}
-              className={`visibility-map-cell${isRowActive(rowIndex) ? " is-row-hover" : ""}${isColumnActive(column.id) ? " is-col-hover" : ""}${hovered?.row === rowIndex && hovered?.column === column.id ? " is-target" : ""}`}
-              role="cell"
-              data-column={column.label}
-              onMouseEnter={() => setHovered({ row: rowIndex, column: column.id })}
-            >
-              {row.cells[column.id]}
+            <div className="privacy-matrix-stack-items">
+              {privacyMatrixColumns.map((column) => {
+                const value = row.values[column.id];
+
+                return (
+                  <div key={column.id} className="privacy-matrix-stack-item">
+                    <strong>{column.label}</strong>
+                    <span className={`privacy-status privacy-status-${value.state}`}>
+                      <i aria-hidden="true" />
+                      {stateLabels[value.state]}
+                    </span>
+                    <small>{value.detail}</small>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      ))}
-
-      <div className="visibility-map-note">
-        <strong>Identity-based services are different.</strong>
-        <span> If you log into a third-party account, that service can know who you are.</span>
+          </article>
+        ))}
       </div>
+
+      <p className="privacy-matrix-note">
+        Exact handling can vary by feature and release. Amon’s design goal is to minimize durable
+        identity-linked inquiry records.
+      </p>
     </div>
   );
 }

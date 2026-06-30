@@ -2,6 +2,10 @@
 
 This document describes the proof-of-concept tunnel layer wired into the iOS app.
 
+The tunnel bootstrap and validation paths described here are prototype internal
+contracts used for local development and testing. They are not a stable public
+API surface.
+
 ## What is in the repo
 
 - `ios/AmonApp/Amon/Amon/Tunnel/TunnelManager.swift`

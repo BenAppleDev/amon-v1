@@ -1,211 +1,138 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import {
+  CleanViewIcon,
+  OpenSiteIcon,
+  ProtectedSessionIcon,
+  SearchIcon,
+  WorkspaceIcon
+} from "./ProductIcons";
 
-const modes = [
+const paths = [
   {
-    id: "local",
-    label: "Local",
-    title: "Live site through Amon",
-    caption: "Open the real page in-app through the privacy route.",
-    chip: "Live",
-    accent: "var(--lime)"
+    id: "open-site",
+    name: "Open Site",
+    detail: "Use the real page through Amon when normal browsing is enough.",
+    summary: "Real page view through Amon.",
+    Icon: OpenSiteIcon
   },
   {
-    id: "clean",
-    label: "Clean View",
-    title: "Text extracted by Amon",
-    caption: "Amon retrieves the page and returns readable content.",
-    chip: "Text",
-    accent: "var(--lime)"
+    id: "clean-view",
+    name: "Clean View",
+    detail: "Read the page as extracted text when you only need the information.",
+    summary: "Readable content without the full site experience.",
+    Icon: CleanViewIcon
   },
   {
-    id: "protected",
-    label: "Protected Session",
-    title: "Remote-in through Amon",
-    caption: "Use the real site from an Amon-controlled machine.",
-    chip: "Remote",
-    accent: "var(--red)"
+    id: "protected-session",
+    name: "Protected Session",
+    detail: "Use a protected Amon-controlled session when a site needs interaction.",
+    summary: "Interactive browsing with stronger separation.",
+    Icon: ProtectedSessionIcon
   }
 ];
 
-function PhoneObject() {
-  return (
-    <div className="object-phone" aria-hidden="true">
-      <div className="object-phone-bar" />
-      <div className="object-phone-search" />
-      <div className="object-phone-result" />
-      <div className="object-phone-result short" />
-    </div>
-  );
-}
-
-function AmonMachineObject() {
-  return (
-    <div className="object-amon-machine" aria-hidden="true">
-      <div className="object-amon-mark">A</div>
-      <div className="object-machine-lines">
-        <span />
-        <span />
-        <span />
-      </div>
-    </div>
-  );
-}
-
-function WebsiteObject() {
-  return (
-    <div className="object-browser-window" aria-hidden="true">
-      <div className="browser-chrome">
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="browser-line strong" />
-      <div className="browser-line" />
-      <div className="browser-line short" />
-    </div>
-  );
-}
-
-function CleanTextObject() {
-  return (
-    <div className="object-clean-view" aria-hidden="true">
-      <div className="source-page-shadow" />
-      <div className="clean-page-card">
-        <span className="clean-kicker">Text</span>
-        <div className="clean-line strong" />
-        <div className="clean-line" />
-        <div className="clean-line short" />
-      </div>
-    </div>
-  );
-}
-
-function RemoteObject() {
-  return (
-    <div className="object-remote-session" aria-hidden="true">
-      <div className="remote-screen">
-        <div className="browser-chrome">
-          <span />
-          <span />
-          <span />
-        </div>
-        <div className="remote-dot" />
-        <div className="browser-line strong" />
-        <div className="browser-line short" />
-      </div>
-    </div>
-  );
-}
-
-function OutcomeObject({ mode }) {
-  if (mode === "clean") {
-    return <CleanTextObject />;
-  }
-
-  if (mode === "protected") {
-    return <RemoteObject />;
-  }
-
-  return <WebsiteObject />;
-}
+const results = [
+  "Neighborhood comparison guide",
+  "Rent trends and commute notes",
+  "School options and local services"
+];
 
 export function RequestFlowDiagram({ compact = false }) {
-  const [cycleIndex, setCycleIndex] = useState(1);
-  const [hoverMode, setHoverMode] = useState(null);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setCycleIndex((current) => (current + 1) % modes.length);
-    }, 10000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const activeMode = hoverMode ?? modes[cycleIndex].id;
-  const active = modes.find((mode) => mode.id === activeMode) ?? modes[1];
+  const [activePath, setActivePath] = useState("clean-view");
+  const active = paths.find((path) => path.id === activePath) ?? paths[1];
 
   return (
     <div
-      className={`request-router${compact ? " is-compact" : ""}`}
-      data-mode={activeMode}
-      style={{ "--active-accent": active.accent }}
+      className={`entry-flow${compact ? " is-compact" : ""}`}
+      role="img"
+      aria-label="Amon flow from a question, through Amon search results, into a chosen privacy path, and finally into a private workspace."
     >
-      <div className="request-router-header">
-        <span className="diagram-kicker">Request handling</span>
-        <strong>Every request enters Amon first.</strong>
+      <div className="entry-flow-rail" aria-hidden="true">
+        <span>Question</span>
+        <span>Amon</span>
+        <span>Search Results</span>
+        <span>Choose Path</span>
+        <span>Save Privately</span>
       </div>
 
-      <div className="request-router-stage">
-        <div className="router-object router-object-you">
-          <PhoneObject />
-          <span>You</span>
-          <p>Search, open, save.</p>
+      <div className="entry-flow-card entry-flow-input">
+        <div className="entry-flow-card-top">
+          <span className="entry-flow-step-label">Ask through Amon</span>
+          <SearchIcon />
         </div>
+        <strong>research a move without building a profile</strong>
+        <p>Start the question in Amon instead of handing it directly to the open web.</p>
+      </div>
 
-        <div className="router-connector" aria-hidden="true">
-          <span />
+      <div className="entry-flow-link" aria-hidden="true" />
+
+      <div className="entry-flow-card entry-flow-results">
+        <div className="entry-flow-card-top">
+          <span className="entry-flow-step-label">Search Results</span>
+          <span className="entry-flow-mini-label">Open through Amon</span>
         </div>
-
-        <div className="router-core">
-          <div className="router-core-object">
-            <AmonMachineObject />
-            <span>Amon privacy route</span>
-            <p>Always on for Amon browsing.</p>
-          </div>
-
-          <div
-            className="mode-switcher"
-            role="listbox"
-            aria-label="Preview request handling mode"
-            onMouseLeave={() => setHoverMode(null)}
-          >
-            {modes.map((mode) => (
-              <div
-                key={mode.id}
-                role="option"
-                tabIndex={0}
-                aria-selected={activeMode === mode.id}
-                className={`mode-switcher-option${activeMode === mode.id ? " is-active" : ""}`}
-                style={{ "--mode-accent": mode.accent }}
-                onMouseEnter={() => setHoverMode(mode.id)}
-                onFocus={() => setHoverMode(mode.id)}
-                onBlur={() => setHoverMode(null)}
-              >
-                {mode.chip}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="router-connector" aria-hidden="true">
-          <span />
-        </div>
-
-        <div className="router-object router-object-outcome">
-          <OutcomeObject mode={activeMode} />
-          <span>{active.label}</span>
-          <p>{active.caption}</p>
+        <div className="entry-flow-result-list">
+          {results.map((result, index) => (
+            <div
+              key={result}
+              className={`entry-flow-result${index === 1 ? " is-selected" : ""}`}
+            >
+              <strong>{result}</strong>
+              <span>{index === 1 ? "Selected result" : "Result"}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="workspace-route">
-        <div className="workspace-route-line" aria-hidden="true" />
-        <div className="router-workspace">
-          <div className="workspace-files" aria-hidden="true">
-            <span />
-            <span />
-            <span />
+      <div className="entry-flow-link" aria-hidden="true" />
+
+      <div className="entry-flow-choice-area">
+        <div className="entry-flow-card entry-flow-choice-card">
+          <div className="entry-flow-card-top">
+            <span className="entry-flow-step-label">Choose Path</span>
+            <span className="entry-flow-mini-label">Private where possible</span>
           </div>
-          <div>
-            <span>Workspace</span>
-            <p>Saved locally. Encrypted. Company-unreadable.</p>
+          <strong>Amon starts with the private option that fits the task.</strong>
+          <p>Amon tells you when a page needs more exposure than a simple read.</p>
+          <div className="entry-flow-paths">
+            {paths.map((path) => {
+              const Icon = path.Icon;
+
+              return (
+                <button
+                  key={path.id}
+                  type="button"
+                  className={`entry-flow-path${activePath === path.id ? " is-active" : ""}`}
+                  onMouseEnter={() => setActivePath(path.id)}
+                  onFocus={() => setActivePath(path.id)}
+                >
+                  <Icon />
+                  <span>{path.name}</span>
+                </button>
+              );
+            })}
           </div>
+        </div>
+
+        <div className="entry-flow-card entry-flow-active-path">
+          <div className="entry-flow-card-top">
+            <span className="entry-flow-step-label">{active.name}</span>
+            <span className="entry-flow-mini-label">Selected</span>
+          </div>
+          <strong>{active.summary}</strong>
+          <p>{active.detail}</p>
         </div>
       </div>
 
-      <div className="request-router-footer">
-        <strong>{active.title}</strong>
-        <span>No single system sees everything you search, open, and keep.</span>
+      <div className="entry-flow-save-link" aria-hidden="true" />
+
+      <div className="entry-flow-card entry-flow-save">
+        <div className="entry-flow-card-top">
+          <span className="entry-flow-step-label">Saved privately on your device</span>
+          <WorkspaceIcon />
+        </div>
+        <strong>Workspace</strong>
+        <p>Notes, sources, comparisons, and research stay in your local encrypted workspace.</p>
       </div>
     </div>
   );

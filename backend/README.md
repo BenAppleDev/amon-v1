@@ -9,6 +9,8 @@ FastAPI service for Amon v1.
   sessions, route-session rows, rate-limit metadata, and metadata-only protected-session ops records
 - provides transient search, retrieval, compare, and research endpoints
 - avoids durable storage of query text, result sets, and page content
+- includes prototype internal routes used for local ops and tunnel experiments; those routes appear in the
+  generated OpenAPI assets for completeness but are not a public API commitment
 
 ## Local setup
 

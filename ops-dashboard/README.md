@@ -1,12 +1,12 @@
 # Amon Ops Dashboard
 
-First internal dashboard shell for the metadata-only Protected Session ops surface.
+Prototype metadata-only dashboard for Amon's operator surface.
 
 ## What it is
 
 - Separate operator frontend for the existing metadata-only ops APIs
 - No page contents, frame contents, form values, DOM text dumps, or cookies
-- Intended for local, staging, and production ops environments
+- Intended for local testing and architecture evaluation
 
 ## Local development
 
@@ -51,30 +51,13 @@ The browser no longer stores the internal admin token after login. It uses a bac
 - Recent persisted metadata-only events
 - Durable metadata snapshot history
 
-## Future ops-subdomain deployment notes
+## Public-repo note
 
-For a future `ops.getamon.com` deployment:
-
-1. Recommended first pass: keep the UI backend-served and expose it through the backend at `/ops/`.
-2. Put `ops.getamon.com` behind a real operator identity layer such as Cloudflare Access, Tailscale, or another internal auth boundary.
-3. Configure the backend environment for:
-   - `OPS_SURFACE_ORIGIN`
-   - `OPS_BACKEND_PATH_PREFIX=/ops`
-   - `PUBLIC_SITE_ORIGINS`
-   - `OPS_FRONTEND_ORIGINS`
-   - `TRUST_PROXY_HEADERS=true`
-   - `TRUSTED_HOST_PATTERNS`
-4. Configure a trusted proxy or edge layer to inject:
-   - `X-Amon-Ops-Proxy-Secret`
-   - `X-Amon-Operator-Id`
-5. Set:
-   - `OPS_TRUSTED_PROXY_SECRET`
-   - `OPS_ENVIRONMENT_KEY`
-   - `OPS_ENVIRONMENT_LABEL`
-   - `OPS_SESSION_COOKIE_SECURE=true`
-   - `OPS_ALLOW_DEV_TOKEN_LOGIN=false`
-6. Keep the public website on Vercel and the product APIs on `api.getamon.com`. The ops surface is meant for a distinct operator trust boundary, not a public route.
-7. If you want `ops.getamon.com/` to feel root-mounted, use an edge rewrite to the backend’s `/ops/` routes for now. The repo-side ops mount is still `/ops`.
+This repo keeps the ops dashboard code because it demonstrates the intended
+operator boundary, but it should still be treated as prototype infrastructure.
+If you adapt it outside local development, use placeholder domains such as
+`ops.example.com`, put it behind a real identity layer, and avoid treating the
+current prototype routes as a stable public admin API.
 
 ## Deliberate non-features
 

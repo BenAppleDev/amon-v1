@@ -8,6 +8,217 @@ export const navLinks = [
   { to: "/contact", label: "Contact" }
 ];
 
+export const homeHowItWorks = [
+  {
+    title: "Ask",
+    text: "Search the web from Amon."
+  },
+  {
+    title: "Open",
+    text: "Open results through Amon."
+  },
+  {
+    title: "Choose",
+    text: "Use Clean View or Protected Session when a page needs a different privacy path."
+  },
+  {
+    title: "Save",
+    text: "Keep notes, sources, and comparisons in a local encrypted workspace."
+  }
+];
+
+export const privacyModeCards = [
+  {
+    id: "open-site",
+    name: "Open Site",
+    summary: "Use the real page through Amon when normal browsing is enough.",
+    detail: "For normal browsing when a direct page view is enough."
+  },
+  {
+    id: "clean-view",
+    name: "Clean View",
+    summary: "Read the page as extracted content when you only need the information.",
+    detail: "For reading and extracting information without loading the full live site experience."
+  },
+  {
+    id: "protected-session",
+    name: "Protected Session",
+    summary: "Use a protected Amon-controlled session when a site needs interaction.",
+    detail: "For interactive sites that need a stronger separation layer."
+  },
+  {
+    id: "workspace",
+    name: "Workspace",
+    summary: "Save sources, notes, comparisons, and research privately on your device.",
+    detail: "For saving sources, notes, comparisons, and research privately on your device."
+  }
+];
+
+export const trustPrinciples = [
+  {
+    title: "Account access",
+    text: "Your account authorizes access to Amon."
+  },
+  {
+    title: "Session handling",
+    text: "Your browsing session handles the task separately from saved work."
+  },
+  {
+    title: "Selected path",
+    text: "Destination sites see the selected Amon path, not your entire research context."
+  },
+  {
+    title: "Local workspace",
+    text: "Saved research stays encrypted on your device."
+  }
+];
+
+export const ordinaryUseCases = [
+  "Comparing neighborhoods or apartments",
+  "Researching health, legal, or financial questions",
+  "Planning travel",
+  "Comparing products or services",
+  "Reading sensitive topics",
+  "Saving research for later without creating a server-side memory trail"
+];
+
+export const productSections = [
+  {
+    id: "open-site",
+    name: "Open Site",
+    description: "Use the real page through Amon when normal browsing is enough.",
+    detail:
+      "When the full page is useful, Amon keeps the request in its own path while you browse the real site."
+  },
+  {
+    id: "clean-view",
+    name: "Clean View",
+    description:
+      "Amon retrieves the page, extracts readable content, and presents the information without requiring a full live site visit from your device.",
+    detail:
+      "It is built for reading, research, and comparison when you want the information without loading the full site experience."
+  },
+  {
+    id: "protected-session",
+    name: "Protected Session",
+    description:
+      "For sites that need interaction, Amon can run the session in a protected environment so the destination site interacts with an Amon-controlled session rather than directly with your device.",
+    detail:
+      "This is the path for sites that need forms, interaction, or a stronger separation layer."
+  },
+  {
+    id: "workspace",
+    name: "Workspace",
+    description:
+      "Save sources, notes, comparisons, and research locally on your device. Durable research should belong to the user, not become a readable server-side profile.",
+    detail:
+      "What you choose to keep lives in your encrypted local workspace rather than as a server-side memory trail."
+  }
+];
+
+export const privacyHighlights = [
+  {
+    title: "No durable query-to-account record",
+    text:
+      "Amon does not store query text, result sets, destination URLs, page bodies, protected-session content, or workspace data as server-side history."
+  },
+  {
+    title: "Company-unreadable saved work",
+    text: "What you save stays locally encrypted on your device. Amon cannot decrypt your local workspace files."
+  },
+  {
+    title: "Metadata-only operations",
+    text:
+      "Operations are designed around health, quota, policy, and abuse-prevention metadata, not readable user content."
+  }
+];
+
+export const privacyMechanismsPublic = [
+  {
+    title: "Separate layers",
+    text: "Your account authorizes access, your browsing uses separate session handling, and saved work stays on your device."
+  },
+  {
+    title: "Minimal retention",
+    text: "Amon is designed to avoid turning search terms, opened pages, and research artifacts into durable identity-linked history."
+  },
+  {
+    title: "Clear limits",
+    text: "If a task eventually requires you to identify yourself to a destination site, Amon can protect the path but it does not claim to erase that relationship."
+  }
+];
+
+export const privacyMatrixColumns = [
+  { id: "account", label: "Account / billing identity" },
+  { id: "session", label: "Amon browsing/session layer" },
+  { id: "site", label: "Destination site" },
+  { id: "workspace", label: "Local device workspace" },
+  { id: "ops", label: "Operations / diagnostics" }
+];
+
+export const privacyMatrixRows = [
+  {
+    label: "Account identity",
+    values: {
+      account: { state: "visible", detail: "Used for access and billing." },
+      session: { state: "limited", detail: "Separated from request handling." },
+      site: { state: "not-stored", detail: "Not sent by default." },
+      workspace: { state: "local-only", detail: "Only if you save account notes locally." },
+      ops: { state: "metadata-only", detail: "Access and quota metadata only." }
+    }
+  },
+  {
+    label: "Query text",
+    values: {
+      account: { state: "not-stored", detail: "No durable query-to-account history." },
+      session: { state: "limited", detail: "Handled to fulfill the request." },
+      site: { state: "limited", detail: "Depends on the selected path." },
+      workspace: { state: "local-only", detail: "Only if you choose to save it." },
+      ops: { state: "metadata-only", detail: "Operational metadata, not readable query logs." }
+    }
+  },
+  {
+    label: "Opened URLs",
+    values: {
+      account: { state: "not-stored", detail: "Not kept as durable account history." },
+      session: { state: "limited", detail: "Used to route the request." },
+      site: { state: "visible", detail: "Sees the page request it receives." },
+      workspace: { state: "local-only", detail: "Saved only when you keep a source." },
+      ops: { state: "metadata-only", detail: "Operational metadata only." }
+    }
+  },
+  {
+    label: "Page content",
+    values: {
+      account: { state: "not-stored", detail: "Not retained as account history." },
+      session: { state: "limited", detail: "Handled only as needed for the selected mode." },
+      site: { state: "visible", detail: "The destination serves the page it controls." },
+      workspace: { state: "local-only", detail: "Stored locally if you save notes or excerpts." },
+      ops: { state: "metadata-only", detail: "Diagnostics are not designed around readable content." }
+    }
+  },
+  {
+    label: "Saved notes / research",
+    values: {
+      account: { state: "not-stored", detail: "Not stored as server-side account history." },
+      session: { state: "not-stored", detail: "Not kept as durable request memory." },
+      site: { state: "not-stored", detail: "Destination sites do not receive your saved workspace." },
+      workspace: { state: "local-only", detail: "Encrypted and stored on your device." },
+      ops: { state: "metadata-only", detail: "Health and quota metadata only." }
+    }
+  },
+  {
+    label: "Operational metadata",
+    values: {
+      account: { state: "limited", detail: "Linked only for access and billing operations." },
+      session: { state: "visible", detail: "Needed to run and protect the service." },
+      site: { state: "limited", detail: "Receives the metadata normal web requests create." },
+      workspace: { state: "not-stored", detail: "Does not live in the local workspace by default." },
+      ops: { state: "visible", detail: "Used for health, quota, policy, and abuse prevention." }
+    }
+  }
+];
+
 export const homeBelief =
   "Inquiry should come before identification.";
 
@@ -252,7 +463,7 @@ export const faqItems = [
   {
     question: "What is Amon?",
     answer:
-      "Amon is a search and browsing app built to keep your questions from becoming a profile. It separates inquiry from identity, starts with the least exposing path, and makes the boundary clear when a task requires more exposure."
+      "Amon is a private entry point to the web for search, browsing, and research. It is built to keep your questions from becoming a profile."
   },
   {
     question: "Why not just use private mode?",
@@ -262,7 +473,7 @@ export const faqItems = [
   {
     question: "How long does Amon keep me anonymous?",
     answer:
-      "Amon is designed to maximize anonymity where possible, preserve it as long as possible, and make the tradeoff explicit when a task requires more exposure. If a page can be handled cleanly, it can stay detached. If the site needs interaction or identity, Amon makes that boundary clear."
+      "Amon is designed to keep inquiry private for as long as the task allows. If a page can stay simple, Amon uses the most private path that fits. If the site needs interaction or identity, Amon makes that change clear."
   },
   {
     question: "When does that protection change?",
@@ -272,17 +483,17 @@ export const faqItems = [
   {
     question: "Will Amon tell me when I am about to expose myself?",
     answer:
-      "That is the goal. Amon is designed to recommend the least exposing path first, then make it clear when a task needs live interaction, remote handling, or identity."
+      "That is the goal. Amon is designed to start with the private option that fits the task, then make it clear when a page needs live interaction, a protected session, or identity."
   },
   {
     question: "Is it a browser?",
     answer:
-      "Amon includes browsing, but it is not just a browser. It changes how each request is handled: live through Amon’s privacy route, as extracted text, or through a remote Amon session."
+      "Amon includes browsing, but it is not just a browser. It changes how each request is handled: as a normal page through Amon, as readable extracted text, or through a protected session."
   },
   {
     question: "Is it a VPN?",
     answer:
-      "Amon includes an app-level privacy route, but it does more than a VPN. A VPN protects the network path. Amon also changes how search, text extraction, remote browsing, and saved work are handled."
+      "Amon protects more than the network path. A VPN changes where traffic appears to come from. Amon also changes how search, readable extraction, protected sessions, and saved work are handled."
   },
   {
     question: "Does Amon store my history?",
@@ -302,7 +513,7 @@ export const faqItems = [
   {
     question: "What is Protected Session?",
     answer:
-      "Protected Session is remote-in browsing. Amon opens the real site from a controlled Amon machine, and you interact through that remote session instead of exposing your own device directly."
+      "Protected Session lets Amon run the site in a controlled environment so the destination interacts with an Amon-managed session rather than directly with your device."
   },
   {
     question: "What happens if I log into another service?",

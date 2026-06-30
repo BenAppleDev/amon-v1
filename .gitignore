@@ -1,13 +1,25 @@
 .DS_Store
 .env
+.env.*
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
+*.db
+*.sqlite
+*.sqlite3
 backend/amon_server.db
 DerivedData/
 website/node_modules/
 website/dist/
+backend/.env
+backend/.venv/
+backend/.pytest_cache/
+ios/AmonKit/.build/
+ios/AmonKit/.swiftpm/
+*.xcuserstate
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
 
 # >>> codex-evolve >>>
 /.worktrees/*

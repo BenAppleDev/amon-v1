@@ -1,30 +1,51 @@
 # Amon v1 Starter
 
-This repository is a local-development starter for Amon v1.
+Amon is a privacy-first applied AI prototype that explores how a research or retrieval assistant can be useful without turning the server or ops layer into a full content-surveillance system. This repo packages the current prototype surfaces together so a reviewer can inspect the architecture, run a local demo, and see how product, local storage, and operator boundaries fit together.
 
-## Included
+This is an honest starter, not a production-ready deployment. It contains working backend, website, and iOS scaffolding, along with prototype ops and tunnel tooling that are useful for evaluation and handoff but should not be treated as finished public infrastructure.
 
-- `backend/` — FastAPI backend with transient search, retrieve, compare, research endpoints
-- `website/` — React + Vite public-facing website for `getamon.com`
-- `ops-dashboard/` — internal metadata-only ops dashboard frontend
-- `shared/schema/` — SQL schema files for server and local encrypted storage
-- `shared/openapi/` — generated OpenAPI specification for the backend
-- `shared/http/` — ready-to-run HTTP request examples for the local dev flow
-- `ios/AmonKit/` — Swift Package with models, API client, storage, export/import, and SwiftUI scaffolding
-- `ios/AppTemplate/` — starter app files to drop into an iOS target
+## What this repo shows
 
-## What is already functional
+- `backend/` — FastAPI backend for auth, search, retrieve, compare, and research flows
+- `website/` — React + Vite public-facing site
+- `ops-dashboard/` — metadata-only prototype operator dashboard
+- `ios/AmonKit/` — Swift package with API client, local workspace storage, export/import, and SwiftUI scaffolding
+- `ios/AppTemplate/` — minimal files to drop into an iOS target
+- `shared/schema/` — SQL schema assets
+- `shared/openapi/` — generated OpenAPI spec for the prototype backend
+- `shared/http/` — ready-to-run local HTTP examples
 
-- dev auth flow
-- account/auth/access/session persistence on the server
-- transient search endpoint with mock provider and optional Brave provider
-- transient page retrieval and lightweight extraction
-- transient compare and research generation
-- local SQLite-backed workspace store on iOS starter
-- export/import utility using encrypted workspace bundles
-- backend tests
+## What works today
 
-## Recommended local flow
+- local dev auth flow
+- transient search with a mock provider and optional Brave-backed search
+- transient page retrieval, compare, and research generation
+- durable account/session metadata on the backend
+- local SQLite-backed workspace storage on iOS
+- encrypted export/import for local workspaces
+- backend test coverage for current server behavior
+
+## What is still prototype-grade
+
+- dev login is still present for local development
+- the iOS app is a starter package plus template, not a full shipped client
+- the ops surface is a prototype metadata-only dashboard, not a hardened admin product
+- deployment docs describe example shapes and placeholders, not a live public environment
+
+## Privacy and operator boundary
+
+- Query text, result sets, and page content are intended to be transient on the backend.
+- Durable backend storage is limited to account, session, entitlement, rate-limit, and metadata-only ops records.
+- Saved user work is intended to live in the client-side local store and export bundle.
+- Prototype internal routes appear in the generated OpenAPI spec for completeness, but they are not a public API commitment and should not be exposed as-is.
+
+## Prerequisites
+
+- Python `3.11+` for the backend
+- Node.js `18+` and `npm` if you want the website
+- Xcode `15+` and an iOS `17+` simulator or device if you want to try the iOS starter
+
+## Fastest local demo
 
 ### 1. Start the backend
 
@@ -38,27 +59,64 @@ python -m app.bootstrap
 uvicorn app.main:app --reload
 ```
 
-### 2. Inspect the API
+The default example config is local-only and uses the mock search provider unless you add your own local Brave key.
+
+### 2. Smoke-test the API
+
+In another shell:
+
+```bash
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/v1/auth/dev-login \
+  -H 'Content-Type: application/json' \
+  -d '{"apple_subject":"local-demo-user"}' | python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+
+curl -X POST http://127.0.0.1:8000/v1/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"privacy preserving AI tools","count":3}'
+```
+
+You can also open:
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
-- OpenAPI spec: `shared/openapi/amon-v1-openapi.yaml`
+- Ops shell: `http://127.0.0.1:8000/ops/`
 
-### 3. Start the iOS app
+### 3. Optional website
+
+```bash
+cd website
+npm install
+npm run dev
+```
+
+### 4. Optional iOS starter
 
 - Create a new iOS app target in Xcode.
 - Add `ios/AmonKit` as a local package.
 - Copy `ios/AppTemplate/AmonApp.swift` and `ios/AppTemplate/RootTabView.swift` into the target.
 - Run the app against the local backend.
 
-## Notes on privacy boundaries
+## Reviewer path
 
-- The backend persists durable account and access metadata, including auth identities, entitlements, auth sessions,
-  product sessions, route-session rows, rate-limit counters, and metadata-only protected-session ops records.
-- Queries, result sets, and page content are handled transiently.
-- Saved user work belongs in the local store and export bundle only.
+- Start with this file for the project story and local demo.
+- Read [ARCHITECTURE.md](/Users/ben/amon-v1/ARCHITECTURE.md) for the system shape and privacy boundary.
+- Read [VISION.md](/Users/ben/amon-v1/VISION.md) for the intended direction.
+- Read [docs/HANDOFF.md](/Users/ben/amon-v1/docs/HANDOFF.md) for maintainer-oriented setup and troubleshooting.
 
-## Deployment notes
+## Optional portfolio assets to add
 
-- Public site deployment notes: [website/README.md](/Users/ben/amon-v1/website/README.md)
-- Track 2 Cloudflare-oriented topology: [docs/deployment/cloudflare-track2-topology.md](/Users/ben/amon-v1/docs/deployment/cloudflare-track2-topology.md)
-- Deployment runbooks: [docs/deployment/deployment-runbooks.md](/Users/ben/amon-v1/docs/deployment/deployment-runbooks.md)
+If you want this repo to read more quickly in a fellowship or portfolio review, add:
+
+- a website screenshot
+- an iOS screenshot
+- an ops-dashboard screenshot
+- a simple architecture diagram
+
+## Additional docs
+
+- [backend/README.md](/Users/ben/amon-v1/backend/README.md)
+- [website/README.md](/Users/ben/amon-v1/website/README.md)
+- [ios/README.md](/Users/ben/amon-v1/ios/README.md)
+- [ops-dashboard/README.md](/Users/ben/amon-v1/ops-dashboard/README.md)
+- [docs/deployment/cloudflare-track2-topology.md](/Users/ben/amon-v1/docs/deployment/cloudflare-track2-topology.md)
+- [docs/deployment/deployment-runbooks.md](/Users/ben/amon-v1/docs/deployment/deployment-runbooks.md)

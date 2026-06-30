@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Amon API",
-    "description": "Amon v1 privacy-first retrieval backend. Queries and page content are handled transiently.",
+    "description": "Amon v1 privacy-first retrieval backend. Queries and page content are handled transiently. The generated spec also includes prototype internal routes used for local development and testing; those routes are not a public API commitment.",
     "version": "0.1.0"
   },
   "paths": {

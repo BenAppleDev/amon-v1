@@ -4,6 +4,8 @@ This directory contains the local laptop-side tunnel daemon for Amon's iPhone Pa
 
 It is separate from the FastAPI backend on purpose.
 
+The bootstrap and validation routes used here are prototype local contracts for development and testing. They are not a stable public API surface.
+
 ## What It Is
 
 `amon_tunnel_daemon.py` is a small asyncio TCP server that speaks the current Amon tunnel extension protocol.

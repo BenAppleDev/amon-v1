@@ -57,7 +57,7 @@ export function SiteLayout() {
 
             <div className="site-actions">
               <Link className="button button-secondary" to="/product">
-                Read product
+                See how it works
               </Link>
               <Link className="button" to="/contact">
                 Request access
@@ -78,7 +78,7 @@ export function SiteLayout() {
                 <span className="brand-word">Amon</span>
               </Link>
               <p className="footer-copy">
-                Use the web through different privacy paths.
+                A private entry point to the web.
               </p>
             </div>
 

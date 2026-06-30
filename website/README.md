@@ -1,6 +1,6 @@
 # Amon Public Website
 
-This folder contains the public-facing React site for `getamon.com`.
+This folder contains the public-facing React site for Amon.
 
 ## Why it lives here
 
@@ -40,6 +40,6 @@ For Vercel:
 2. Set **Root Directory** to `website`.
 3. Set the build command to `npm run build`.
 4. Set the output directory to `dist`.
-5. Attach `getamon.com`.
+5. Attach your public domain, for example `your-domain.example`.
 
 `vercel.json` includes an SPA rewrite so public routes such as `/privacy` and `/product` resolve correctly.

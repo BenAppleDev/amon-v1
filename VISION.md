@@ -1,34 +1,31 @@
 # Amon Vision
 
-Replace this template with the actual product vision.
+Amon explores what a privacy-first AI assistant could look like when the product is useful enough to support real research and comparison work, but still disciplined about what the server and operators are allowed to see.
 
-## Product thesis
+## Who it is for
 
-- What Amon is trying to become
-- Who it serves
-- What core job it does better than alternatives
+- people doing research, comparison, or synthesis work who want help from AI tools
+- teams that need clearer operational boundaries than "send everything to the cloud and inspect it later"
+- builders evaluating what a responsible local-first or metadata-limited workflow could look like
+
+## Product direction
+
+- Keep retrieval and research workflows practical and easy to demo.
+- Treat user queries and fetched page content as transient whenever possible.
+- Keep durable user work local to the client or export bundle rather than turning the backend into a permanent knowledge vault.
+- Give operators enough metadata to keep the system healthy without giving them routine access to page contents, form values, or user work product.
 
 ## Constraints
 
-- Privacy / security constraints
-- Platform constraints
-- Team / time constraints
-- Reliability constraints
+- privacy and user trust come before convenience for operators
+- prototype surfaces should stay easy to run locally and easy to understand
+- handoff matters: the repo should be readable by another engineer without hidden setup knowledge
+- public docs should stay honest about what is unfinished
 
-## What "better" means for this repo
+## What success looks like in this repo
 
-Use measurable criteria whenever possible:
-
-- correctness
-- product quality
-- speed / latency
-- clarity / maintainability
-- deployment reliability
-- user trust
-
-## Near-term priorities
-
-1. Baseline repo quality gates are reliable.
-2. Roadmap tasks are decomposed into bounded task specs.
-3. Each task can be evolved safely in candidate worktrees.
-4. Winning candidates are reviewed and promoted without destabilizing trunk.
+- a reviewer can understand the architecture quickly
+- the backend demo runs locally without hidden dependencies
+- the privacy/operator boundary is visible in both code and docs
+- internal or experimental routes are clearly marked as prototype-only
+- the project is credible as a public-interest AI systems prototype, even before full product hardening
